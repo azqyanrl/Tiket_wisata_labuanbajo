@@ -101,7 +101,7 @@ if (isset($_POST['register'])) {
     } else {
         // Simpan ke database dengan role 'admin'
         $simpan = $konek->query("INSERT INTO users (username, password, email, nama_lengkap, no_hp, role) 
-                                VALUES ('$username', '$password', '$email', '$nama', '$no_hp', 'admin')"); // DIUBAH DI SINI
+                                VALUES ('$username', '$password', '$email', '$nama', '$no_hp', 'admin')"); 
         
         if ($simpan) {
             echo "<script>alert('Registrasi berhasil! Silakan login.'); window.location='login.php';</script>";
