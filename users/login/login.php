@@ -59,29 +59,27 @@ if (isset($_POST['login'])) {
     $cek = $log->num_rows;
 
     if ($cek > 0) {
-        // Ambil data user
+        
         $data = $log->fetch_assoc();
 
-        // Verifikasi password yang terenkripsi
+      
         if (password_verify($password, $data['password'])) {
-            // Cek apakah user adalah admin
-            if ($data['role'] == 'admin') {
-                // Set session
+    
+            if ($data['role'] == 'user') {
+               
                 $_SESSION['username'] = $data['username'];
                 $_SESSION['role'] = $data['role'];
 
-                // Redirect ke dashboard admin
                 echo "<script>alert('Login berhasil! Selamat datang Admin'); window.location='../halaman/index.php';</script>";
             } else {
-                // Jika bukan admin
+                
                 echo "<script>alert('Akses ditolak! Hanya admin yang bisa login'); window.location='login.php';</script>";
             }
         } else {
-            // Password salah
+           
             echo "<script>alert('Password salah!'); window.location='login.php';</script>";
         }
     } else {
-        // Username tidak ditemukan
         echo "<script>alert('Username tidak ditemukan!'); window.location='login.php';</script>";
     }
 }
