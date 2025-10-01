@@ -1,6 +1,6 @@
 <?php session_start(); ?>
 
-<?php include '../boot.php'; ?>
+<?php include '../../includes/boot.php'; ?>
 <?php include '../../database/konek.php'; ?>
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@
     <title>Login | Labuan Bajo</title>
 </head>
 
-<body style="background:url('../image/padarhd.avif') no-repeat center center fixed; background-size:cover;">
+<body style="background:url('../../assets/images/hero/padarhd.avif') no-repeat center center fixed; background-size:cover;">
 
     <!-- Card Login -->
     <div class="container" style="max-width:500px; margin-top:200px;">
@@ -59,27 +59,29 @@ if (isset($_POST['login'])) {
     $cek = $log->num_rows;
 
     if ($cek > 0) {
-        
+        // Ambil data user
         $data = $log->fetch_assoc();
 
-      
+        // Verifikasi password yang terenkripsi
         if (password_verify($password, $data['password'])) {
-    
+            // Cek apakah user adalah admin
             if ($data['role'] == 'user') {
-               
+                // Set session
                 $_SESSION['username'] = $data['username'];
                 $_SESSION['role'] = $data['role'];
 
+                // Redirect ke dashboard admin
                 echo "<script>alert('Login berhasil! Selamat datang Admin'); window.location='../halaman/index.php';</script>";
             } else {
-                
+                // Jika bukan admin
                 echo "<script>alert('Akses ditolak! Hanya admin yang bisa login'); window.location='login.php';</script>";
             }
         } else {
-           
+            // Password salah
             echo "<script>alert('Password salah!'); window.location='login.php';</script>";
         }
     } else {
+        // Username tidak ditemukan
         echo "<script>alert('Username tidak ditemukan!'); window.location='login.php';</script>";
     }
 }

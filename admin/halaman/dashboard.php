@@ -22,7 +22,7 @@ if ($konek->connect_error) {
 
 // --- STATISTIK DASHBOARD ---
 // Menghitung total tiket yang tersedia di database
-$queryTotalTiket = "SELECT COUNT(*) as total FROM tickets";
+$queryTotalTiket = "SELECT COUNT(*) as total FROM tiket";
 $hasilTotalTiket = $konek->query($queryTotalTiket);
 $dataTotalTiket = $hasilTotalTiket->fetch_assoc();
 $totalTiketTersedia = $dataTotalTiket['total'];
@@ -61,7 +61,7 @@ $queryTransaksiTerbaru = "
         tk.harga AS harga_per_tiket
     FROM transactions t 
     JOIN users u ON t.user_id = u.id 
-    JOIN tickets tk ON t.ticket_id = tk.id 
+    JOIN tiket tk ON t.ticket_id = tk.id 
     ORDER BY t.tanggal_pesan DESC 
     LIMIT 5
 ";
