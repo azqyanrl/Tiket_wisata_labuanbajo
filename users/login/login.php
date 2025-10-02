@@ -71,7 +71,7 @@ if (isset($_POST['login'])) {
                 $_SESSION['role'] = $data['role'];
 
                 // Redirect ke dashboard admin
-                echo "<script>alert('Login berhasil! Selamat datang Admin'); window.location='../halaman/index.php';</script>";
+                echo "<script>alert('Login berhasil! Selamat datang'); window.location='../halaman/index.php';</script>";
             } else {
                 // Jika bukan admin
                 echo "<script>alert('Akses ditolak! Hanya admin yang bisa login'); window.location='login.php';</script>";

@@ -15,7 +15,7 @@
     <div class="container">
       <h1 style="font-size:3rem; font-weight:700; margin-bottom:20px;">Jelajahi Keindahan Labuan Bajo</h1>
       <p style="font-size:1.2rem; margin-bottom:30px;">Temukan pengalaman tak terlupakan dengan paket wisata terbaik kami</p>
-      <a href="tickets.html" class="btn btn-primary btn-lg" style="border-radius:30px; font-weight:600; padding:10px 25px;">Lihat Paket Tiket</a>
+      <a href="tickets.html" class="btn btn-primary btn-lg" style="border-radius:30px; font-weight:600; padding:10px 25px;"> Pesan Sekarang</a>
     </div>
   </div>
 
