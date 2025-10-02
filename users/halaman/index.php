@@ -10,7 +10,7 @@
 <body style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color:#f8f9fa; color:#333;">
 
   <!-- Hero Section -->
-  <div style="background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1558979158-65a1eaa08691?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80'); 
+  <div style="background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../../assets/images/hero/bermuda.jpg'); 
               background-size:cover; background-position:center; color:white; padding:100px 0; text-align:center;">
     <div class="container">
       <h1 style="font-size:3rem; font-weight:700; margin-bottom:20px;">Jelajahi Keindahan Labuan Bajo</h1>

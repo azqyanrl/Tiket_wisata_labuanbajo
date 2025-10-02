@@ -8,10 +8,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="..//users/halaman/index.php">Beranda</a></li>
-        <li class="nav-item"><a class="nav-link" href="..//users/halaman/destinasi.php">Destinasi</a></li>
-        <li class="nav-item"><a class="nav-link" href="..//users/halaman/gallery.php">Galeri</a></li>
-        <li class="nav-item"><a class="nav-link" href="..//users/login/login.php">Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="../users/halaman/index.php">Beranda</a></li>
+        <li class="nav-item"><a class="nav-link" href="../users/halaman/destinasi.php">Destinasi</a></li>
+        <li class="nav-item"><a class="nav-link" href="../users/halaman/gallery.php">Galeri</a></li>
+        <li class="nav-item"><a class="nav-link" href="../users/login/logout.php">Logout</a></li>
       </ul>
     </div>
   </div>

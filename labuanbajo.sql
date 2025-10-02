@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 29 Sep 2025 pada 01.46
--- Versi server: 8.0.30
--- Versi PHP: 8.1.10
+-- Generation Time: Oct 02, 2025 at 09:08 AM
+-- Server version: 8.0.30
+-- PHP Version: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,7 +24,7 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `galleries`
+-- Table structure for table `galleries`
 --
 
 CREATE TABLE `galleries` (
@@ -38,7 +38,7 @@ CREATE TABLE `galleries` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `payments`
+-- Table structure for table `payments`
 --
 
 CREATE TABLE `payments` (
@@ -52,7 +52,7 @@ CREATE TABLE `payments` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `ratings`
+-- Table structure for table `ratings`
 --
 
 CREATE TABLE `ratings` (
@@ -67,10 +67,10 @@ CREATE TABLE `ratings` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `tickets`
+-- Table structure for table `tiket`
 --
 
-CREATE TABLE `tickets` (
+CREATE TABLE `tiket` (
   `id` int NOT NULL,
   `nama_paket` varchar(100) NOT NULL,
   `deskripsi` text NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE `tickets` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `transactions`
+-- Table structure for table `transactions`
 --
 
 CREATE TABLE `transactions` (
@@ -100,7 +100,7 @@ CREATE TABLE `transactions` (
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `users`
+-- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
@@ -115,32 +115,32 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data untuk tabel `users`
+-- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `password`, `email`, `nama_lengkap`, `no_hp`, `role`, `created_at`) VALUES
-(1, 'nurulazqya91', '$2y$10$uQsMVmq2htnhdPv0nVGFxubZ3.lZR5AbG0Vsv2pkzvGDGr0hTl4rO', 'nurulazqya91@gmail.com', 'nurul azqya', '-', 'user', '2025-09-25 08:58:55'),
-(2, 'nurulazqya', '$2y$10$qMRZ5XcnzMFrJHbsy7P9suKNVrfjj8MP/1FMFLxvoYrDXDKtAeKv2', 'nurulazqya@student.smkn1rongga.sch.id', 'Azqya nurul', '-', 'admin', '2025-09-25 09:49:01');
+(1, 'nurulazqya', '$2y$10$Ppa.dT47Pr58xuZXEa2JpuFM7VDogewFZlegXEtJ/KYGKfB.RrDSS', 'nurulazqya@student.smkn1rongga.sch.id', 'nurul azqya', '', 'admin', '2025-09-30 08:45:54'),
+(5, 'qya', '$2y$10$Zpc.lmOh.AKQwoE0nGVrK.kPErimCnfXRlxp0QOd6i53cwzypWwmC', 'qya@gmail.com', 'nurul azqya', '', 'user', '2025-10-02 09:07:36');
 
 --
 -- Indexes for dumped tables
 --
 
 --
--- Indeks untuk tabel `galleries`
+-- Indexes for table `galleries`
 --
 ALTER TABLE `galleries`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `payments`
+-- Indexes for table `payments`
 --
 ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `transaction_id` (`transaction_id`);
 
 --
--- Indeks untuk tabel `ratings`
+-- Indexes for table `ratings`
 --
 ALTER TABLE `ratings`
   ADD PRIMARY KEY (`id`),
@@ -148,13 +148,13 @@ ALTER TABLE `ratings`
   ADD KEY `ticket_id` (`ticket_id`);
 
 --
--- Indeks untuk tabel `tickets`
+-- Indexes for table `tiket`
 --
-ALTER TABLE `tickets`
+ALTER TABLE `tiket`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indeks untuk tabel `transactions`
+-- Indexes for table `transactions`
 --
 ALTER TABLE `transactions`
   ADD PRIMARY KEY (`id`),
@@ -162,7 +162,7 @@ ALTER TABLE `transactions`
   ADD KEY `ticket_id` (`ticket_id`);
 
 --
--- Indeks untuk tabel `users`
+-- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
@@ -170,68 +170,68 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `email` (`email`);
 
 --
--- AUTO_INCREMENT untuk tabel yang dibuang
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT untuk tabel `galleries`
+-- AUTO_INCREMENT for table `galleries`
 --
 ALTER TABLE `galleries`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `payments`
+-- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `ratings`
+-- AUTO_INCREMENT for table `ratings`
 --
 ALTER TABLE `ratings`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `tickets`
+-- AUTO_INCREMENT for table `tiket`
 --
-ALTER TABLE `tickets`
+ALTER TABLE `tiket`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `transactions`
+-- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT untuk tabel `users`
+-- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+-- Constraints for dumped tables
 --
 
 --
--- Ketidakleluasaan untuk tabel `payments`
+-- Constraints for table `payments`
 --
 ALTER TABLE `payments`
   ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`);
 
 --
--- Ketidakleluasaan untuk tabel `ratings`
+-- Constraints for table `ratings`
 --
 ALTER TABLE `ratings`
   ADD CONSTRAINT `ratings_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`);
+  ADD CONSTRAINT `ratings_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tiket` (`id`);
 
 --
--- Ketidakleluasaan untuk tabel `transactions`
+-- Constraints for table `transactions`
 --
 ALTER TABLE `transactions`
   ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`);
+  ADD CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`ticket_id`) REFERENCES `tiket` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

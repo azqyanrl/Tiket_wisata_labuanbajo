@@ -1,45 +1,64 @@
-<footer class="footer mt-5 py-4" style="background:#212529; color:#adb5bd;">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <h5>Labuan Bajo Ticketing</h5>
-                <p>Platform tiket wisata terpercaya untuk menjelajahi keindahan Labuan Bajo dan sekitarnya.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="bi bi-facebook"></i></a>
-                    <a href="#"><i class="bi bi-twitter"></i></a>
-                    <a href="#"><i class="bi bi-instagram"></i></a>
-                    <a href="#"><i class="bi bi-youtube"></i></a>
+    <footer class="text-white" style="background-color: #212529; padding: 60px 0 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 style="font-weight: 700; margin-bottom: 20px; font-size: 1.5rem;">
+                        <i class="bi bi-geo-alt-fill" style="margin-right: 8px;"></i>Tiket Labuan Bajo
+                    </h5>
+                    <p style="color: #adb5bd; margin-bottom: 20px;">Platform terpercaya untuk pemesanan tiket perjalanan ke Labuan Bajo dan destinasi sekitarnya.</p>
+                    <div class="d-flex">
+                        <a href="#" class="text-white me-3" style="font-size: 1.2rem;"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white me-3" style="font-size: 1.2rem;"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white me-3" style="font-size: 1.2rem;"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white" style="font-size: 1.2rem;"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 style="font-weight: 600; margin-bottom: 20px;">Navigasi</h5>
+                    <ul class="list-unstyled" style="padding: 0;">
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Beranda</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Destinasi</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Promo</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Blog</a></li>
+                        <li><a href="#" style="color: #adb5bd; text-decoration: none;">Kontak</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 style="font-weight: 600; margin-bottom: 20px;">Informasi</h5>
+                    <ul class="list-unstyled" style="padding: 0;">
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Tentang Kami</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">FAQ</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Syarat & Ketentuan</a></li>
+                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Kebijakan Privasi</a></li>
+                        <li><a href="#" style="color: #adb5bd; text-decoration: none;">Karir</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4 mb-4">
+                    <h5 style="font-weight: 600; margin-bottom: 20px;">Kontak Kami</h5>
+                    <ul class="list-unstyled" style="padding: 0;">
+                        <li class="mb-3 d-flex align-items-center" style="color: #adb5bd;">
+                            <i class="bi bi-geo-alt me-3" style="font-size: 1.2rem;"></i>
+                            <span>Jl. Soekarno Hatta No. 88, Labuan Bajo, NTT</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center" style="color: #adb5bd;">
+                            <i class="bi bi-telephone me-3" style="font-size: 1.2rem;"></i>
+                            <span>+62 812 3456 7890</span>
+                        </li>
+                        <li class="mb-3 d-flex align-items-center" style="color: #adb5bd;">
+                            <i class="bi bi-envelope me-3" style="font-size: 1.2rem;"></i>
+                            <span>info@tiketlabuanbajo.com</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="col-md-2 mb-4">
-                <h5>Quick Links</h5>
-                <ul>
-                    <li><a href="index.html">Beranda</a></li>
-                    <li><a href="tickets.html">Tiket</a></li>
-                    <li><a href="gallery.html">Galeri</a></li>
-                    <li><a href="about.html">Tentang</a></li>
-                </ul>
-            </div>
-            <div class="col-md-2 mb-4">
-                <h5>Support</h5>
-                <ul>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Cara Pemesanan</a></li>
-                    <li><a href="#">Kebijakan Privasi</a></li>
-                    <li><a href="#">Syarat & Ketentuan</a></li>
-                </ul>
-            </div>
-            <div class="col-md-4 mb-4">
-                <h5>Kontak Kami</h5>
-                <ul>
-                    <li><i class="bi bi-geo-alt"></i> Jl. Soekarno Hatta, Labuan Bajo, Flores</li>
-                    <li><i class="bi bi-telephone"></i> +62 812 3456 7890</li>
-                    <li><i class="bi bi-envelope"></i> info@labuanbajotour.com</li>
-                </ul>
+            
+            <hr style="border-color: #495057; margin: 30px 0;">
+            
+            <div class="text-center" style="color: #adb5bd; font-size: 0.9rem;">
+                <p>&copy; 2025 Tiket Labuan Bajo. Hak Cipta Dilindungi.</p>
             </div>
         </div>
-        <div class="copyright">
-            <p>&copy; 2023 Labuan Bajo Ticketing. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+    </footer>
