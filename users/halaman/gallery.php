@@ -25,12 +25,6 @@
     <div class="col-md-4 fade-in">
       <div class="gallery-item"><img src="https://source.unsplash.com/600x400/?padar,island" class="img-fluid"></div>
     </div>
-    <div class="col-md-4 fade-in">
-      <div class="gallery-item"><img src="https://source.unsplash.com/600x400/?pink,beach" class="img-fluid"></div>
-    </div>
-    <div class="col-md-4 fade-in">
-      <div class="gallery-item"><img src="https://source.unsplash.com/600x400/?komodo" class="img-fluid"></div>
-    </div>
   </div>
 </section>
 
