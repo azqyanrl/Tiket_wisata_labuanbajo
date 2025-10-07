@@ -2,8 +2,11 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['user_id'])) {
-    echo "<script>alert('Silakan login terlebih dahulu.'); window.location='../login.php';</script>";
+
+if (empty($_SESSION['user_id'])) {
+    $_SESSION['flash_message'] = 'Silakan login terlebih dahulu.';
+    header('Location:../login/login.php');
     exit;
 }
+
 ?>
