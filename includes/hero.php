@@ -1,4 +1,4 @@
-<!-- includes/hero.php -->
+
 <?php
 function heroSection($title, $subtitle, $image, $height = '60vh') {
   echo "

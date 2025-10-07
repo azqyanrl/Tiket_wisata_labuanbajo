@@ -10,7 +10,8 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/halaman/index.php">Beranda</a></li>
         <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/halaman/destinasi.php">Destinasi</a></li>
-        <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/halaman/gallery.php">Galeri</a></li>
+        <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/halaman/galeri.php">Galeri</a></li>
+        <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/halaman/riwayat.php">Riwayat</a></li>
         <li class="nav-item"><a class="nav-link" href="/Tiket_wisata_labuanbajo/users/login/logout.php">Logout</a></li>
       </ul>
     </div>

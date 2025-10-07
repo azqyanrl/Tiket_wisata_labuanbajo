@@ -1,18 +1,4 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tiket Wisata - Labuan Bajo</title>
-</head>
-
-<body class="bg-light text-dark">
-
-  <!-- Navbar -->
-  <?php include '../../includes/navbar.php'; ?>
-  <?php include '../../includes/boot.php'; ?>
-
-  <!-- Hero Section -->
+ <!-- Hero Section -->
   <section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1558979158-65a1eaa08691?auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
     <div class="container py-5">
       <h1 class="display-4 fw-bold mb-3">Jelajahi Keindahan Labuan Bajo</h1>
@@ -22,72 +8,60 @@
       </a>
     </div>
   </section>
+<?php
+include '../../database/konek.php';
+include "session_cek.php";
+include '../../includes/navbar.php';
+include '../../includes/boot.php';
 
-  <!-- Main Content -->
-  <main class="container my-5">
-    <div class="mb-4">
-      <h2 class="fw-bold border-bottom pb-2">Semua Paket Tiket</h2>
-    </div>
+// Logika pencarian
+$cari = isset($_GET['cari']) ? trim($_GET['cari']) : '';
+if ($cari != '') {
+  $stmt = $konek->prepare("SELECT * FROM tiket WHERE status='aktif' AND nama_paket LIKE ?");
+  $param = "%$cari%";
+  $stmt->bind_param("s", $param);
+  $stmt->execute();
+  $result = $stmt->get_result();
+} else {
+  $result = $konek->query("SELECT * FROM tiket WHERE status='aktif' ORDER BY created_at DESC");
+}
+?>
 
-    <!-- Filter Section -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <select class="form-select">
-          <option selected>Semua Kategori</option>
-          <option>Adventure</option>
-          <option>Snorkeling</option>
-          <option>Trekking</option>
-          <option>Cultural</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <select class="form-select">
-          <option selected>Semua Durasi</option>
-          <option>1 Hari</option>
-          <option>2 Hari 1 Malam</option>
-          <option>3 Hari 2 Malam</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <select class="form-select">
-          <option selected>Semua Harga</option>
-          <option>Di bawah Rp 500.000</option>
-          <option>Rp 500.000 - Rp 1.000.000</option>
-          <option>Rp 1.000.000 - Rp 2.000.000</option>
-          <option>Di atas Rp 2.000.000</option>
-        </select>
-      </div>
-      <div class="col-md-3">
-        <button class="btn btn-primary w-100 rounded-pill fw-semibold">
-          <i class="bi bi-funnel me-1"></i> Terapkan Filter
-        </button>
-      </div>
-    </div>
+<div class="container my-5">
+  <h3 class="text-center mb-4">Destinasi Wisata</h3>
 
-    <!-- Ticket Cards -->
-    <div class="row" id="tickets">
-      <?php 
-              include '../../database/konek.php';
-    $tampil =$konek->query("SELECT * FROM tiket");
-    foreach ($tampil as $data){
+  <!-- Form Search -->
+  <form class="d-flex justify-content-center mb-4" method="get" action="">
+    <input type="text" name="cari" class="form-control w-50 me-2" placeholder="Cari destinasi..." value="<?= htmlspecialchars($cari); ?>">
+    <button type="submit" class="btn btn-primary">Cari</button>
+  </form>
+
+  <div class="row">
+    <?php
+    if ($result && $result->num_rows > 0) {
+      while ($data = $result->fetch_assoc()) {
         ?>
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
-          <img src="<?= $data['gambar'] ?>" class="card-img-top" alt="gagal load image" style="height:300px; object-fit:cover;">
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title fw-semibold"><?= $data['nama_paket'] ?></h5>
-            <p class="card-text flex-grow-1"><?= $data['deskripsi'] ?></p>
-            <div class="d-flex justify-content-between align-items-center mt-auto">
-              <span class="fw-bold text-primary">Rp<?= number_format($data['harga'], 0, ',', '.') ?></span>
-              <a href="detail_destinasi.php?id=<?= $data['id'] ?>" class="btn btn-outline-primary rounded-pill btn-sm">Detail</a>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm border-0">
+            <img src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>">
+            <div class="card-body">
+              <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
+              <p class="text-muted small"><?= htmlspecialchars(substr($data['deskripsi'], 0, 100)); ?>...</p>
+              <p class="fw-bold text-primary">Rp <?= number_format($data['harga'], 0, ',', '.'); ?></p>
+            </div>
+            <div class="card-footer bg-white text-end border-0">
+              <a href="detail_destinasi.php?id=<?= $data['id']; ?>" class="btn btn-sm btn-outline-primary">Lihat Detail</a>
             </div>
           </div>
         </div>
-      </div>
-      
-<?php } ?>
-    </div>
-</body>
-</html>
-<!-- Footer -->
-  <?php include '../../includes/footer.php'; ?>
+        <?php
+      }
+    } else {
+      echo "<div class='col-12 text-center text-muted'>Tidak ada destinasi ditemukan.</div>";
+    }
+    ?>
+  </div>
+</div>
+
+<?php include '../../includes/footer.php'; ?>
+

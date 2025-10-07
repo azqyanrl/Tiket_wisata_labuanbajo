@@ -57,10 +57,10 @@ if (isset($_GET['delete'])) {
                                     <?php
                                     $tampil=$konek->query("SELECT *FROM tiket");
                                     foreach ($tampil as $tiket){
-                                    $no++;
+                                    $id++ ;
                                     ?>
                                         <tr>
-                                            <td><?= $tiket['id'] ?></td>
+                                            <th scope="row"><?=$id?></th>
                                             <td>
                                                 <?php if (!empty($tiket['gambar'])): ?>
                                                     <img src="../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>"

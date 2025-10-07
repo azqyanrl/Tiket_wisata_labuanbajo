@@ -1,47 +1,53 @@
 <?php
-// Ambil data dari form
-$user_id   = $_SESSION['user_id'];
-$tiket_id  = $_POST['ticket_id'];
-$jumlah    = $_POST['jumlah'];
-$tanggal   = $_POST['tanggal']; // tambahkan input tanggal di form
+include '../../database/konek.php';
+include "session_cek.php";
 
-// Ambil harga dan stok default tiket
-$q_tiket = $konek->query("SELECT harga, stok FROM tiket WHERE id = $tiket_id");
-$tiket   = $q_tiket->fetch_assoc();
-$harga_total = $tiket['harga'] * $jumlah;
-
-// --- CEK STOK HARIAN ---
-$q_stok = $konek->query("SELECT * FROM stok_harian WHERE tiket_id = $tiket_id AND tanggal = '$tanggal'");
-
-if ($q_stok->num_rows == 0) {
-  // Belum ada stok untuk tanggal itu → buat baru
-  $stok_default = $tiket['stok'];
-  $konek->query("INSERT INTO stok_harian (tiket_id, tanggal, stok_awal, stok_tersisa)
-                 VALUES ($tiket_id, '$tanggal', $stok_default, $stok_default)");
-  $stok_tersisa = $stok_default;
-} else {
-  $data_stok = $q_stok->fetch_assoc();
-  $stok_tersisa = $data_stok['stok_tersisa'];
-}
-
-// --- VALIDASI JUMLAH PESANAN ---
-if ($stok_tersisa < $jumlah) {
-  echo "<script>alert('Stok tiket tidak cukup untuk tanggal tersebut. Tersisa: $stok_tersisa'); history.back();</script>";
+// Validasi user login
+if (!isset($_SESSION['user_id'])) {
+  echo "<script>alert('Silakan login terlebih dahulu.'); window.location='../login/login.php';</script>";
   exit;
 }
 
-// --- KURANGI STOK ---
-$konek->query("UPDATE stok_harian 
-               SET stok_tersisa = stok_tersisa - $jumlah 
-               WHERE tiket_id = $tiket_id AND tanggal = '$tanggal'");
+$user_id = $_SESSION['user_id'];
+$id_tiket = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$tanggal_kunjungan = $_GET['tanggal_kunjungan'] ?? '';
+$jumlah_tiket = isset($_GET['jumlah_tiket']) ? intval($_GET['jumlah_tiket']) : 1;
 
-// --- SIMPAN PEMESANAN ---
-$sql = "INSERT INTO pemesanan (user_id, tiket_id, tanggal_kunjungan, jumlah_tiket, total_harga, status)
-        VALUES ('$user_id', '$tiket_id', '$tanggal', '$jumlah', '$harga_total', 'pending')";
+// Validasi tanggal kunjungan
+if (empty($tanggal_kunjungan) || strtotime($tanggal_kunjungan) < strtotime(date('Y-m-d'))) {
+  echo "<script>alert('Tanggal kunjungan tidak valid.'); history.back();</script>";
+  exit;
+}
 
-if ($konek->query($sql)) {
-  echo "<script>alert('Tiket berhasil dipesan! Silakan lanjut ke pembayaran.'); window.location='../transaksi/riwayat.php';</script>";
+// Ambil data tiket
+$stmt = $konek->prepare("SELECT * FROM tiket WHERE id=?");
+$stmt->bind_param("i", $id_tiket);
+$stmt->execute();
+$tiket = $stmt->get_result()->fetch_assoc();
+
+if (!$tiket) {
+  echo "<script>alert('Data tiket tidak ditemukan.'); window.location='destinasi.php';</script>";
+  exit;
+}
+
+$total_harga = $tiket['harga'] * $jumlah_tiket;
+$kode_booking = 'LB' . date('YmdHis') . rand(100, 999);
+$jenis = 'booking';
+$metode = 'offline';
+$status = 'pending';
+
+// Simpan ke database
+$simpan = $konek->prepare("INSERT INTO pemesanan 
+  (kode_booking, user_id, tiket_id, jenis, tanggal_kunjungan, jumlah_tiket, total_harga, metode_pembayaran, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+$simpan->bind_param("siissdsss", $kode_booking, $user_id, $id_tiket, $jenis, $tanggal_kunjungan, $jumlah_tiket, $total_harga, $metode, $status);
+
+if ($simpan->execute()) {
+  echo "<script>
+          alert('Booking berhasil! Kode Booking Anda: $kode_booking');
+          window.location='riwayat.php';
+        </script>";
 } else {
-  echo "<script>alert('Terjadi kesalahan: " . $konek->error . "'); history.back();</script>";
+  echo "<script>alert('Gagal menyimpan data booking.'); history.back();</script>";
 }
 ?>

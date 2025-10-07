@@ -30,7 +30,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Password</label>
-                            <input type="text" name="password" class="form-control" required>
+                            <input type="password" name="password" class="form-control" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100" name="login">Login</button>
                     </form>
@@ -64,18 +64,21 @@ if (isset($_POST['login'])) {
 
         // Verifikasi password yang terenkripsi
         if (password_verify($password, $data['password'])) {
-            // Cek apakah user adalah admin
-            if ($data['role'] == 'user') {
-                // Set session
-                $_SESSION['username'] = $data['username'];
-                $_SESSION['role'] = $data['role'];
 
-                // Redirect ke dashboard admin
+            // ✅ Tambahan: Simpan user_id ke session
+            $_SESSION['user_id']  = $data['id'];  // <--- Tambahan penting agar tidak logout saat pesan tiket
+            $_SESSION['username'] = $data['username'];
+            $_SESSION['role']     = $data['role'];
+
+            // Cek apakah user adalah admin atau user
+            if ($data['role'] == 'admin') {
+                echo "<script>alert('Login admin berhasil!'); window.location='../../admin/index.php';</script>";
+            } elseif ($data['role'] == 'user') {
                 echo "<script>alert('Login berhasil! Selamat datang'); window.location='../halaman/index.php';</script>";
             } else {
-                // Jika bukan admin
-                echo "<script>alert('Akses ditolak! Hanya admin yang bisa login'); window.location='login.php';</script>";
+                echo "<script>alert('Role pengguna tidak dikenali!'); window.location='login.php';</script>";
             }
+
         } else {
             // Password salah
             echo "<script>alert('Password salah!'); window.location='login.php';</script>";

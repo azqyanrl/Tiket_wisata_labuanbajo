@@ -52,7 +52,7 @@
                     Pesan tiket perjalanan Anda ke surga tersembunyi di Indonesia. 
                     Nikmati pengalaman tak terlupakan dengan pemandangan spektakuler dan budaya yang memukau.
                 </p>
-                <a href="#tiket" class="btn btn-primary btn-lg rounded-pill px-4 fw-semibold">
+                <a href="#destinasi" class="btn btn-primary btn-lg rounded-pill px-4 fw-semibold">
                     <i class="bi bi-search me-2"></i>Cari Tiket
                 </a>
             </div>
@@ -84,14 +84,38 @@
 </div>
 
 
-
-  <!-- Destinasi -->
-  <section id="destinasi" style="padding:60px 0; background:#f8f9fa;">
-    <div class="container">
-      <h2 style="text-align:center; margin-bottom:40px; font-weight:bold;">Destinasi Populer</h2>
-      <div class="row" id="destinasiCards"></div>
+<!-- Destinasi -->
+<section id="destinasi" style="padding:60px 0; background:#f8f9fa;">
+  <div class="container">
+    <h2 style="text-align:center; margin-bottom:40px; font-weight:bold;">Destinasi Populer</h2>
+    
+    <!-- Ticket Cards -->
+    <div class="row" id="tickets">
+      <?php 
+        include '../database/konek.php';
+        $tampil = $konek->query("SELECT * FROM tiket");
+        foreach ($tampil as $data){
+      ?>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm">
+            <img src="<?= $data['gambar'] ?>" class="card-img-top" alt="gagal load image" style="height:300px; object-fit:cover;">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title fw-semibold"><?= $data['nama_paket'] ?></h5>
+              <p class="card-text flex-grow-1"><?= $data['deskripsi'] ?></p>
+              <div class="d-flex justify-content-between align-items-center mt-auto">
+                <span class="fw-bold text-primary">Rp<?= number_format($data['harga'], 0, ',', '.') ?></span>
+                <a href="detail_destinasi.php?id=<?= $data['id'] ?>" class="btn btn-outline-primary rounded-pill btn-sm">Detail</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      <?php 
+        } 
+      ?>
     </div>
-  </section>
+  </div>
+</section>
+
 
   <!-- Testimoni -->
   <section id="testimoni" style="padding:60px 0;">
@@ -126,33 +150,5 @@
     </div>
   </footer>
 
-  <!-- Script -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Data destinasi dinamis
-    const destinasi = [
-      { nama: "Pulau Padar", gambar: "img/padar.jpg", deskripsi: "Panorama bukit ikonik dengan pemandangan laut." },
-      { nama: "Pulau Komodo", gambar: "img/komodo.jpg", deskripsi: "Habitat asli Komodo, satwa purba dunia." },
-      { nama: "Pantai Pink", gambar: "img/pink.jpg", deskripsi: "Pantai dengan pasir berwarna merah muda unik." },
-      { nama: "Gili Laba", gambar: "img/laba.jpg", deskripsi: "Pemandangan sunset yang menakjubkan." }
-    ];
-
-    const destinasiContainer = document.getElementById("destinasiCards");
-
-    destinasi.forEach(d => {
-      destinasiContainer.innerHTML += `
-        <div class="col-md-6 col-lg-3 mb-4">
-          <div class="card h-100 shadow-sm" style="transition:all 0.3s ease; border-radius:12px; overflow:hidden; cursor:pointer;">
-            <img src="${d.gambar}" class="card-img-top" alt="${d.nama}" style="height:200px; object-fit:cover;">
-            <div class="card-body" style="padding:20px;">
-              <h5 class="card-title" style="font-weight:bold; color:#0d6efd;">${d.nama}</h5>
-              <p class="card-text" style="font-size:14px; color:#555;">${d.deskripsi}</p>
-              <a href="login.html" class="btn btn-primary" style="padding:8px 16px; border-radius:20px;">Pesan Tiket</a>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-  </script>
 </body>
 </html>
