@@ -16,7 +16,28 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
         </a>
     </div>
 </section>
-
+<div class="container my-5">
+  <div class="card shadow-lg border-0 rounded-4" style="height: 400px; overflow: hidden;">
+    <div class="row g-0 h-100">
+      <!-- Gambar di kiri -->
+      <div class="col-md-5 h-100">
+        <img src="https://images.unsplash.com/photo-1590523278191-995cbcda646b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+             class="img-fluid h-100 rounded-start-4" 
+             alt="Labuan Bajo"
+             style="object-fit: cover; width: 100%; height: 100%;">
+      </div>
+      <!-- Teks di kanan -->
+      <div class="col-md-7 d-flex align-items-center text-start">
+        <div class="p-4">
+          <h4 class="fw-bold mb-2">Labuan Bajo</h4>
+          <p class="text-muted mb-3 fs-5">
+            Labuan Bajo adalah kota kecil di ujung barat Pulau Flores, Nusa Tenggara Timur, yang kini menjadi destinasi wisata unggulan Indonesia sekaligus gerbang menuju Taman Nasional Komodo. Dikenal dengan panorama alamnya yang memukau, Labuan Bajo menawarkan keindahan pulau-pulau eksotis, lautan jernih dengan spot diving kelas dunia, hingga pemandangan savana dan sunset yang menawan. Selain sebagai rumah bagi komodo, kota ini juga menghadirkan kekayaan budaya lokal Flores, kuliner khas, serta pengalaman berlayar dengan kapal phinisi, menjadikannya salah satu ikon pariwisata Indonesia yang mendunia.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="container my-5">
     <h3 class="mb-4 text-center">Paket Wisata Unggulan</h3>
     <div class="row">

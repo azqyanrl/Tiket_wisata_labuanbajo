@@ -1,0 +1,1 @@
+<?php session_start(); include '../../database/konek.php'; if($_GET['id'] == $_SESSION['user_id']) { die("Tidak bisa menghapus akun sendiri."); } $stmt = $konek->prepare("DELETE FROM users WHERE id = ?"); $stmt->bind_param("i", $_GET['id']); $stmt->execute(); $_SESSION['success_message'] = "User berhasil dihapus."; header("Location: ../index.php?page=kelola_pengguna"); ?>

@@ -12,7 +12,7 @@
         <li class="nav-item"><a class="nav-link" href="destinasi.php">Destinasi</a></li>
         <li class="nav-item"><a class="nav-link" href="galeri.php">Galeri</a></li>
         <li class="nav-item"><a class="nav-link" href="riwayat.php">Riwayat</a></li>
-        <li class="nav-item"><a class="nav-link" href="logout.php">Logout</a></li>
+        <li class="nav-item"><a class="nav-link" href="../login/logout.php">Logout</a></li>
       </ul>
     </div>
   </div>

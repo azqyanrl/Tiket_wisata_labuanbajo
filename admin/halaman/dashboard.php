@@ -1,167 +1,39 @@
 <?php
-include '../../database/konek.php';
-include '../boot.php';
-
-session_start();
-
-if (!isset($_SESSION['username'])) {
-    echo "<script>document.location.href='../login/login.php';</script>";
-    exit;
-}
-
-// Tambahkan pengecekan role admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak! Hanya admin yang diizinkan.'); document.location.href='../login/login.php';</script>";
-    exit;
-}
-
-// Cek koneksi
-if ($konek->connect_error) {
-    die("Koneksi gagal: " . $konek->connect_error);
-}
-
-// --- STATISTIK DASHBOARD ---
-// Menghitung total tiket yang tersedia di database
-$queryTotalTiket = "SELECT COUNT(*) as total FROM tiket";
-$hasilTotalTiket = $konek->query($queryTotalTiket);
-$dataTotalTiket = $hasilTotalTiket->fetch_assoc();
-$totalTiketTersedia = $dataTotalTiket['total'];
-
-// Menghitung total user dengan role 'user' (bukan admin)
-$queryTotalUser = "SELECT COUNT(*) as total FROM users WHERE role = 'user'";
-$hasilTotalUser = $konek->query($queryTotalUser);
-$dataTotalUser = $hasilTotalUser->fetch_assoc();
-$totalUserTerdaftar = $dataTotalUser['total'];
-
-// Menghitung transaksi yang sudah dibayar (status 'paid')
-$queryTransaksiSukses = "SELECT COUNT(*) as total FROM transactions WHERE status = 'paid'";
-$hasilTransaksiSukses = $konek->query($queryTransaksiSukses);
-$dataTransaksiSukses = $hasilTransaksiSukses->fetch_assoc();
-$totalTransaksiBerhasil = $dataTransaksiSukses['total'];
-
-// Menghitung total pendapatan dari transaksi yang sudah dibayar
-$queryPendapatanTotal = "SELECT SUM(total_harga) as total FROM transactions WHERE status = 'paid'";
-$hasilPendapatan = $konek->query($queryPendapatanTotal);
-$dataPendapatan = $hasilPendapatan->fetch_assoc();
-$totalPendapatanKotor = $dataPendapatan['total'] ?? 0; // Handle jika tidak ada transaksi
-
-// --- DATA TRANSAKSI TERBARU ---
-// Mengambil 5 transaksi terbaru dengan detail lengkap
-$queryTransaksiTerbaru = "
-    SELECT 
-        t.id AS id_transaksi,
-        t.user_id,
-        t.ticket_id,
-        t.jumlah_tiket,
-        t.total_harga,
-        t.status,
-        t.tanggal_pesan,
-        u.nama_lengkap,
-        tk.nama_paket,
-        tk.harga AS harga_per_tiket
-    FROM transactions t 
-    JOIN users u ON t.user_id = u.id 
-    JOIN tiket tk ON t.ticket_id = tk.id 
-    ORDER BY t.tanggal_pesan DESC 
-    LIMIT 5
-";
-$hasilTransaksiTerbaru = $konek->query($queryTransaksiTerbaru);
-$daftarTransaksiTerbaru = [];
-
-// Ambil semua data transaksi terbaru
-while ($baris = $hasilTransaksiTerbaru->fetch_assoc()) {
-    $daftarTransaksiTerbaru[] = $baris;
-}
-
-// Tutup koneksi
-$konek->close();
+// --- QUERY STATISTIK DASHBOARD ---
+ $stmtTotal = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan"); $stmtTotal->execute(); $totalPemesanan = $stmtTotal->get_result()->fetch_assoc()['total'];
+ $stmtSelesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'"); $stmtSelesai->execute(); $totalSelesai = $stmtSelesai->get_result()->fetch_assoc()['total'];
+ $stmtPending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'"); $stmtPending->execute(); $totalPending = $stmtPending->get_result()->fetch_assoc()['total'];
+ $stmtPendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'"); $stmtPendapatan->execute(); $pendapatan = $stmtPendapatan->get_result()->fetch_assoc()['total'] ?? 0;
+// --- QUERY PEMESANAN TERBARU ---
+ $stmtRecent = $konek->prepare("SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, p.total_harga, p.status, p.created_at FROM pemesanan p JOIN users u ON p.user_id = u.id JOIN tiket t ON p.tiket_id = t.id ORDER BY p.created_at DESC LIMIT 5"); $stmtRecent->execute(); $recentBookings = $stmtRecent->get_result();
 ?>
-<!DOCTYPE html>
-<html lang="id">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Tiket Labuan Bajo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-</head>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Beranda</h1>
+</div>
 
-<body style="margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color:#f8f9fa;">
-    <!-- Main Content -->
-    <div style="flex:1; padding:20px;">
-        <div style="background:white; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1); padding:20px; margin-bottom:30px;">
-            <h1 style="margin:0 0 20px; color:#2c3e50;">Dashboard Admin</h1>
+<!-- Statistik Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6"><div class="card text-white bg-primary shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><div><h4 class="mb-0"><?php echo $totalPemesanan; ?></h4><p class="mb-0">Total Pemesanan</p></div><i class="bi bi-cart-check fs-1 opacity-75"></i></div></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="card text-white bg-success shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><div><h4 class="mb-0"><?php echo $totalSelesai; ?></h4><p class="mb-0">Berhasil</p></div><i class="bi bi-check-circle fs-1 opacity-75"></i></div></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="card text-white bg-warning shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><div><h4 class="mb-0"><?php echo $totalPending; ?></h4><p class="mb-0">Menunggu Bayar</p></div><i class="bi bi-clock-history fs-1 opacity-75"></i></div></div></div></div>
+    <div class="col-xl-3 col-md-6"><div class="card text-white bg-info shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><div><h4 class="mb-0">Rp <?php echo number_format($pendapatan, 0, ',', '.'); ?></h4><p class="mb-0">Pendapatan</p></div><i class="bi bi-currency-dollar fs-1 opacity-75"></i></div></div></div></div>
+</div>
 
-            <!-- Statistik Cards -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:30px;">
-                <div style="background:#e3f2fd; border-left:4px solid #2196f3; padding:20px; border-radius:5px;">
-                    <h3 style="margin:0 0 10px; color:#2196f3;"><?php echo $totalTiketTersedia; ?></h3>
-                    <p style="margin:0; color:#757575;">Total Tiket</p>
-                </div>
-                <div style="background:#e8f5e9; border-left:4px solid #4caf50; padding:20px; border-radius:5px;">
-                    <h3 style="margin:0 0 10px; color:#4caf50;"><?php echo $totalUserTerdaftar; ?></h3>
-                    <p style="margin:0; color:#757575;">Total User</p>
-                </div>
-                <div style="background:#fff3e0; border-left:4px solid #ff9800; padding:20px; border-radius:5px;">
-                    <h3 style="margin:0 0 10px; color:#ff9800;"><?php echo $totalTransaksiBerhasil; ?></h3>
-                    <p style="margin:0; color:#757575;">Transaksi</p>
-                </div>
-                <div style="background:#fce4ec; border-left:4px solid #e91e63; padding:20px; border-radius:5px;">
-                    <h3 style="margin:0 0 10px; color:#e91e63;">Rp <?php echo number_format($totalPendapatanKotor, 0, ',', '.'); ?></h3>
-                    <p style="margin:0; color:#757575;">Pendapatan</p>
-                </div>
-            </div>
-
-            <!-- Recent Transactions -->
-            <h2 class="text-dark mb-4">Transaksi Terbaru</h2>
-            <div class="table-responsive">
-                <table class="table table-bordered table-striped align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Tiket</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Tanggal</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($daftarTransaksiTerbaru)): ?>
-                            <?php foreach ($daftarTransaksiTerbaru as $transaction): ?>
-                                <tr>
-                                    <td><?php echo $transaction['id_transaksi']; ?></td>
-                                    <td><?php echo $transaction['nama_lengkap']; ?></td>
-                                    <td><?php echo $transaction['nama_paket']; ?></td>
-                                    <td>Rp <?php echo number_format($transaction['total_harga'], 0, ',', '.'); ?></td>
-                                    <td>
-                                        <?php if ($transaction['status'] == 'pending'): ?>
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        <?php elseif ($transaction['status'] == 'paid'): ?>
-                                            <span class="badge bg-success">Paid</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-danger">Cancelled</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td><?php echo date('d/m/Y', strtotime($transaction['tanggal_pesan'])); ?></td>
-                                    <td>
-                                        <a href="transactions/detail.php?id=<?php echo $transaction['id_transaksi']; ?>" class="btn btn-sm btn-primary">Detail</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="7" class="text-center">Tidak ada data transaksi</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    </div>
-</body>
-
-</html>
+<!-- Tabel Pemesanan Terbaru -->
+<h4 class="mb-3">Pemesanan Terbaru</h4>
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-light"><tr><th>Kode Booking</th><th>User</th><th>Tiket</th><th>Total</th><th>Status</th><th>Tanggal</th></tr></thead>
+        <tbody>
+            <?php if ($recentBookings->num_rows > 0) { 
+                while($row = $recentBookings->fetch_assoc()) { 
+                    $statusClass = ($row['status']=='pending')?'bg-warning text-dark':(($row['status']=='dibayar')?'bg-info':(($row['status']=='selesai')?'bg-success':'bg-danger')); 
+                    echo "<tr><td>{$row['kode_booking']}</td><td>{$row['nama_lengkap']}</td><td>{$row['nama_paket']}</td><td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td><td><span class='badge $statusClass'>" . ucfirst($row['status']) . "</span></td><td>" . date('d/m/Y', strtotime($row['created_at'])) . "</td></tr>"; 
+                } 
+            } else { 
+                echo "<tr><td colspan='6' class='text-center text-muted'>Tidak ada data.</td></tr>"; 
+            } ?>
+        </tbody>
+    </table>
+</div>

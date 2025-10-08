@@ -1,0 +1,1 @@
+<?php session_start(); include '../../database/konek.php'; $stmt = $konek->prepare("DELETE FROM tiket WHERE id = ?"); $stmt->bind_param("i", $_GET['id']); $stmt->execute(); $_SESSION['success_message'] = "Tiket berhasil dihapus."; header("Location: ../index.php?page=kelola_tiket"); ?>
