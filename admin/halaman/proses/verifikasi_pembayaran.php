@@ -1,6 +1,7 @@
 <?php
-session_start(); if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') { header('location: ../login/login.php'); exit; }
-include '../../database/konek.php';
+ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') { header('location: ../../login/login.php'); exit; }
+include '../../../database/konek.php';
+
 if (isset($_GET['id']) && isset($_GET['action'])) {
     $pemesanan_id = intval($_GET['id']); $action = $_GET['action'];
     if ($action === 'confirm') {
