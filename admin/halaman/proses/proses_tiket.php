@@ -1,15 +1,24 @@
 <?php
-include '../../../database/konek.php';
-include '../../../includes/boot.php';
-include '../../../proses/stok_harian.php'; // Tambahkan ini
+ob_start(); 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    header('location: ../login/login.php');
+    exit;
+}
+include $_SERVER['DOCUMENT_ROOT'] . '/Tiket_wisata_labuanbajo/database/konek.php';
+include $_SERVER['DOCUMENT_ROOT'] . '/Tiket_wisata_labuanbajo/includes/boot.php';
+include 'stok_harian.php';
 
- $editing = isset($_GET['id']);
+$editing = isset($_GET['id']);
 if ($editing) { 
     $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?"); 
     $query_tiket->bind_param("i", $_GET['id']); 
     $query_tiket->execute(); 
     $tiket = $query_tiket->get_result()->fetch_assoc(); 
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_paket = $_POST['nama_paket']; 
@@ -37,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query_insert->execute();
     }
     
-    $_SESSION['success_message'] = "Tiket berhasil disimpan."; 
-    header("Location: ../index.php?page=kelola_tiket"); 
+   $_SESSION['success_message'] = "Tiket berhasil disimpan."; 
+    header("Location: ../kelola_tiket.php"); 
     exit();
 }
 ?>

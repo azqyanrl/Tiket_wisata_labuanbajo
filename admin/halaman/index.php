@@ -63,7 +63,7 @@ if (!in_array($page, $allowed_pages)) {
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_pemesanan') ? 'active' : ''; ?>" href="?page=kelola_pemesanan"><i class="bi bi-list-check me-2"></i> Kelola Pemesanan</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'input_pembayaran') ? 'active' : ''; ?>" href="?page=input_pembayaran"><i class="bi bi-cash-coin me-2"></i> Input Pembayaran</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_tiket') ? 'active' : ''; ?>" href="?page=kelola_tiket"><i class="bi bi-ticket-perforated me-2"></i> Kelola Tiket</a></li>
-          <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_user') ? 'active' : ''; ?>" href="?page=kelola_user"><i class="bi bi-people me-2"></i> Kelola Pengguna</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_user') ? 'active' : ''; ?>" href="?page=kelola_user"><i class="bi bi-people me-2"></i> Kelola User</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_galeri') ? 'active' : ''; ?>" href="?page=kelola_galeri"><i class="bi bi-images me-2"></i> Kelola Galeri</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'laporan') ? 'active' : ''; ?>" href="?page=laporan"><i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan</a></li>
         </ul>

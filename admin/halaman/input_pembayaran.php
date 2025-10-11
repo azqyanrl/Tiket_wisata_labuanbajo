@@ -1,10 +1,13 @@
 <?php
 ob_start(); 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    header('location: ../../login/login.php');
+    header('location: ../login/login.php');
     exit;
 }
+
 
 // Sesuaikan path include karena file sudah dipindahkan
 include '../../database/konek.php';
