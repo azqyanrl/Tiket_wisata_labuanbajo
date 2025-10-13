@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
@@ -18,11 +20,21 @@ if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard'; // Kembali ke default
 }
 
-// --- PERUBAHAN PENTING DI SINI (DIKEMBALIKAN KE SEMULA) ---
+// Cek jika ini adalah request proses
+if (isset($_GET['action']) && $_GET['action'] === 'proses') {
+    // Path menuju file proses
+    $proses_file = __DIR__ . '/proses_' . $page . '.php';
+    if (file_exists($proses_file)) {
+        include $proses_file;
+        exit; // Hentikan eksekusi setelah proses selesai
+    } else {
+        die("File proses tidak ditemukan");
+    }
+}
+
 // Path menuju file halaman (di folder yang sama dengan index.php)
  $content_file = __DIR__ . '/' . $page . '.php';
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -69,7 +81,7 @@ if (!in_array($page, $allowed_pages)) {
         </ul>
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase"><span>Pengaturan</span></h6>
         <ul class="nav flex-column mb-2">
-          <li class="nav-item"><a class="nav-link text-danger" href="keluar.php"><i class="bi bi-box-arrow-right me-2"></i> Keluar</a></li>
+          <li class="nav-item"><a class="nav-link text-danger" href="../login/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
         </ul>
       </div>
     </nav>

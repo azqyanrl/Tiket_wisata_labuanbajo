@@ -1,7 +1,10 @@
-<?php 
-// Pastikan session sudah dimulai untuk menampilkan pesan
-if (session_status() == PHP_SESSION_NONE) {
+<?php
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    exit;
 }
 
 // Testing commit

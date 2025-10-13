@@ -4,7 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 include '../../database/konek.php';
 include "session_cek.php";
-// Tidak perlu include navbar/footer agar hasil cetak bersih
 
 // Validasi user login
 if (!isset($_SESSION['user_id'])) {
@@ -12,14 +11,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
- $kode_booking_user = isset($_GET['kode_booking']) ? trim($_GET['kode_booking']) : '';
+$kode_booking_user = isset($_GET['kode_booking']) ? trim($_GET['kode_booking']) : '';
 if (empty($kode_booking_user)) {
     echo "<div class='container my-5'><div class='alert alert-danger text-center'>Kode booking tidak ditemukan.</div></div>";
     exit;
 }
 
 // Ambil data booking
- $query_booking = $konek->prepare("
+$query_booking = $konek->prepare("
     SELECT 
         p.kode_booking, p.tanggal_kunjungan, p.jumlah_tiket, p.total_harga, p.status, p.metode_pembayaran, p.created_at,
         t.nama_paket, t.durasi,
@@ -27,14 +26,14 @@ if (empty($kode_booking_user)) {
     FROM pemesanan p
     JOIN tiket t ON p.tiket_id = t.id
     JOIN users u ON p.user_id = u.id
-    WHERE p.kode_booking = ? AND p.user_id = ? -- Tambahkan pengecekan user_id
+    WHERE p.kode_booking = ? AND p.user_id = ?
     LIMIT 1
 ");
- $query_booking->bind_param("si", $kode_booking_user, $_SESSION['user_id']);
- $query_booking->execute();
- $hasil_booking = $query_booking->get_result();
- $data_booking = $hasil_booking->fetch_assoc();
- $query_booking->close();
+$query_booking->bind_param("si", $kode_booking_user, $_SESSION['user_id']);
+$query_booking->execute();
+$hasil_booking = $query_booking->get_result();
+$data_booking = $hasil_booking->fetch_assoc();
+$query_booking->close();
 
 if (!$data_booking) {
     echo "<div class='container my-5'><div class='alert alert-warning text-center'>Data booking tidak ditemukan atau Anda tidak memiliki akses.</div></div>";
@@ -42,62 +41,145 @@ if (!$data_booking) {
 }
 ?>
 
-<!-- Bootstrap CSS untuk tampilan cetak -->
+<!-- Bootstrap CSS dan Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-<div class="container my-5" id="printArea">
-    <div class="card p-4 shadow-lg border-0">
-        <h4 class="text-center mb-4 fw-bold">Bukti Booking Tiket</h4>
-        
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Kode Booking</strong></div>
-            <div class="col-md-6"><?= htmlspecialchars($data_booking['kode_booking']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Nama Pemesan</strong></div>
-            <div class="col-md-6"><?= htmlspecialchars($data_booking['nama_lengkap']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Email</strong></div>
-            <div class="col-md-6"><?= htmlspecialchars($data_booking['email']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Nama Paket Wisata</strong></div>
-            <div class="col-md-6"><?= htmlspecialchars($data_booking['nama_paket']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Durasi Wisata</strong></div>
-            <div class="col-md-6"><?= htmlspecialchars($data_booking['durasi']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Tanggal Kunjungan</strong></div>
-            <div class="col-md-6"><?= date('d-m-Y', strtotime($data_booking['tanggal_kunjungan'])); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Jumlah Tiket</strong></div>
-            <div class="col-md-6"><?= intval($data_booking['jumlah_tiket']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Total Harga</strong></div>
-            <div class="col-md-6">Rp <?= number_format($data_booking['total_harga'], 0, ',', '.'); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Metode Pembayaran</strong></div>
-            <div class="col-md-6 text-capitalize"><?= htmlspecialchars($data_booking['metode_pembayaran']); ?></div>
-        </div>
-        <div class="row mb-2">
-            <div class="col-md-6"><strong>Status</strong></div>
-            <div class="col-md-6 text-capitalize"><?= ucfirst(htmlspecialchars($data_booking['status'])); ?></div>
-        </div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Card Utama -->
+            <div class="card shadow-lg border-0 overflow-hidden" id="printArea">
+                <!-- Card Header -->
+                <div class="card-header bg-primary text-white text-center py-4 position-relative">
+                    <div class="position-absolute top-0 start-0 p-3">
+                        <h1 class="h3 mb-0"><i class="bi bi-geo-alt-fill"></i> LB</h1>
+                    </div>
+                    <h2 class="card-title h2 mb-2">Bukti Booking Tiket</h2>
+                    <p class="card-text text-white-50 mb-0">Wisata Labuan Bajo - Nusa Tenggara Timur</p>
+                </div>
 
-        <hr class="my-3">
-        <p class="text-center text-muted mb-4">Silakan tunjukkan bukti booking ini kepada admin saat melakukan pembayaran.</p>
+                <!-- Card Body -->
+                <div class="card-body p-4">
+                    <!-- Informasi Utama -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="bi bi-upc-scan text-primary fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-0">Kode Booking</h6>
+                                    <h5 class="mb-0 fw-bold"><?= htmlspecialchars($data_booking['kode_booking']); ?></h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                    <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                                </div>
+                                <div>
+                                    <h6 class="text-muted mb-0">Status</h6>
+                                    <h5 class="mb-0">
+                                        <span class="badge bg-<?= $data_booking['status'] == 'confirmed' ? 'success' : 'warning'; ?> text-uppercase">
+                                            <?= htmlspecialchars($data_booking['status']); ?>
+                                        </span>
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Detail Informasi -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="text-primary fw-bold mb-3"><i class="bi bi-person-fill me-2"></i>Informasi Pemesan</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">Nama Lengkap</small>
+                                    <span class="fw-semibold"><?= htmlspecialchars($data_booking['nama_lengkap']); ?></span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Email</small>
+                                    <span class="fw-semibold"><?= htmlspecialchars($data_booking['email']); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="text-primary fw-bold mb-3"><i class="bi bi-geo-alt-fill me-2"></i>Detail Paket</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">Paket Wisata</small>
+                                    <span class="fw-semibold"><?= htmlspecialchars($data_booking['nama_paket']); ?></span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Durasi</small>
+                                    <span class="fw-semibold"><?= htmlspecialchars($data_booking['durasi']); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="text-primary fw-bold mb-3"><i class="bi bi-calendar3 me-2"></i>Jadwal Kunjungan</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">Tanggal</small>
+                                    <span class="fw-semibold"><?= date('d F Y', strtotime($data_booking['tanggal_kunjungan'])); ?></span>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Jumlah Tiket</small>
+                                    <span class="fw-semibold"><?= intval($data_booking['jumlah_tiket']); ?> Tiket</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 h-100">
+                                <h6 class="text-primary fw-bold mb-3"><i class="bi bi-currency-dollar me-2"></i>Informasi Pembayaran</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted d-block">Total Harga</small>
+                                    <h5 class="text-success mb-0">Rp <?= number_format($data_booking['total_harga'], 0, ',', '.'); ?></h5>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Metode</small>
+                                    <span class="fw-semibold text-capitalize"><?= htmlspecialchars($data_booking['metode_pembayaran']); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Catatan Penting -->
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                        <div>
+                            <strong>Catatan Penting:</strong> Silakan tunjukkan bukti booking ini kepada admin saat melakukan pembayaran.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="card-footer bg-light py-3 text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-telephone-fill me-1"></i> (0385) 123456 |
+                        <i class="bi bi-envelope-fill me-1"></i> info@labuanbajotourism.com
+                    </small>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="text-center mt-4 no-print">
+                <button class="btn btn-primary btn-lg px-5" onclick="window.print()">
+                    <i class="bi bi-printer-fill me-2"></i> Cetak Bukti Booking
+                </button>
+                <a href="riwayat.php" class="btn btn-outline-primary btn-lg px-5 ms-2">
+                    <i class="bi bi-arrow-left-circle me-2"></i> Kembali
+                </a>
+            </div>
+        </div>
     </div>
-</div>
-
-<div class="text-center no-print">
-    <button class="btn btn-primary" onclick="window.print()">Cetak Bukti Booking</button>
-    <button type="button" class="btn btn-primary" onclick="window.location.href='riwayat.php'">Kembali</button>
 </div>
 
 <style>
@@ -105,21 +187,66 @@ if (!$data_booking) {
         body * {
             visibility: hidden;
         }
-        #printArea, #printArea * {
+
+        #printArea,
+        #printArea * {
             visibility: visible;
         }
+
         #printArea {
             position: absolute;
             left: 0;
             top: 0;
+            width: 100%;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
         }
     }
-    .no-print {
-        display: block;
+
+    /* Custom styling */
+    .card {
+        border-radius: 1rem;
+        overflow: hidden;
     }
-    @media print {
-       .no-print {
-          display: none !important;
-       }
+
+    .card-header {
+        background: linear-gradient(135deg, #0d6efd, #0056b3) !important;
+    }
+
+    .border {
+        border-color: #e9ecef !important;
+        transition: all 0.3s ease;
+    }
+
+    .border:hover {
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
     }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

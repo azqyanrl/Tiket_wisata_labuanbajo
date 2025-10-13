@@ -1,5 +1,13 @@
-<?php 
-include '../../database/konek.php';
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    exit;
+}
+
+            include '../../database/konek.php';
 include '../boot.php';
 if (isset($_SESSION['success_message'])) { 
     echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.$_SESSION['success_message'].'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 

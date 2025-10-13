@@ -1,4 +1,12 @@
-<?php 
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    exit;
+}
+
 include '../../database/konek.php';
 include '../boot.php';
 

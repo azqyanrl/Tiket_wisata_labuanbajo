@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $gambar = $editing ? $tiket['gambar'] : '';
     if (!empty($_FILES['gambar']['name'])) { 
-        $upload_dir = '../../../assets/images/'; 
+        $upload_dir = '../../assets/images/'; 
         $gambar = basename($_FILES['gambar']['name']); 
         move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $gambar); 
     }

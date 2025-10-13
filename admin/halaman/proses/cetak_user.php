@@ -1,10 +1,12 @@
 <?php
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    header('location: ../../login/login.php');
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
-
 include '../../../database/konek.php';
 
 // ... sisa kode tidak berubah
