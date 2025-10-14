@@ -1,24 +1,23 @@
 <?php
-ob_start(); 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     header('location: ../login/login.php');
     exit;
 }
-include $_SERVER['DOCUMENT_ROOT'] . '/Tiket_wisata_labuanbajo/database/konek.php';
-include $_SERVER['DOCUMENT_ROOT'] . '/Tiket_wisata_labuanbajo/includes/boot.php';
-include 'stok_harian.php';
 
-$editing = isset($_GET['id']);
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
+
+ $editing = isset($_GET['id']);
 if ($editing) { 
     $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?"); 
     $query_tiket->bind_param("i", $_GET['id']); 
     $query_tiket->execute(); 
     $tiket = $query_tiket->get_result()->fetch_assoc(); 
 }
-
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_paket = $_POST['nama_paket']; 
@@ -27,13 +26,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $durasi = $_POST['durasi']; 
     $kategori = $_POST['kategori']; 
     $status = $_POST['status'];
-    $stok = $_POST['stok']; // Tambahkan ini
+    $stok = $_POST['stok'];
     
     $gambar = $editing ? $tiket['gambar'] : '';
     if (!empty($_FILES['gambar']['name'])) { 
         $upload_dir = '../../assets/images/'; 
-        $gambar = basename($_FILES['gambar']['name']); 
-        move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $gambar); 
+        
+        // Validasi tipe file
+        $imageFileType = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
+        $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
+        if (!in_array($imageFileType, $allowed_types)) {
+            $_SESSION['error_message'] = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
+            header("Location: ../kelola_tiket.php");
+            exit();
+        }
+        
+        // Validasi ukuran file (maksimal 2MB)
+        if ($_FILES['gambar']['size'] > 2097152) {
+            $_SESSION['error_message'] = "Maaf, ukuran file gambar terlalu besar. Maksimal 2MB.";
+            header("Location: ../kelola_tiket.php");
+            exit();
+        }
+        
+        // Generate nama file unik untuk menghindari duplikasi
+        $new_filename = uniqid() . '_' . basename($_FILES['gambar']['name']);
+        $target_file = $upload_dir . $new_filename;
+        
+        if (move_uploaded_file($_FILES['gambar']['tmp_name'], $target_file)) {
+            $gambar = $new_filename;
+            
+            // Hapus gambar lama jika ada
+            if ($editing && !empty($tiket['gambar'])) {
+                $old_file = $upload_dir . $tiket['gambar'];
+                if (file_exists($old_file)) {
+                    unlink($old_file);
+                }
+            }
+        } else {
+            $_SESSION['error_message'] = "Gagal mengupload gambar.";
+            header("Location: ../kelola_tiket.php");
+            exit();
+        }
     }
     
     if ($editing) {
@@ -46,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query_insert->execute();
     }
     
-   $_SESSION['success_message'] = "Tiket berhasil disimpan."; 
+    $_SESSION['success_message'] = "Tiket berhasil disimpan."; 
     header("Location: ../kelola_tiket.php"); 
     exit();
 }
@@ -54,31 +87,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5><a href="?page=kelola_tiket" class="btn-close"></a></div>
+            <div class="modal-header">
+                <h5 class="modal-title"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5>
+                <a href="?page=kelola_tiket" class="btn-close"></a>
+            </div>
             <form method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Nama Paket</label><input type="text" name="nama_paket" class="form-control" value="<?= $tiket['nama_paket'] ?? '' ?>" required></div>
-                    <div class="mb-3"><label class="form-label">Deskripsi</label><textarea name="deskripsi" class="form-control" required><?= $tiket['deskripsi'] ?? '' ?></textarea></div>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Paket</label>
+                        <input type="text" name="nama_paket" class="form-control" value="<?= htmlspecialchars($tiket['nama_paket'] ?? '') ?>" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Deskripsi</label>
+                        <textarea name="deskripsi" class="form-control" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="mb-3"><label class="form-label">Harga</label><input type="number" name="harga" class="form-control" value="<?= $tiket['harga'] ?? '' ?>" required></div>
+                            <div class="mb-3">
+                                <label class="form-label">Harga</label>
+                                <input type="number" name="harga" class="form-control" value="<?= htmlspecialchars($tiket['harga'] ?? '') ?>" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="mb-3"><label class="form-label">Stok Harian</label><input type="number" name="stok" class="form-control" value="<?= $tiket['stok'] ?? '0' ?>" required></div>
+                            <div class="mb-3">
+                                <label class="form-label">Stok Harian</label>
+                                <input type="number" name="stok" class="form-control" value="<?= htmlspecialchars($tiket['stok'] ?? '0') ?>" required>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="mb-3"><label class="form-label">Durasi</label><input type="text" name="durasi" class="form-control" value="<?= $tiket['durasi'] ?? '' ?>" required></div>
+                            <div class="mb-3">
+                                <label class="form-label">Durasi</label>
+                                <input type="text" name="durasi" class="form-control" value="<?= htmlspecialchars($tiket['durasi'] ?? '') ?>" required>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="mb-3"><label class="form-label">Kategori</label><input type="text" name="kategori" class="form-control" value="<?= $tiket['kategori'] ?? '' ?>" required></div>
+                            <div class="mb-3">
+                                <label class="form-label">Kategori</label>
+                                <input type="text" name="kategori" class="form-control" value="<?= htmlspecialchars($tiket['kategori'] ?? '') ?>" required>
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-3"><label class="form-label">Status</label><select name="status" class="form-select"><option value="aktif" <?= ($tiket['status'] ?? '') == 'aktif' ? 'selected' : '' ?>>Aktif</option><option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option></select></div>
-                    <div class="mb-3"><label class="form-label">Gambar</label><input type="file" name="gambar" class="form-control" accept="image/*"></div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="aktif" <?= ($tiket['status'] ?? '') == 'aktif' ? 'selected' : '' ?>>Aktif</option>
+                            <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gambar</label>
+                        <input type="file" name="gambar" class="form-control" accept="image/*">
+                        <?php if ($editing && !empty($tiket['gambar'])): ?>
+                            <div class="mt-2">
+                                <img src="../../assets/images/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary">Simpan</button><a href="?page=kelola_tiket" class="btn btn-secondary">Batal</a></div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <a href="?page=kelola_tiket" class="btn btn-secondary">Batal</a>
+                </div>
             </form>
         </div>
     </div>

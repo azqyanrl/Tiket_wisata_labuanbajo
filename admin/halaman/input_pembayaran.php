@@ -2,6 +2,7 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     header('location: ../login/login.php');
     exit;
@@ -12,10 +13,10 @@ include '../../database/konek.php';
 include '../../includes/boot.php';
 
 // Cari pemesanan berdasarkan kode booking
-$kode_booking = '';
-$pemesanan_data = null;
-$user_data = null;
-$tiket_data = null;
+ $kode_booking = '';
+ $pemesanan_data = null;
+ $user_data = null;
+ $tiket_data = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
     $kode_booking = $_POST['kode_booking'];
@@ -52,16 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
 </div>
 
 <?php if (isset($error_message)): ?>
-    <div class="alert alert-danger"><?php echo $error_message; ?></div>
+    <div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['error_message'])): ?>
-    <div class="alert alert-danger"><?php echo $_SESSION['error_message'];
+    <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error_message']);
                                     unset($_SESSION['error_message']); ?></div>
 <?php endif; ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
-    <div class="alert alert-success"><?php echo $_SESSION['success_message'];
+    <div class="alert alert-success"><?php echo htmlspecialchars($_SESSION['success_message']);
                                         unset($_SESSION['success_message']); ?></div>
 <?php endif; ?>
 
@@ -74,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
             <div class="row g-3">
                 <div class="col-md-8">
                     <label for="kode_booking" class="form-label">Kode Booking</label>
-                    <input type="text" class="form-control" id="kode_booking" name="kode_booking" value="<?php echo $kode_booking; ?>" required>
+                    <input type="text" class="form-control" id="kode_booking" name="kode_booking" value="<?php echo htmlspecialchars($kode_booking); ?>" required>
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" name="cari_booking" class="btn btn-primary w-100">Cari</button>
@@ -93,17 +94,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
             <div class="row">
                 <div class="col-md-6">
                     <h6>Informasi Pemesanan</h6>
-                    <p><strong>Kode Booking:</strong> <?php echo $pemesanan_data['kode_booking']; ?></p>
+                    <p><strong>Kode Booking:</strong> <?php echo htmlspecialchars($pemesanan_data['kode_booking']); ?></p>
                     <p><strong>Tanggal Kunjungan:</strong> <?php echo date('d/m/Y', strtotime($pemesanan_data['tanggal_kunjungan'])); ?></p>
-                    <p><strong>Jumlah Tiket:</strong> <?php echo $pemesanan_data['jumlah_tiket']; ?></p>
+                    <p><strong>Jumlah Tiket:</strong> <?php echo htmlspecialchars($pemesanan_data['jumlah_tiket']); ?></p>
                     <p><strong>Total Harga:</strong> Rp <?php echo number_format($pemesanan_data['total_harga'], 0, ',', '.'); ?></p>
-                    <p><strong>Status:</strong> <span class="badge bg-<?php echo ($pemesanan_data['status'] == 'pending') ? 'warning' : 'info'; ?>"><?php echo ucfirst($pemesanan_data['status']); ?></span></p>
+                    <p><strong>Status:</strong> <span class="badge bg-<?php echo ($pemesanan_data['status'] == 'pending') ? 'warning' : 'info'; ?>"><?php echo ucfirst(htmlspecialchars($pemesanan_data['status'])); ?></span></p>
                 </div>
                 <div class="col-md-6">
                     <h6>Informasi Pengguna</h6>
-                    <p><strong>Nama Lengkap:</strong> <?php echo $user_data['nama_lengkap']; ?></p>
-                    <p><strong>Email:</strong> <?php echo $user_data['email']; ?></p>
-                    <p><strong>No. HP:</strong> <?php echo $user_data['no_hp']; ?></p>
+                    <p><strong>Nama Lengkap:</strong> <?php echo htmlspecialchars($user_data['nama_lengkap']); ?></p>
+                    <p><strong>Email:</strong> <?php echo htmlspecialchars($user_data['email']); ?></p>
+                    <p><strong>No. HP:</strong> <?php echo htmlspecialchars($user_data['no_hp']); ?></p>
                     <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalCetakUser">
                         <i class="bi bi-printer"></i> Cetak Data User
                     </button>
@@ -117,9 +118,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
             <h5>Proses Pembayaran</h5>
         </div>
         <div class="card-body">
-            <form method="POST" action="proses_pembayaran.php">
-                <input type="hidden" name="pemesanan_id" value="<?php echo $pemesanan_data['id']; ?>">
-                <input type="hidden" name="kode_booking" value="<?php echo $pemesanan_data['kode_booking']; ?>">
+            <form method="POST" action="proses/proses_pembayaran.php">
+                <input type="hidden" name="pemesanan_id" value="<?php echo htmlspecialchars($pemesanan_data['id']); ?>">
+                <input type="hidden" name="kode_booking" value="<?php echo htmlspecialchars($pemesanan_data['kode_booking']); ?>">
 
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -127,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
                         <select class="form-select" id="metode_pembayaran" name="metode_pembayaran" required>
                             <option value="">Pilih Metode Pembayaran</option>
                             <option value="tunai">Tunai</option>
-                            <option value="e-wallet">Qris</option>
+                            <option value="Qris">Qris</option>
                         </select>
                     </div>
                     <div class="col-12">
@@ -162,17 +163,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
                                 <tr>
                                     <td width="30%">Nama Lengkap</td>
                                     <td width="5%">:</td>
-                                    <td><?php echo $user_data['nama_lengkap']; ?></td>
+                                    <td><?php echo htmlspecialchars($user_data['nama_lengkap']); ?></td>
                                 </tr>
                                 <tr>
                                     <td>Email</td>
                                     <td>:</td>
-                                    <td><?php echo $user_data['email']; ?></td>
+                                    <td><?php echo htmlspecialchars($user_data['email']); ?></td>
                                 </tr>
                                 <tr>
                                     <td>No. HP</td>
                                     <td>:</td>
-                                    <td><?php echo $user_data['no_hp']; ?></td>
+                                    <td><?php echo htmlspecialchars($user_data['no_hp']); ?></td>
                                 </tr>
                             </table>
                         </div>
@@ -182,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
                                 <tr>
                                     <td width="30%">Kode Booking</td>
                                     <td width="5%">:</td>
-                                    <td><?php echo $pemesanan_data['kode_booking']; ?></td>
+                                    <td><?php echo htmlspecialchars($pemesanan_data['kode_booking']); ?></td>
                                 </tr>
                                 <tr>
                                     <td>Tanggal Kunjungan</td>
@@ -192,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cari_booking'])) {
                                 <tr>
                                     <td>Jumlah Tiket</td>
                                     <td>:</td>
-                                    <td><?php echo $pemesanan_data['jumlah_tiket']; ?></td>
+                                    <td><?php echo htmlspecialchars($pemesanan_data['jumlah_tiket']); ?></td>
                                 </tr>
                                 <tr>
                                     <td>Total Harga</td>

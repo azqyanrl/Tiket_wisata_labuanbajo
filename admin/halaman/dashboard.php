@@ -2,12 +2,13 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
-            include '../../database/konek.php';
+include '../../database/konek.php';
 include '../../includes/boot.php';
 
 // --- QUERY STATISTIK DASHBOARD ---
@@ -33,10 +34,10 @@ include '../../includes/boot.php';
 
 // --- QUERY PEMESANAN TERBARU ---
  $query_recent = $konek->prepare("SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, p.total_harga, p.status, p.created_at 
-                                FROM pemesanan p 
-                                JOIN users u ON p.user_id = u.id 
-                                JOIN tiket t ON p.tiket_id = t.id 
-                                ORDER BY p.created_at DESC LIMIT 5");
+                               FROM pemesanan p 
+                               JOIN users u ON p.user_id = u.id 
+                               JOIN tiket t ON p.tiket_id = t.id 
+                               ORDER BY p.created_at DESC LIMIT 5");
  $query_recent->execute();
  $recentBookings = $query_recent->get_result();
 ?>
@@ -120,11 +121,11 @@ include '../../includes/boot.php';
                 while($row = $recentBookings->fetch_assoc()) { 
                     $statusClass = ($row['status']=='pending')?'bg-warning text-dark':(($row['status']=='dibayar')?'bg-info':(($row['status']=='selesai')?'bg-success':'bg-danger')); 
                     echo "<tr>
-                        <td>{$row['kode_booking']}</td>
-                        <td>{$row['nama_lengkap']}</td>
-                        <td>{$row['nama_paket']}</td>
+                        <td>" . htmlspecialchars($row['kode_booking']) . "</td>
+                        <td>" . htmlspecialchars($row['nama_lengkap']) . "</td>
+                        <td>" . htmlspecialchars($row['nama_paket']) . "</td>
                         <td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td>
-                        <td><span class='badge $statusClass'>" . ucfirst($row['status']) . "</span></td>
+                        <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($row['status'])) . "</span></td>
                         <td>" . date('d/m/Y', strtotime($row['created_at'])) . "</td>
                     </tr>"; 
                 } 

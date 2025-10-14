@@ -1,5 +1,4 @@
 <?php
-// Tidak ada output apapun sebelum header
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -9,7 +8,8 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-include '../../database/konek.php';
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 // Proses pembayaran
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proses_pembayaran'])) {
@@ -56,16 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proses_pembayaran']))
             $query_payment->execute();
         }
 
-        $_SESSION['success_message'] = "Pembayaran berhasil dicatat untuk kode booking: " . $kode_booking;
-        header("Location: index.php?page=kelola_pemesanan");
+        $_SESSION['success_message'] = "Pembayaran berhasil dicatat untuk kode booking: " . htmlspecialchars($kode_booking);
+        header("Location: ../index.php?page=kelola_pemesanan");
         exit();
     } else {
         $_SESSION['error_message'] = "Gagal memproses pembayaran. Data pemesanan tidak ditemukan.";
-        header("Location: index.php?page=input_pembayaran");
+        header("Location: ../index.php?page=input_pembayaran");
         exit();
     }
 }
 
 // Jika bukan POST request, redirect ke halaman input pembayaran
-header("Location: index.php?page=input_pembayaran");
+header("Location: ../index.php?page=input_pembayaran");
 exit();
+?>

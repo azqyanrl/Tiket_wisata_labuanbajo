@@ -1,17 +1,18 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
 include '../../database/konek.php';
-include '../boot.php';
+include '../../includes/boot.php';
+
 if (isset($_SESSION['success_message'])) { 
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.$_SESSION['success_message'].'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.htmlspecialchars($_SESSION['success_message']).'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 
     unset($_SESSION['success_message']); 
 } 
 ?>
@@ -53,14 +54,14 @@ if (isset($_SESSION['success_message'])) {
                     }
                     
                     echo "<tr>
-                        <td><img src='../../assets/images/{$data['gambar']}' width='60' class='rounded'></td>
-                        <td>{$data['nama_paket']}</td>
+                        <td><img src='../../assets/images/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
+                        <td>".htmlspecialchars($data['nama_paket'])."</td>
                         <td>Rp " . number_format($data['harga'], 0, ',', '.') . "</td>
-                        <td>{$stok_tersedia}</td>
-                        <td><span class='badge bg-" . (($data['status']=='aktif') ? 'success' : 'danger') . "'>" . ucfirst($data['status']) . "</span></td>
+                        <td>" . htmlspecialchars($stok_tersedia) . "</td>
+                        <td><span class='badge bg-" . (($data['status']=='aktif') ? 'success' : 'danger') . "'>" . ucfirst(htmlspecialchars($data['status'])) . "</span></td>
                         <td>
-                            <a href='?page=kelola_tiket&action=edit&id={$data['id']}' class='btn btn-sm btn-warning'>Edit</a> 
-                            <a href='proses/hapus_tiket.php?id={$data['id']}' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin hapus?\")'>Hapus</a>
+                            <a href='?page=kelola_tiket&action=edit&id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-warning'>Edit</a> 
+                            <a href='proses/hapus_tiket.php?id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin hapus?\")'>Hapus</a>
                         </td>
                     </tr>"; 
                 } 

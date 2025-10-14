@@ -1,16 +1,33 @@
 <?php
-session_start();
-include "../../../database/konek.php";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "ID tidak valid.";
-    header("Location: data_siswa.php");
+    header("Location: ../kelola_tiket.php");
     exit;
 }
 
-$id = (int)$_GET['id'];
+ $id = (int)$_GET['id'];
 
-$konek->begin_transaction();
+// Cek apakah ada pemesanan yang terkait dengan tiket ini
+ $cek_pemesanan = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE tiket_id = ?");
+ $cek_pemesanan->bind_param("i", $id);
+ $cek_pemesanan->execute();
+ $result_cek = $cek_pemesanan->get_result();
+ $data_cek = $result_cek->fetch_assoc();
+
+if ($data_cek['total'] > 0) {
+    $_SESSION['error_message'] = "Tidak dapat menghapus tiket yang sudah memiliki pemesanan.";
+    header("Location: ../kelola_tiket.php");
+    exit;
+}
+
+ $konek->begin_transaction();
 
 try {
     // Hapus data terkait dulu
@@ -32,5 +49,6 @@ try {
     $_SESSION['error_message'] = "Gagal menghapus tiket: " . $e->getMessage();
 }
 
-header("Location: data_siswa.php");
+header("Location: ../kelola_tiket.php");
 exit;
+?>

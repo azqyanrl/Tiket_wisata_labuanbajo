@@ -1,14 +1,15 @@
 <?php
-ob_start(); 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     header('location: ../login/login.php');
     exit;
 }
 
 include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 // Pastikan ID dan Aksi ada sebelum memproses
 if (isset($_GET['id']) && isset($_GET['action'])) {

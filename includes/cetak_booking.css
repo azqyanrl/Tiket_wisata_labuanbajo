@@ -1,0 +1,105 @@
+.card {
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #0d6efd, #0056b3) !important;
+}
+
+.border {
+    border-color: #e9ecef !important;
+    transition: all 0.3s ease;
+}
+
+.border:hover {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
+}
+
+
+@media print {
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        background: white !important;
+        font-size: 14px;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #printArea,
+    #printArea * {
+        visibility: visible;
+    }
+
+    #printArea {
+        position: relative;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    /* Pertahankan semua warna dan layout */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        background-color: white !important;
+        transform: none !important;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0d6efd, #0056b3) !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .badge {
+        -webkit-print-color-adjust: exact !important;
+        color: white !important;
+    }
+
+    /* Hapus efek hover */
+    .border:hover,
+    .btn-primary:hover,
+    .btn-outline-primary:hover {
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
+    /* Pastikan tidak ada scroll atau potongan */
+    html, body {
+        height: auto;
+        overflow: visible !important;
+    }
+}

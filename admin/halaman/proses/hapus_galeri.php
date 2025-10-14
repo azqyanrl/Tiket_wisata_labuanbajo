@@ -1,22 +1,46 @@
 <?php
-session_start();
-include '../../../database/konek.php'; // Path ini mungkin perlu disesuaikan, lebih baik gunakan $_SERVER['DOCUMENT_ROOT']
-include $_SERVER['DOCUMENT_ROOT'] . '/Tiket_wisata_labuanbajo/database/konek.php'; // Lebih baik pakai ini
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id_galeri = $_GET['id'];
-    $stmt = $konek->prepare("DELETE FROM galleries WHERE id = ?");
-    $stmt->bind_param("i", $id_galeri);
-    if ($stmt->execute()) {
-        $_SESSION['success_message'] = "Foto berhasil dihapus.";
+    
+    // Ambil data gambar untuk dihapus dari folder
+    $query_gambar = $konek->prepare("SELECT gambar FROM galleries WHERE id = ?");
+    $query_gambar->bind_param("i", $id_galeri);
+    $query_gambar->execute();
+    $result_gambar = $query_gambar->get_result();
+    
+    if ($result_gambar->num_rows > 0) {
+        $data_gambar = $result_gambar->fetch_assoc();
+        $gambar_path = __DIR__ . '/../../assets/images/' . $data_gambar['gambar'];
+        
+        // Hapus file gambar jika ada
+        if (file_exists($gambar_path)) {
+            unlink($gambar_path);
+        }
+        
+        // Hapus dari database
+        $stmt = $konek->prepare("DELETE FROM galleries WHERE id = ?");
+        $stmt->bind_param("i", $id_galeri);
+        
+        if ($stmt->execute()) {
+            $_SESSION['success_message'] = "Foto berhasil dihapus.";
+        } else {
+            $_SESSION['error_message'] = "Gagal menghapus foto dari database.";
+        }
+        $stmt->close();
     } else {
-        $_SESSION['error_message'] = "Gagal menghapus foto.";
+        $_SESSION['error_message'] = "Foto tidak ditemukan.";
     }
-    $stmt->close();
 } else {
     $_SESSION['error_message'] = "ID foto tidak valid.";
 }
 
-// --- PERUBAHAN PATH DI SINI ---
 header("Location: ../galeri.php");
 exit();
+?>

@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 07, 2025 at 09:43 AM
+-- Generation Time: Oct 14, 2025 at 07:59 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -43,11 +43,21 @@ CREATE TABLE `galleries` (
 
 CREATE TABLE `payments` (
   `id` int NOT NULL,
+  `pemesanan_id` int NOT NULL,
   `transaction_id` int NOT NULL,
   `bukti_transfer` varchar(255) NOT NULL,
-  `status` enum('unverified','verified') NOT NULL DEFAULT 'unverified',
+  `status` enum('unverified','verified','rejected') NOT NULL DEFAULT 'unverified',
   `tanggal_upload` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`id`, `pemesanan_id`, `transaction_id`, `bukti_transfer`, `status`, `tanggal_upload`) VALUES
+(4, 3, 7, 'Pembayaran langsung oleh admin - e-wallet', 'verified', '2025-10-09 10:09:32'),
+(5, 1, 10, 'Pembayaran langsung oleh admin - tunai', 'verified', '2025-10-14 05:25:19'),
+(6, 2, 9, 'Pembayaran langsung oleh admin - e-wallet', 'verified', '2025-10-14 05:25:39');
 
 -- --------------------------------------------------------
 
@@ -76,7 +86,11 @@ CREATE TABLE `pemesanan` (
 --
 
 INSERT INTO `pemesanan` (`id`, `kode_booking`, `user_id`, `tiket_id`, `tanggal_kunjungan`, `jumlah_tiket`, `total_harga`, `status`, `metode_pembayaran`, `jenis`, `batas_waktu`, `created_at`, `updated_at`) VALUES
-(1, 'LBJ20251007093028313', 5, 2, '2025-10-21', 1, 1200000.00, 'pending', 'offline', 'booking', '2025-10-08 09:30:28', '2025-10-07 09:30:28', '2025-10-07 09:30:28');
+(1, 'LBJ20251007093028313', 5, 2, '2025-10-21', 1, '1200000.00', 'selesai', 'tunai', 'booking', '2025-10-08 09:30:28', '2025-10-07 09:30:28', '2025-10-14 06:50:45'),
+(2, 'LBJ20251008085055454', 5, 1, '2025-10-08', 2, '1700000.00', 'selesai', 'tunai', 'booking', '2025-10-09 08:50:55', '2025-10-08 08:50:55', '2025-10-14 06:50:43'),
+(3, 'LBJ20251009094635879', 6, 1, '2025-10-09', 2, '1700000.00', 'selesai', 'Qris', 'booking', '2025-10-10 09:46:35', '2025-10-09 09:46:35', '2025-10-14 06:48:05'),
+(4, 'LBJ20251014055502655', 5, 4, '2025-10-14', 3, '1950000.00', 'pending', 'offline', 'booking', '2025-10-15 05:55:02', '2025-10-14 05:55:02', '2025-10-14 05:55:02'),
+(5, 'LBJ20251014063306306', 5, 3, '2025-10-14', 2, '1500000.00', 'pending', 'offline', 'booking', '2025-10-15 06:33:06', '2025-10-14 06:33:06', '2025-10-14 06:33:06');
 
 -- --------------------------------------------------------
 
@@ -91,7 +105,7 @@ CREATE TABLE `ratings` (
   `rating` int NOT NULL,
   `review` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -136,12 +150,12 @@ CREATE TABLE `tiket` (
 --
 
 INSERT INTO `tiket` (`id`, `nama_paket`, `deskripsi`, `harga`, `durasi`, `kategori`, `gambar`, `stok`, `status`, `fasilitas`, `itinerary`, `syarat`, `latitude`, `longitude`, `created_at`, `updated_at`) VALUES
-(1, 'Pulau Padar Trekking', 'Nikmati keindahan panorama Pulau Padar dari puncak bukit dengan trekking yang menantang. Cocok bagi pecinta alam dan fotografi.', 850000.00, '1 Hari', 'Trekking', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Transportasi kapal PP, Makan siang, Air mineral, Pemandu wisata, Perlengkapan snorkeling, Asuransi perjalanan', '06:00 - Penjemputan di hotel; 07:00 - Berangkat ke lokasi; 08:30 - Aktivitas utama; 12:00 - Makan siang; 15:00 - Kembali ke Labuan Bajo', 'Pembayaran minimal 1 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Peserta wajib sehat; Anak-anak wajib didampingi orang dewasa', -8.649999, 119.706901, '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
-(2, 'Komodo Island Adventure', 'Petualangan seru menjelajahi habitat asli komodo serta snorkeling di Pink Beach dengan air laut sebening kristal.', 1200000.00, '2 Hari 1 Malam', 'Adventure', 'https://images.unsplash.com/photo-1536244636800-a3f74db0f3cf?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Kapal PP, Akomodasi hotel, Makan 3x, Air mineral, Pemandu wisata, Snorkeling gear, Asuransi perjalanan', 'Hari 1: Penjemputan di hotel, perjalanan ke Pulau Komodo, trekking melihat komodo, snorkeling di Pink Beach, menginap di hotel; Hari 2: Sarapan, kegiatan tambahan, kembali ke Labuan Bajo', 'Pembayaran minimal 3 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Dilarang memberi makan komodo; Anak-anak wajib didampingi orang dewasa', -8.570000, 119.480000, '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
-(3, 'Kelor Island & Manjarite', 'Jelajahi Pulau Kelor dengan panorama menakjubkan dan snorkeling di Manjarite yang terkenal dengan biota lautnya.', 750000.00, '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Kapal PP, Makan siang, Air mineral, Pemandu wisata, Snorkeling gear, Asuransi perjalanan', '08:00 - Penjemputan di hotel; 09:00 - Berangkat ke Pulau Kelor; 10:00 - Trekking; 12:00 - Makan siang; 13:30 - Snorkeling di Manjarite; 16:30 - Kembali ke Labuan Bajo', 'Pembayaran minimal 1 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Peserta wajib sehat; Anak-anak wajib didampingi orang dewasa', -8.480000, 119.890000, '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
-(4, 'Pink Beach Snorkeling', 'Nikmati pengalaman unik di pantai berpasir merah muda sambil snorkeling bersama ikan tropis berwarna-warni.', 650000.00, '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1546484959-f00e8a1a0f5b?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Transportasi kapal, Pemandu wisata, Air mineral, Peralatan snorkeling, Asuransi', '08:00 - Penjemputan; 09:30 - Snorkeling di Pink Beach; 12:00 - Makan siang; 15:00 - Kembali ke pelabuhan', 'Jadwal tergantung cuaca; Pembayaran dilakukan sebelum keberangkatan; Peserta wajib mematuhi instruksi pemandu', -8.620000, 119.710000, '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
-(5, 'Gua Batu Cermin Tour', 'Eksplorasi gua alami dengan formasi batu yang memantulkan cahaya seperti cermin — wisata edukatif dan alami.', 350000.00, 'Setengah Hari', 'Cultural', 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Transportasi darat, Pemandu wisata, Tiket masuk, Air mineral', '08:00 - Penjemputan; 08:30 - Kunjungan ke Gua Batu Cermin; 10:00 - Eksplorasi gua; 12:00 - Kembali ke hotel', 'Peserta wajib memakai sepatu tertutup; Dilarang menyentuh formasi batu; Peserta wajib sehat', -8.460000, 119.880000, '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
-(6, 'Kanawa Island Day Trip', 'Pulau Kanawa menawarkan pasir putih halus dan terumbu karang berwarna-warni yang cocok untuk snorkeling.', 550000.00, '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Kapal wisata, Pemandu, Makan siang, Air mineral, Snorkeling gear', '07:00 - Berangkat; 09:00 - Tiba di Pulau Kanawa; 09:30 - Snorkeling; 12:00 - Makan siang; 15:00 - Kembali ke Labuan Bajo', 'Peserta wajib membawa baju ganti; Dilarang buang sampah sembarangan; Pembayaran sebelum keberangkatan', -8.546000, 119.764000, '2025-10-05 07:05:06', '2025-10-05 08:38:58');
+(1, 'Pulau Padar Trekking', 'Nikmati keindahan panorama Pulau Padar dari puncak bukit dengan trekking yang menantang. Cocok bagi pecinta alam dan fotografi.', '850000.00', '1 Hari', 'Trekking', 'padar.jpg', 0, 'aktif', 'Transportasi kapal PP, Makan siang, Air mineral, Pemandu wisata, Perlengkapan snorkeling, Asuransi perjalanan', '06:00 - Penjemputan di hotel; 07:00 - Berangkat ke lokasi; 08:30 - Aktivitas utama; 12:00 - Makan siang; 15:00 - Kembali ke Labuan Bajo', 'Pembayaran minimal 1 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Peserta wajib sehat; Anak-anak wajib didampingi orang dewasa', '-8.649999', '119.706901', '2025-10-05 07:05:06', '2025-10-09 08:22:34'),
+(2, 'Komodo Island Adventure', 'Petualangan seru menjelajahi habitat asli komodo serta snorkeling di Pink Beach dengan air laut sebening kristal.', '1200000.00', '2 Hari 1 Malam', 'Adventure', 'https://images.unsplash.com/photo-1536244636800-a3f74db0f3cf?auto=format&fit=crop&w=800&q=80', 0, 'nonaktif', 'Kapal PP, Akomodasi hotel, Makan 3x, Air mineral, Pemandu wisata, Snorkeling gear, Asuransi perjalanan', 'Hari 1: Penjemputan di hotel, perjalanan ke Pulau Komodo, trekking melihat komodo, snorkeling di Pink Beach, menginap di hotel; Hari 2: Sarapan, kegiatan tambahan, kembali ke Labuan Bajo', 'Pembayaran minimal 3 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Dilarang memberi makan komodo; Anak-anak wajib didampingi orang dewasa', '-8.570000', '119.480000', '2025-10-05 07:05:06', '2025-10-09 08:24:23'),
+(3, 'Kelor Island & Manjarite', 'Jelajahi Pulau Kelor dengan panorama menakjubkan dan snorkeling di Manjarite yang terkenal dengan biota lautnya.', '750000.00', '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Kapal PP, Makan siang, Air mineral, Pemandu wisata, Snorkeling gear, Asuransi perjalanan', '08:00 - Penjemputan di hotel; 09:00 - Berangkat ke Pulau Kelor; 10:00 - Trekking; 12:00 - Makan siang; 13:30 - Snorkeling di Manjarite; 16:30 - Kembali ke Labuan Bajo', 'Pembayaran minimal 1 hari sebelum keberangkatan; Jadwal dapat berubah tergantung cuaca; Peserta wajib sehat; Anak-anak wajib didampingi orang dewasa', '-8.480000', '119.890000', '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
+(4, 'Pink Beach Snorkeling', 'Nikmati pengalaman unik di pantai berpasir merah muda sambil snorkeling bersama ikan tropis berwarna-warni.', '650000.00', '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1546484959-f00e8a1a0f5b?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Transportasi kapal, Pemandu wisata, Air mineral, Peralatan snorkeling, Asuransi', '08:00 - Penjemputan; 09:30 - Snorkeling di Pink Beach; 12:00 - Makan siang; 15:00 - Kembali ke pelabuhan', 'Jadwal tergantung cuaca; Pembayaran dilakukan sebelum keberangkatan; Peserta wajib mematuhi instruksi pemandu', '-8.620000', '119.710000', '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
+(5, 'Gua Batu Cermin Tour', 'Eksplorasi gua alami dengan formasi batu yang memantulkan cahaya seperti cermin — wisata edukatif dan alami.', '350000.00', 'Setengah Hari', 'Cultural', 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Transportasi darat, Pemandu wisata, Tiket masuk, Air mineral', '08:00 - Penjemputan; 08:30 - Kunjungan ke Gua Batu Cermin; 10:00 - Eksplorasi gua; 12:00 - Kembali ke hotel', 'Peserta wajib memakai sepatu tertutup; Dilarang menyentuh formasi batu; Peserta wajib sehat', '-8.460000', '119.880000', '2025-10-05 07:05:06', '2025-10-05 08:38:58'),
+(6, 'Kanawa Island Day Trip', 'Pulau Kanawa menawarkan pasir putih halus dan terumbu karang berwarna-warni yang cocok untuk snorkeling.', '550000.00', '1 Hari', 'Snorkeling', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', 0, 'aktif', 'Kapal wisata, Pemandu, Makan siang, Air mineral, Snorkeling gear', '07:00 - Berangkat; 09:00 - Tiba di Pulau Kanawa; 09:30 - Snorkeling; 12:00 - Makan siang; 15:00 - Kembali ke Labuan Bajo', 'Peserta wajib membawa baju ganti; Dilarang buang sampah sembarangan; Pembayaran sebelum keberangkatan', '-8.546000', '119.764000', '2025-10-05 07:05:06', '2025-10-05 08:38:58');
 
 -- --------------------------------------------------------
 
@@ -159,6 +173,22 @@ CREATE TABLE `transactions` (
   `tanggal_pesan` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `user_id`, `ticket_id`, `jumlah_tiket`, `total_harga`, `status`, `tanggal_pesan`) VALUES
+(1, 6, 1, 2, '1700000.00', 'paid', '2025-10-09 10:09:32'),
+(2, 6, 1, 2, '1700000.00', 'paid', '2025-10-09 10:09:35'),
+(3, 6, 1, 2, '1700000.00', 'paid', '2025-10-09 10:11:46'),
+(4, 6, 1, 2, '1700000.00', 'paid', '2025-10-09 10:11:50'),
+(5, 5, 2, 1, '1200000.00', 'paid', '2025-10-14 05:25:19'),
+(6, 5, 1, 2, '1700000.00', 'paid', '2025-10-14 05:25:39'),
+(7, 6, 1, 2, '1700000.00', 'paid', '2025-10-14 05:31:34'),
+(8, 5, 2, 1, '1200000.00', 'paid', '2025-10-14 05:32:01'),
+(9, 5, 1, 2, '1700000.00', 'paid', '2025-10-14 05:44:46'),
+(10, 5, 2, 1, '1200000.00', 'paid', '2025-10-14 05:46:36');
+
 -- --------------------------------------------------------
 
 --
@@ -172,6 +202,7 @@ CREATE TABLE `users` (
   `email` varchar(100) NOT NULL,
   `nama_lengkap` varchar(100) NOT NULL,
   `no_hp` varchar(15) NOT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
   `role` enum('admin','user') NOT NULL DEFAULT 'user',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -180,9 +211,10 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `nama_lengkap`, `no_hp`, `role`, `created_at`) VALUES
-(1, 'nurulazqya', '$2y$10$Ppa.dT47Pr58xuZXEa2JpuFM7VDogewFZlegXEtJ/KYGKfB.RrDSS', 'nurulazqya@student.smkn1rongga.sch.id', 'nurul azqya', '', 'admin', '2025-09-30 08:45:54'),
-(5, 'qya', '$2y$10$Zpc.lmOh.AKQwoE0nGVrK.kPErimCnfXRlxp0QOd6i53cwzypWwmC', 'qya@gmail.com', 'nurul azqya', '', 'user', '2025-10-02 09:07:36');
+INSERT INTO `users` (`id`, `username`, `password`, `email`, `nama_lengkap`, `no_hp`, `profile_photo`, `role`, `created_at`) VALUES
+(1, 'nurulazqya', '$2y$10$Ppa.dT47Pr58xuZXEa2JpuFM7VDogewFZlegXEtJ/KYGKfB.RrDSS', 'nurulazqya@student.smkn1rongga.sch.id', 'nurul azqya', '', NULL, 'admin', '2025-09-30 08:45:54'),
+(5, 'qya', '$2y$10$Zpc.lmOh.AKQwoE0nGVrK.kPErimCnfXRlxp0QOd6i53cwzypWwmC', 'qya@gmail.com', 'nurul azqya', '', NULL, 'user', '2025-10-02 09:07:36'),
+(6, 'zuzuy', '$2y$10$iDdi/Ow1HNw4yABAgJ02xuiXM7/JFN2t01O.cOUa8cY59aK0yr4P2', 'zuzuy@gmail.com', 'zulfa cantik', '083829010669', NULL, 'user', '2025-10-09 09:45:07');
 
 --
 -- Indexes for dumped tables
@@ -199,7 +231,8 @@ ALTER TABLE `galleries`
 --
 ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `transaction_id` (`transaction_id`);
+  ADD KEY `transaction_id` (`transaction_id`),
+  ADD KEY `pemesanan_id` (`pemesanan_id`);
 
 --
 -- Indexes for table `pemesanan`
@@ -261,13 +294,13 @@ ALTER TABLE `galleries`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `pemesanan`
 --
 ALTER TABLE `pemesanan`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `ratings`
@@ -291,13 +324,13 @@ ALTER TABLE `tiket`
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
@@ -307,7 +340,8 @@ ALTER TABLE `users`
 -- Constraints for table `payments`
 --
 ALTER TABLE `payments`
-  ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`);
+  ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`),
+  ADD CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`pemesanan_id`) REFERENCES `pemesanan` (`id`);
 
 --
 -- Constraints for table `pemesanan`

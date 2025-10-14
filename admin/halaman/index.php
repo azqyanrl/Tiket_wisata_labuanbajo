@@ -2,19 +2,20 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
 include '../../database/konek.php';
-include '../boot.php';
+include '../../includes/boot.php';
 
 // Router: Tentukan halaman yang akan dimuat berdasarkan URL
  $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
 // Daftar halaman yang diizinkan
- $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket', 'kelola_user', 'kelola_galeri', 'laporan', 'input_pembayaran'];
+ $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket', 'kelola_user', 'kelola_galeri', 'laporan', 'input_pembayaran', 'admin_profile'];
 
 if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard'; // Kembali ke default
@@ -61,7 +62,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'proses') {
   </button>
   <div class="navbar-nav">
     <div class="nav-item text-nowrap">
-      <a class="nav-link px-3 text-white" href="#">Selamat datang, <?php echo $_SESSION['username']; ?></a>
+      <a class="nav-link px-3 text-white" href="#">Selamat datang, <?php echo htmlspecialchars($_SESSION['username']); ?></a>
     </div>
   </div>
 </header>
@@ -79,9 +80,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'proses') {
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_galeri') ? 'active' : ''; ?>" href="?page=kelola_galeri"><i class="bi bi-images me-2"></i> Kelola Galeri</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'laporan') ? 'active' : ''; ?>" href="?page=laporan"><i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan</a></li>
         </ul>
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase"><span>Pengaturan</span></h6>
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+            <span>Akun</span>
+        </h6>
         <ul class="nav flex-column mb-2">
-          <li class="nav-item"><a class="nav-link text-danger" href="../login/logout.php"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+            <li class="nav-item">
+                <a class="nav-link <?php echo ($page == 'admin_profile') ? 'active' : ''; ?>" href="?page=admin_profile">
+                    <i class="bi bi-person-circle me-2"></i> Profile Admin
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-danger" href="../login/logout.php">
+                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </a>
+            </li>
         </ul>
       </div>
     </nav>

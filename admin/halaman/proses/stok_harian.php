@@ -1,5 +1,6 @@
 <?php
 include '../../database/konek.php';
+include '../../../includes/boot.php';
 
 // Fungsi untuk menginisialisasi stok harian
 function inisialisasiStokHarian($konek) {

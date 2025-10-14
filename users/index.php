@@ -104,7 +104,7 @@
               <p class="card-text flex-grow-1"><?= $data['deskripsi'] ?></p>
               <div class="d-flex justify-content-between align-items-center mt-auto">
                 <span class="fw-bold text-primary">Rp<?= number_format($data['harga'], 0, ',', '.') ?></span>
-                <a href="detail_destinasi.php?id=<?= $data['id'] ?>" class="btn btn-outline-primary rounded-pill btn-sm">Detail</a>
+                <a href="login/login.php" class="btn btn-outline-primary rounded-pill btn-sm">Login</a>
               </div>
             </div>
           </div>

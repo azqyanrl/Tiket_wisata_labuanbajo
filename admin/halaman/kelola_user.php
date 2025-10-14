@@ -2,15 +2,17 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
-            include '../../database/konek.php';
-include '../boot.php';
+include '../../database/konek.php';
+include '../../includes/boot.php';
+
 if (isset($_SESSION['success_message'])) { 
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.$_SESSION['success_message'].'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.htmlspecialchars($_SESSION['success_message']).'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 
     unset($_SESSION['success_message']); 
 } 
 
@@ -46,7 +48,7 @@ if (!empty($search)) {
         <form method="GET" class="row g-3">
             <div class="col-md-8">
                 <label for="search" class="form-label">Cari Pengguna</label>
-                <input type="text" class="form-control" id="search" name="search" placeholder="Username, nama lengkap, atau email..." value="<?php echo $search; ?>">
+                <input type="text" class="form-control" id="search" name="search" placeholder="Username, nama lengkap, atau email..." value="<?php echo htmlspecialchars($search); ?>">
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2">Cari</button>
@@ -72,15 +74,15 @@ if (!empty($search)) {
             if ($result_users->num_rows > 0) {
                 while($data = $result_users->fetch_assoc()) {
                     echo "<tr>";
-                    echo "<td>{$data['username']}</td>";
-                    echo "<td>{$data['nama_lengkap']}</td>";
-                    echo "<td>{$data['email']}</td>";
-                    echo "<td><span class='badge bg-" . (($data['role']=='admin') ? 'danger' : 'primary') . "'>" . ucfirst($data['role']) . "</span></td>";
+                    echo "<td>" . htmlspecialchars($data['username']) . "</td>";
+                    echo "<td>" . htmlspecialchars($data['nama_lengkap']) . "</td>";
+                    echo "<td>" . htmlspecialchars($data['email']) . "</td>";
+                    echo "<td><span class='badge bg-" . (($data['role']=='admin') ? 'danger' : 'primary') . "'>" . ucfirst(htmlspecialchars($data['role'])) . "</span></td>";
                     echo "<td>";
                     // Gunakan $current_admin_id yang sudah kita ambil dari database
                     if($data['id'] != $current_admin_id) {
-                        echo "<a href='proses/hapus_pengguna.php?id={$data['id']}' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin hapus user ini?\")'>Hapus</a> ";
-                        echo "<a href='proses/cetak_user.php?id={$data['id']}' class='btn btn-sm btn-info' target='_blank'>Cetak</a>";
+                        echo "<a href='proses/hapus_pengguna.php?id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin hapus user ini?\")'>Hapus</a> ";
+                        echo "<a href='proses/cetak_user.php?id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-info' target='_blank'>Cetak</a>";
                     } else {
                         echo "<span class='text-muted'>Anda</span>";
                     }

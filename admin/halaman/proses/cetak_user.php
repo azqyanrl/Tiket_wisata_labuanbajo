@@ -1,15 +1,15 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
-include '../../../database/konek.php';
 
-// ... sisa kode tidak berubah
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 if (isset($_GET['id'])) {
     $user_id = $_GET['id'];
@@ -33,7 +33,7 @@ if (isset($_GET['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak Data User - <?php echo $user['nama_lengkap']; ?></title>
+    <title>Cetak Data User - <?php echo htmlspecialchars($user['nama_lengkap']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
@@ -60,27 +60,27 @@ if (isset($_GET['id'])) {
             <tr>
                 <td width="20%">Nama Lengkap</td>
                 <td width="2%">:</td>
-                <td><?php echo $user['nama_lengkap']; ?></td>
+                <td><?php echo htmlspecialchars($user['nama_lengkap']); ?></td>
             </tr>
             <tr>
                 <td>Username</td>
                 <td>:</td>
-                <td><?php echo $user['username']; ?></td>
+                <td><?php echo htmlspecialchars($user['username']); ?></td>
             </tr>
             <tr>
                 <td>Email</td>
                 <td>:</td>
-                <td><?php echo $user['email']; ?></td>
+                <td><?php echo htmlspecialchars($user['email']); ?></td>
             </tr>
             <tr>
                 <td>No. HP</td>
                 <td>:</td>
-                <td><?php echo $user['no_hp']; ?></td>
+                <td><?php echo htmlspecialchars($user['no_hp']); ?></td>
             </tr>
             <tr>
                 <td>Role</td>
                 <td>:</td>
-                <td><?php echo ucfirst($user['role']); ?></td>
+                <td><?php echo ucfirst(htmlspecialchars($user['role'])); ?></td>
             </tr>
             <tr>
                 <td>Tanggal Daftar</td>
@@ -107,13 +107,13 @@ if (isset($_GET['id'])) {
             <?php if ($result_pemesanan->num_rows > 0): ?>
                 <?php while($pemesanan = $result_pemesanan->fetch_assoc()): ?>
                 <tr>
-                    <td><?php echo $pemesanan['kode_booking']; ?></td>
-                    <td><?php echo $pemesanan['nama_paket']; ?></td>
-                    <td><img src="../../assets/images/<?php echo $pemesanan['gambar']; ?>" class="ticket-img" alt="<?php echo $pemesanan['nama_paket']; ?>"></td>
+                    <td><?php echo htmlspecialchars($pemesanan['kode_booking']); ?></td>
+                    <td><?php echo htmlspecialchars($pemesanan['nama_paket']); ?></td>
+                    <td><img src="../../assets/images/<?php echo htmlspecialchars($pemesanan['gambar']); ?>" class="ticket-img" alt="<?php echo htmlspecialchars($pemesanan['nama_paket']); ?>"></td>
                     <td><?php echo date('d/m/Y', strtotime($pemesanan['tanggal_kunjungan'])); ?></td>
-                    <td><?php echo $pemesanan['jumlah_tiket']; ?></td>
+                    <td><?php echo htmlspecialchars($pemesanan['jumlah_tiket']); ?></td>
                     <td>Rp <?php echo number_format($pemesanan['total_harga'], 0, ',', '.'); ?></td>
-                    <td><?php echo ucfirst($pemesanan['status']); ?></td>
+                    <td><?php echo ucfirst(htmlspecialchars($pemesanan['status'])); ?></td>
                 </tr>
                 <?php endwhile; ?>
             <?php else: ?>
@@ -126,7 +126,7 @@ if (isset($_GET['id'])) {
     
     <div class="no-print" style="margin-top: 20px;">
         <button onclick="window.print()" class="btn btn-primary">Cetak</button>
-        <a href="javascript:history.back()" class="btn btn-secondary">Kembali</a>
+        <button onclick="window.close()" class="btn btn-secondary">Kembali</button>
     </div>
     
     <div class="text-center mt-4">

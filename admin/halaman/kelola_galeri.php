@@ -8,7 +8,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 }
 
 include '../../database/konek.php';
-include '../boot.php';
+include '../../includes/boot.php';;
 
 // Tampilkan pesan sukses jika ada
 if (isset($_SESSION['success_message'])) { 

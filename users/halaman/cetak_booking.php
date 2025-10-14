@@ -3,6 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 include '../../database/konek.php';
+include '../../includes/boot.php';
 include "session_cek.php";
 
 // Validasi user login
@@ -41,10 +42,16 @@ if (!$data_booking) {
 }
 ?>
 
-<!-- Bootstrap CSS dan Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../includes/cetak_booking.css">
+    <title>Document</title>
+</head>
+<body>
+    
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -182,71 +189,5 @@ if (!$data_booking) {
     </div>
 </div>
 
-<style>
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-
-        #printArea,
-        #printArea * {
-            visibility: visible;
-        }
-
-        #printArea {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-
-        .no-print {
-            display: none !important;
-        }
-
-        .card {
-            box-shadow: none !important;
-            border: 1px solid #ddd !important;
-        }
-    }
-
-    /* Custom styling */
-    .card {
-        border-radius: 1rem;
-        overflow: hidden;
-    }
-
-    .card-header {
-        background: linear-gradient(135deg, #0d6efd, #0056b3) !important;
-    }
-
-    .border {
-        border-color: #e9ecef !important;
-        transition: all 0.3s ease;
-    }
-
-    .border:hover {
-        border-color: #0d6efd !important;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
-    }
-
-    .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        background-color: #0056b3;
-        border-color: #0056b3;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
-    }
-
-    .btn-outline-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.2);
-    }
-</style>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

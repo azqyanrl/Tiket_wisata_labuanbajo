@@ -1,6 +1,10 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
 // Validasi session dan parameter
 if (!isset($_SESSION['user_id']) || !isset($_GET['id'])) {
@@ -14,10 +18,10 @@ if ($_GET['id'] == $_SESSION['user_id']) {
     exit();
 }
 
-$user_id = $_GET['id'];
+ $user_id = $_GET['id'];
 
 // Gunakan transaksi untuk menjaga konsistensi data
-$konek->begin_transaction();
+ $konek->begin_transaction();
 
 try {
     // 1. Hapus data di tabel ratings yang terkait dengan user
@@ -67,3 +71,4 @@ try {
 // Redirect ke halaman kelola user
 header("Location: ../index.php?page=kelola_user");
 exit();
+?>

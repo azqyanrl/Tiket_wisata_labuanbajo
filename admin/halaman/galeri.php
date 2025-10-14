@@ -2,21 +2,19 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
-// Testing commit
-
 include '../../database/konek.php';
-include '../boot.php';
-?>
+include '../../includes/boot.php';
 
-<!-- Tampilkan pesan sukses atau error dari session -->
-<?php if (isset($_SESSION['success_message'])): ?>
+// Tampilkan pesan sukses atau error dari session
+if (isset($_SESSION['success_message'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <?php echo $_SESSION['success_message']; ?>
+        <?php echo htmlspecialchars($_SESSION['success_message']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <?php unset($_SESSION['success_message']); ?>
@@ -24,7 +22,7 @@ include '../boot.php';
 
 <?php if (isset($_SESSION['error_message'])): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <?php echo $_SESSION['error_message']; ?>
+        <?php echo htmlspecialchars($_SESSION['error_message']); ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <?php unset($_SESSION['error_message']); ?>
@@ -45,11 +43,11 @@ include '../boot.php';
         while($data = $query_galeri->fetch_assoc()) { 
             echo "<div class='col-md-3'>
                 <div class='card'>
-                    <img src='../../assets/images/{$data['gambar']}' class='card-img-top' style='height:200px;object-fit:cover;' alt='{$data['judul']}'>
+                    <img src='../../assets/images/".htmlspecialchars($data['gambar'])."' class='card-img-top' style='height:200px;object-fit:cover;' alt='".htmlspecialchars($data['judul'])."'>
                     <div class='card-body'>
-                        <h6 class='card-title'>{$data['judul']}</h6>
-                        <p class='card-text'><small class='text-muted'>Kategori: {$data['kategori']}</small></p>
-                        <a href='proses/hapus_galeri.php?id={$data['id']}' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus foto ini?\")'>Hapus</a>
+                        <h6 class='card-title'>".htmlspecialchars($data['judul'])."</h6>
+                        <p class='card-text'><small class='text-muted'>Kategori: ".htmlspecialchars($data['kategori'])."</small></p>
+                        <a href='proses/hapus_galeri.php?id=".htmlspecialchars($data['id'])."' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus foto ini?\")'>Hapus</a>
                     </div>
                 </div>
             </div>"; 
@@ -81,6 +79,7 @@ include '../boot.php';
             <div class="mb-3">
                 <label for="gambar" class="form-label">Gambar</label>
                 <input type="file" class="form-control" name="gambar" id="gambar" accept="image/*" required>
+                <div class="form-text">Format yang diizinkan: JPG, JPEG, PNG, GIF. Maksimal 2MB.</div>
             </div>
         </div>
         <div class="modal-footer">
@@ -91,6 +90,3 @@ include '../boot.php';
     </div>
   </div>
 </div>
-
-<!-- HAPUS BARIS INI, INI PENYEBAB ERRORNYA -->
-<!-- <?php if (isset($_GET['action']) && $_GET['action'] == 'add') { include 'proses/proses_galeri.php'; } ?> -->

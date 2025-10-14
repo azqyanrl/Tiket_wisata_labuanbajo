@@ -2,23 +2,24 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
 include '../../database/konek.php';
-include '../boot.php';
+include '../../includes/boot.php';
 
 // Tampilkan pesan sukses jika ada
 if (isset($_SESSION['success_message'])) {
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . htmlspecialchars($_SESSION['success_message']) . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
     unset($_SESSION['success_message']);
 }
 
 // Tampilkan pesan error jika ada
 if (isset($_SESSION['error_message'])) {
-    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' . $_SESSION['error_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' . htmlspecialchars($_SESSION['error_message']) . '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
     unset($_SESSION['error_message']);
 }
 ?>
@@ -139,22 +140,22 @@ if (isset($_SESSION['error_message'])) {
                 while ($data = $result->fetch_assoc()) {
                     $statusClass = ($data['status'] == 'pending') ? 'bg-warning text-dark' : (($data['status'] == 'dibayar') ? 'bg-info' : (($data['status'] == 'selesai') ? 'bg-success' : 'bg-danger'));
                     echo "<tr>
-                        <td>{$data['kode_booking']}</td>
-                        <td>{$data['nama_lengkap']}</td>
-                        <td>{$data['nama_paket']}</td>
+                        <td>" . htmlspecialchars($data['kode_booking']) . "</td>
+                        <td>" . htmlspecialchars($data['nama_lengkap']) . "</td>
+                        <td>" . htmlspecialchars($data['nama_paket']) . "</td>
                         <td>" . date('d/m/Y', strtotime($data['tanggal_kunjungan'])) . "</td>
                         <td>Rp " . number_format($data['total_harga'], 0, ',', '.') . "</td>
-                        <td>{$data['metode_pembayaran']}</td>
-                        <td><span class='badge $statusClass'>" . ucfirst($data['status']) . "</span></td>
+                        <td>" . htmlspecialchars($data['metode_pembayaran']) . "</td>
+                        <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($data['status'])) . "</span></td>
                         <td>";
 
                     // --- PERBAIKAN: Tampilkan tombol berdasarkan status ---
                     if ($data['status'] == 'pending') {
-                        echo "<a href='proses/proses_pemesanan.php?id={$data['id']}&action=confirm' class='btn btn-sm btn-success'>Konfirmasi</a> ";
-                        echo "<a href='proses/proses_pemesanan.php?id={$data['id']}&action=reject' class='btn btn-sm btn-danger'>Tolak</a>";
+                        echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=confirm' class='btn btn-sm btn-success'>Konfirmasi</a> ";
+                        echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=reject' class='btn btn-sm btn-danger'>Tolak</a>";
                     } elseif ($data['status'] == 'dibayar') {
-                        echo "<a href='proses/proses_pemesanan.php?id={$data['id']}&action=complete' class='btn btn-sm btn-success'>Selesaikan</a> ";
-                        echo "<a href='proses/proses_pemesanan.php?id={$data['id']}&action=cancel' class='btn btn-sm btn-danger' onclick='return confirm(\"Apakah Anda yakin ingin membatalkan pesanan ini?\")'>Batalkan</a>";
+                        echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=complete' class='btn btn-sm btn-success'>Selesaikan</a> ";
+                        echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=cancel' class='btn btn-sm btn-danger' onclick='return confirm(\"Apakah Anda yakin ingin membatalkan pesanan ini?\")'>Batalkan</a>";
                     } elseif ($data['status'] == 'selesai') {
                         echo "<span class='text-muted'>Selesai</span>";
                     } else { // status 'batal'
