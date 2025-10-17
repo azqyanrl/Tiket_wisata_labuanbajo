@@ -4,86 +4,27 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    header('location: ../login/login.php');
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../../login/login_admin.php');
     exit;
 }
 
-include '../../../database/konek.php';
-include '../../../includes/boot.php';
+include '../../database/konek.php';
+include '../../includes/boot.php';
 
- $editing = isset($_GET['id']);
-if ($editing) { 
-    $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?"); 
-    $query_tiket->bind_param("i", $_GET['id']); 
-    $query_tiket->execute(); 
-    $tiket = $query_tiket->get_result()->fetch_assoc(); 
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama_paket = $_POST['nama_paket']; 
-    $deskripsi = $_POST['deskripsi']; 
-    $harga = $_POST['harga']; 
-    $durasi = $_POST['durasi']; 
-    $kategori = $_POST['kategori']; 
-    $status = $_POST['status'];
-    $stok = $_POST['stok'];
-    
-    $gambar = $editing ? $tiket['gambar'] : '';
-    if (!empty($_FILES['gambar']['name'])) { 
-        $upload_dir = '../../assets/images/'; 
-        
-        // Validasi tipe file
-        $imageFileType = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
-        $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array($imageFileType, $allowed_types)) {
-            $_SESSION['error_message'] = "Maaf, hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
-            header("Location: ../kelola_tiket.php");
-            exit();
-        }
-        
-        // Validasi ukuran file (maksimal 2MB)
-        if ($_FILES['gambar']['size'] > 2097152) {
-            $_SESSION['error_message'] = "Maaf, ukuran file gambar terlalu besar. Maksimal 2MB.";
-            header("Location: ../kelola_tiket.php");
-            exit();
-        }
-        
-        // Generate nama file unik untuk menghindari duplikasi
-        $new_filename = uniqid() . '_' . basename($_FILES['gambar']['name']);
-        $target_file = $upload_dir . $new_filename;
-        
-        if (move_uploaded_file($_FILES['gambar']['tmp_name'], $target_file)) {
-            $gambar = $new_filename;
-            
-            // Hapus gambar lama jika ada
-            if ($editing && !empty($tiket['gambar'])) {
-                $old_file = $upload_dir . $tiket['gambar'];
-                if (file_exists($old_file)) {
-                    unlink($old_file);
-                }
-            }
-        } else {
-            $_SESSION['error_message'] = "Gagal mengupload gambar.";
-            header("Location: ../kelola_tiket.php");
-            exit();
-        }
-    }
-    
-    if ($editing) {
-        $query_update = $konek->prepare("UPDATE tiket SET nama_paket=?, deskripsi=?, harga=?, durasi=?, kategori=?, status=?, gambar=?, stok=? WHERE id=?");
-        $query_update->bind_param("ssdssssii", $nama_paket, $deskripsi, $harga, $durasi, $kategori, $status, $gambar, $stok, $_GET['id']);
-        $query_update->execute();
-    } else {
-        $query_insert = $konek->prepare("INSERT INTO tiket (nama_paket, deskripsi, harga, durasi, kategori, status, gambar, stok) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $query_insert->bind_param("ssdssssi", $nama_paket, $deskripsi, $harga, $durasi, $kategori, $status, $gambar, $stok);
-        $query_insert->execute();
-    }
-    
-    $_SESSION['success_message'] = "Tiket berhasil disimpan."; 
-    header("Location: ../kelola_tiket.php"); 
-    exit();
+// Ambil data tiket jika sedang dalam mode edit
+$editing = isset($_GET['id']);
+$tiket = null; // Inisialisasi $tiket untuk menghindari error
+if ($editing) {
+    $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?");
+    $query_tiket->bind_param("i", $_GET['id']);
+    $query_tiket->execute();
+    $tiket = $query_tiket->get_result()->fetch_assoc();
 }
 ?>
+
+
+<!-- Modal untuk Tambah/Edit Tiket -->
 <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -91,15 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h5 class="modal-title"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5>
                 <a href="?page=kelola_tiket" class="btn-close"></a>
             </div>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" action="proses/handle_tiket.php" enctype="multipart/form-data">
                 <div class="modal-body">
+                    <?php if ($editing): ?>
+                        <input type="hidden" name="id" value="<?= htmlspecialchars($_GET['id']) ?>">
+                    <?php endif; ?>
+
                     <div class="mb-3">
                         <label class="form-label">Nama Paket</label>
                         <input type="text" name="nama_paket" class="form-control" value="<?= htmlspecialchars($tiket['nama_paket'] ?? '') ?>" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Deskripsi</label>
-                        <textarea name="deskripsi" class="form-control" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
+                        <textarea name="deskripsi" class="form-control" rows="3" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -125,7 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Kategori</label>
-                                <input type="text" name="kategori" class="form-control" value="<?= htmlspecialchars($tiket['kategori'] ?? '') ?>" required>
+                                <select name="kategori" class="form-select" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    <option value="Trekking" <?= ($tiket['kategori'] ?? '') == 'Trekking' ? 'selected' : '' ?>>Trekking</option>
+                                    <option value="Adventure" <?= ($tiket['kategori'] ?? '') == 'Adventure' ? 'selected' : '' ?>>Adventure</option>
+                                    <option value="Snorkeling" <?= ($tiket['kategori'] ?? '') == 'Snorkeling' ? 'selected' : '' ?>>Snorkeling</option>
+                                    <option value="Cultural" <?= ($tiket['kategori'] ?? '') == 'Cultural' ? 'selected' : '' ?>>Cultural</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -136,12 +87,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
                         </select>
                     </div>
+
+                    <!-- Field Tambahan -->
+                    <div class="mb-3">
+                        <label class="form-label">Fasilitas</label>
+                        <textarea name="fasilitas" class="form-control" rows="2"><?= htmlspecialchars($tiket['fasilitas'] ?? '') ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Itinerary</label>
+                        <textarea name="itinerary" class="form-control" rows="3"><?= htmlspecialchars($tiket['itinerary'] ?? '') ?></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Syarat & Ketentuan</label>
+                        <textarea name="syarat" class="form-control" rows="2"><?= htmlspecialchars($tiket['syarat'] ?? '') ?></textarea>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Gambar</label>
                         <input type="file" name="gambar" class="form-control" accept="image/*">
                         <?php if ($editing && !empty($tiket['gambar'])): ?>
                             <div class="mt-2">
-                                <img src="../../assets/images/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                                <p class="form-text">Gambar saat ini:</p>
+                                <img src="../../assets/images/tiket<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
                             </div>
                         <?php endif; ?>
                     </div>

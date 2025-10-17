@@ -86,34 +86,36 @@
 
 <!-- Destinasi -->
 <section id="destinasi" style="padding:60px 0; background:#f8f9fa;">
-  <div class="container">
-    <h2 style="text-align:center; margin-bottom:40px; font-weight:bold;">Destinasi Populer</h2>
-    
-    <!-- Ticket Cards -->
-    <div class="row" id="tickets">
-      <?php 
+<div class="container my-5">
+    <h3 class="mb-4 text-center">Paket Wisata Unggulan</h3>
+    <div class="row">
+        <?php
         include '../database/konek.php';
-        $tampil = $konek->query("SELECT * FROM tiket");
-        foreach ($tampil as $data){
-      ?>
-        <div class="col-md-4 mb-4">
-          <div class="card h-100 shadow-sm">
-            <img src="<?= $data['gambar'] ?>" class="card-img-top" alt="gagal load image" style="height:300px; object-fit:cover;">
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title fw-semibold"><?= $data['nama_paket'] ?></h5>
-              <p class="card-text flex-grow-1"><?= $data['deskripsi'] ?></p>
-              <div class="d-flex justify-content-between align-items-center mt-auto">
-                <span class="fw-bold text-primary">Rp<?= number_format($data['harga'], 0, ',', '.') ?></span>
-                <a href="login/login.php" class="btn btn-outline-primary rounded-pill btn-sm">Login</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      <?php 
-        } 
-      ?>
+        $query = "SELECT * FROM tiket WHERE status='aktif' ORDER BY created_at DESC LIMIT 3";
+        $result = $konek->query($query);
+
+        if ($result && $result->num_rows > 0) {
+            while ($data = $result->fetch_assoc()) {
+        ?>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <img src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
+                            <p class="text-muted mb-1"><?= htmlspecialchars($data['durasi']); ?></p>
+                            <p class="fw-bold text-primary mt-auto">Rp <?= number_format($data['harga'], 0, ',', '.'); ?></p>
+                            <a href="detail_destinasi.php?id=<?= $data['id']; ?>" class="btn btn-sm btn-outline-primary mt-2">Lihat Detail</a>
+                        </div>
+                    </div>
+                </div>
+        <?php
+            }
+        } else {
+            echo "<div class='col-12 text-center text-muted'>Belum ada paket wisata tersedia.</div>";
+        }
+        ?>
     </div>
-  </div>
+</div>
 </section>
 
 

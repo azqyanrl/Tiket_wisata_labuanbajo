@@ -2,13 +2,19 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../login/login.php');
     exit;
 }
 
+// Path include tidak diubah
 include '../../database/konek.php';
-include '../../includes/boot.php';;
+include '../../includes/boot.php';
+
+// TAMBAHKAN BARIS INI:
+include '../../includes/alerts.php';
 
 // Tampilkan pesan sukses jika ada
 if (isset($_SESSION['success_message'])) { 

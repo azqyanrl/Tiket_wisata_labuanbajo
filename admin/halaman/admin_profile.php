@@ -3,13 +3,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Cek akses admin
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../login/login.php');
     exit;
 }
 
-include '../../database/konek.php';
-include '../../includes/boot.php';
+// Include file yang diperlukan (path tidak diubah)
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
+
+// Tampilkan notifikasi yang ada
+include '../../../includes/alerts.php';
 
 // Ambil data admin yang sedang login
  $query_admin = $konek->prepare("SELECT * FROM users WHERE username = ?");
@@ -18,7 +24,7 @@ include '../../includes/boot.php';
  $result_admin = $query_admin->get_result();
  $admin_data = $result_admin->fetch_assoc();
 
-// Proses update profile
+// Proses Update Profile (Data Umum)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $nama_lengkap = $_POST['nama_lengkap'];
     $email = $_POST['email'];
@@ -43,69 +49,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
         exit;
     }
     
-    // Update data admin
+    // Update data admin di database
     $update_admin = $konek->prepare("UPDATE users SET nama_lengkap = ?, email = ?, no_hp = ? WHERE id = ?");
     $update_admin->bind_param("sssi", $nama_lengkap, $email, $no_hp, $admin_data['id']);
     
     if ($update_admin->execute()) {
         $_SESSION['success_message'] = "Profile berhasil diperbarui.";
-        header("Location: admin_profile.php");
-        exit;
     } else {
         $_SESSION['error_message'] = "Gagal memperbarui profile.";
     }
+    
+    header("Location: admin_profile.php");
+    exit;
 }
 
-// Proses ganti password
+// Proses Ganti Password
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
     
-    // Validasi password
+    // Validasi input
     if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
         $_SESSION['error_message'] = "Semua field password harus diisi.";
-        header("Location: admin_profile.php");
-        exit;
-    }
-    
-    if ($new_password !== $confirm_password) {
+    } elseif ($new_password !== $confirm_password) {
         $_SESSION['error_message'] = "Password baru dan konfirmasi tidak cocok.";
-        header("Location: admin_profile.php");
-        exit;
-    }
-    
-    if (strlen($new_password) < 6) {
+    } elseif (strlen($new_password) < 6) {
         $_SESSION['error_message'] = "Password baru minimal 6 karakter.";
-        header("Location: admin_profile.php");
-        exit;
+    } else {
+        // Verifikasi password saat ini
+        if (password_verify($current_password, $admin_data['password'])) {
+            // Hash password baru
+            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+            
+            // Update password di database
+            $update_password = $konek->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $update_password->bind_param("si", $hashed_password, $admin_data['id']);
+            
+            if ($update_password->execute()) {
+                $_SESSION['success_message'] = "Password berhasil diubah.";
+            } else {
+                $_SESSION['error_message'] = "Gagal mengubah password.";
+            }
+        } else {
+            $_SESSION['error_message'] = "Password saat ini salah.";
+        }
     }
     
-    // Verifikasi password saat ini
-    if (password_verify($current_password, $admin_data['password'])) {
-        // Hash password baru
-        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        
-        // Update password
-        $update_password = $konek->prepare("UPDATE users SET password = ? WHERE id = ?");
-        $update_password->bind_param("si", $hashed_password, $admin_data['id']);
-        
-        if ($update_password->execute()) {
-            $_SESSION['success_message'] = "Password berhasil diubah.";
-            header("Location: admin_profile.php");
-            exit;
-        } else {
-            $_SESSION['error_message'] = "Gagal mengubah password.";
-        }
-    } else {
-        $_SESSION['error_message'] = "Password saat ini salah.";
-    }
+    header("Location: admin_profile.php");
+    exit;
 }
 
-// Proses upload foto profile
+// Proses Upload Foto Profile
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
     if (!empty($_FILES['profile_photo']['name'])) {
-        $upload_dir = '../../assets/images/profiles/';
+        $upload_dir = '../../../assets/images/profiles/'; // Path relatif dari file ini
         
         // Buat folder jika belum ada
         if (!file_exists($upload_dir)) {
@@ -135,10 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
                     
                     if ($update_photo->execute()) {
                         $_SESSION['success_message'] = "Foto profile berhasil diubah.";
-                        header("Location: admin_profile.php");
-                        exit;
+                        // Refresh data admin untuk menampilkan foto baru
+                        $admin_data['profile_photo'] = $new_filename;
                     } else {
-                        $_SESSION['error_message'] = "Gagal mengupdate foto profile.";
+                        $_SESSION['error_message'] = "Gagal mengupdate foto profile di database.";
                     }
                 } else {
                     $_SESSION['error_message'] = "Gagal mengupload foto.";
@@ -150,21 +148,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
             $_SESSION['error_message'] = "Format foto tidak diizinkan. Gunakan JPG, JPEG, PNG, atau GIF.";
         }
     }
+    
+    header("Location: admin_profile.php");
+    exit;
 }
 
-// Refresh data admin setelah update
- $query_admin = $konek->prepare("SELECT * FROM users WHERE username = ?");
- $query_admin->bind_param("s", $_SESSION['username']);
+// Refresh data admin setelah ada perubahan (untuk memastikan data selalu terbaru)
  $query_admin->execute();
- $result_admin = $query_admin->get_result();
- $admin_data = $result_admin->fetch_assoc();
+ $admin_data = $query_admin->get_result()->fetch_assoc();
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Profile Admin</h1>
 </div>
-
-<?php include '../../includes/alerts.php'; ?>
 
 <div class="row">
     <div class="col-md-4">
@@ -173,8 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
                 <h5 class="mb-0">Foto Profile</h5>
             </div>
             <div class="card-body text-center">
-                <img src="../../assets/images/profiles/<?php echo !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png'; ?>" 
-                     class="rounded-circle mb-3" width="150" height="150" alt="Profile Photo">
+                <img src="../../../assets/images/profiles/<?php echo !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png'; ?>" 
+                     class="rounded-circle mb-3" width="150" height="150" alt="Profile Photo" style="object-fit: cover;">
                 
                 <form method="POST" enctype="multipart/form-data">
                     <div class="mb-3">

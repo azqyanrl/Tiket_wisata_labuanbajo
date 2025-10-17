@@ -4,12 +4,18 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    // PERBAIKAN: Gunakan session untuk notifikasi, bukan alert
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../login/login.php');
     exit;
 }
 
+// Path include tidak diubah sesuai permintaan
 include '../../database/konek.php';
 include '../../includes/boot.php';
+
+// Tampilkan notifikasi jika ada
+include '../../includes/alerts.php';
 
 // --- QUERY STATISTIK DASHBOARD ---
  $query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
@@ -31,6 +37,12 @@ include '../../includes/boot.php';
  $query_pendapatan->execute();
  $result_pendapatan = $query_pendapatan->get_result();
  $pendapatan = $result_pendapatan->fetch_assoc()['total'] ?? 0;
+
+// --- TAMBAHAN: QUERY TOTAL USER ---
+ $query_total_user = $konek->prepare("SELECT COUNT(*) as total FROM users WHERE role = 'user'");
+ $query_total_user->execute();
+ $result_total_user = $query_total_user->get_result();
+ $totalUser = $result_total_user->fetch_assoc()['total'];
 
 // --- QUERY PEMESANAN TERBARU ---
  $query_recent = $konek->prepare("SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, p.total_harga, p.status, p.created_at 
@@ -96,6 +108,20 @@ include '../../includes/boot.php';
                         <p class="mb-0">Pendapatan</p>
                     </div>
                     <i class="bi bi-currency-dollar fs-1 opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- TAMBAHAN: KARTU TOTAL USER -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-secondary shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0"><?php echo $totalUser; ?></h4>
+                        <p class="mb-0">Total Pengguna</p>
+                    </div>
+                    <i class="bi bi-people-fill fs-1 opacity-75"></i>
                 </div>
             </div>
         </div>

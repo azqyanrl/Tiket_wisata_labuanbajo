@@ -3,8 +3,8 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include '../../database/konek.php';
-include '../../../includes/boot.php';
+include '../database/konek.php';
+include '../../includes/boot.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ambil data dari form

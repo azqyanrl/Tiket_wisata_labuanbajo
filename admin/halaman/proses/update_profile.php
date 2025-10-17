@@ -1,7 +1,4 @@
 <?php
-// File: update_profile.php
-
-// 1. Keamanan: Pastikan hanya admin yang bisa akses file ini
 session_start();
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     // Redirect ke login jika bukan admin

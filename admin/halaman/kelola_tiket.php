@@ -1,25 +1,29 @@
+### FILE: admin/halaman/kelola_tiket.php (SUDAH DISESUAIKAN)
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// PERBAIKAN: Gunakan notifikasi session dan redirect, bukan alert
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../../login/login_admin.php');
     exit;
 }
 
-include '../../database/konek.php';
-include '../../includes/boot.php';
+// Path include sudah benar untuk file di admin/halaman/
+include '../../../database/konek.php';
+include '../../../includes/boot.php';
 
-if (isset($_SESSION['success_message'])) { 
-    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">'.htmlspecialchars($_SESSION['success_message']).'<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>'; 
-    unset($_SESSION['success_message']); 
-} 
+// PERBAIKAN: Gunakan file notifikasi yang konsisten
+include '../../../includes/alerts.php';
 ?>
+
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Kelola Tiket</h1>
     <a href="?page=kelola_tiket&action=add" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i> Tambah Tiket</a>
 </div>
+
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
         <thead class="table-light">
@@ -54,7 +58,7 @@ if (isset($_SESSION['success_message'])) {
                     }
                     
                     echo "<tr>
-                        <td><img src='../../assets/images/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
+                        <td><img src='../../../assets/images/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
                         <td>".htmlspecialchars($data['nama_paket'])."</td>
                         <td>Rp " . number_format($data['harga'], 0, ',', '.') . "</td>
                         <td>" . htmlspecialchars($stok_tersedia) . "</td>
@@ -72,4 +76,10 @@ if (isset($_SESSION['success_message'])) {
         </tbody>
     </table>
 </div>
-<?php if (isset($_GET['action']) && in_array($_GET['action'], ['add', 'edit'])) { include 'proses/proses_tiket.php'; } ?>
+
+<?php 
+// Include modal form jika action adalah add atau edit
+if (isset($_GET['action']) && in_array($_GET['action'], ['add', 'edit'])) { 
+    include 'proses/proses_tiket.php'; 
+} 
+?>

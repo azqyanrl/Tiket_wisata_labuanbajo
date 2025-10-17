@@ -3,12 +3,19 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Cek akses admin
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../../login/login_admin.php');
+    exit;
+}
+
 include '../../../database/konek.php';
 include '../../../includes/boot.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "ID tidak valid.";
-    header("Location: ../kelola_tiket.php");
+    header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
     exit;
 }
 
@@ -23,7 +30,7 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 if ($data_cek['total'] > 0) {
     $_SESSION['error_message'] = "Tidak dapat menghapus tiket yang sudah memiliki pemesanan.";
-    header("Location: ../kelola_tiket.php");
+    header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
     exit;
 }
 
@@ -49,6 +56,5 @@ try {
     $_SESSION['error_message'] = "Gagal menghapus tiket: " . $e->getMessage();
 }
 
-header("Location: ../kelola_tiket.php");
+header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
 exit;
-?>
