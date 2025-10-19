@@ -104,7 +104,7 @@
                             <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
                             <p class="text-muted mb-1"><?= htmlspecialchars($data['durasi']); ?></p>
                             <p class="fw-bold text-primary mt-auto">Rp <?= number_format($data['harga'], 0, ',', '.'); ?></p>
-                            <a href="detail_destinasi.php?id=<?= $data['id']; ?>" class="btn btn-sm btn-outline-primary mt-2">Lihat Detail</a>
+                            <a href="login/login.php?id=<?= $data['id']; ?>" class="btn btn-sm btn-outline-primary mt-2">Login</a>
                         </div>
                     </div>
                 </div>
