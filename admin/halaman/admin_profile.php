@@ -3,164 +3,27 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Cek akses admin
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
-    header('location: ../login/login.php');
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
-// Include file yang diperlukan (path tidak diubah)
-include '../../../database/konek.php';
-include '../../../includes/boot.php';
+include '../../database/konek.php';
+include '../../includes/boot.php';
 
-// Tampilkan notifikasi yang ada
-include '../../../includes/alerts.php';
-
-// Ambil data admin yang sedang login
+// Ambil data admin yang sedang login untuk ditampilkan di form
  $query_admin = $konek->prepare("SELECT * FROM users WHERE username = ?");
  $query_admin->bind_param("s", $_SESSION['username']);
  $query_admin->execute();
  $result_admin = $query_admin->get_result();
  $admin_data = $result_admin->fetch_assoc();
-
-// Proses Update Profile (Data Umum)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
-    $nama_lengkap = $_POST['nama_lengkap'];
-    $email = $_POST['email'];
-    $no_hp = $_POST['no_hp'];
-    
-    // Validasi email
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['error_message'] = "Format email tidak valid.";
-        header("Location: admin_profile.php");
-        exit;
-    }
-    
-    // Cek apakah email sudah digunakan oleh user lain
-    $cek_email = $konek->prepare("SELECT id FROM users WHERE email = ? AND id != ?");
-    $cek_email->bind_param("si", $email, $admin_data['id']);
-    $cek_email->execute();
-    $result_cek = $cek_email->get_result();
-    
-    if ($result_cek->num_rows > 0) {
-        $_SESSION['error_message'] = "Email sudah digunakan oleh user lain.";
-        header("Location: admin_profile.php");
-        exit;
-    }
-    
-    // Update data admin di database
-    $update_admin = $konek->prepare("UPDATE users SET nama_lengkap = ?, email = ?, no_hp = ? WHERE id = ?");
-    $update_admin->bind_param("sssi", $nama_lengkap, $email, $no_hp, $admin_data['id']);
-    
-    if ($update_admin->execute()) {
-        $_SESSION['success_message'] = "Profile berhasil diperbarui.";
-    } else {
-        $_SESSION['error_message'] = "Gagal memperbarui profile.";
-    }
-    
-    header("Location: admin_profile.php");
-    exit;
-}
-
-// Proses Ganti Password
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
-    $current_password = $_POST['current_password'];
-    $new_password = $_POST['new_password'];
-    $confirm_password = $_POST['confirm_password'];
-    
-    // Validasi input
-    if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $_SESSION['error_message'] = "Semua field password harus diisi.";
-    } elseif ($new_password !== $confirm_password) {
-        $_SESSION['error_message'] = "Password baru dan konfirmasi tidak cocok.";
-    } elseif (strlen($new_password) < 6) {
-        $_SESSION['error_message'] = "Password baru minimal 6 karakter.";
-    } else {
-        // Verifikasi password saat ini
-        if (password_verify($current_password, $admin_data['password'])) {
-            // Hash password baru
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            
-            // Update password di database
-            $update_password = $konek->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $update_password->bind_param("si", $hashed_password, $admin_data['id']);
-            
-            if ($update_password->execute()) {
-                $_SESSION['success_message'] = "Password berhasil diubah.";
-            } else {
-                $_SESSION['error_message'] = "Gagal mengubah password.";
-            }
-        } else {
-            $_SESSION['error_message'] = "Password saat ini salah.";
-        }
-    }
-    
-    header("Location: admin_profile.php");
-    exit;
-}
-
-// Proses Upload Foto Profile
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
-    if (!empty($_FILES['profile_photo']['name'])) {
-        $upload_dir = '../../../assets/images/profiles/'; // Path relatif dari file ini
-        
-        // Buat folder jika belum ada
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-        
-        $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
-        $file_extension = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
-        
-        if (in_array($file_extension, $allowed_types)) {
-            if ($_FILES['profile_photo']['size'] <= 2097152) { // 2MB
-                $new_filename = 'admin_' . $admin_data['id'] . '_' . time() . '.' . $file_extension;
-                $target_file = $upload_dir . $new_filename;
-                
-                if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target_file)) {
-                    // Hapus foto lama jika ada
-                    if (!empty($admin_data['profile_photo'])) {
-                        $old_file = $upload_dir . $admin_data['profile_photo'];
-                        if (file_exists($old_file)) {
-                            unlink($old_file);
-                        }
-                    }
-                    
-                    // Update database
-                    $update_photo = $konek->prepare("UPDATE users SET profile_photo = ? WHERE id = ?");
-                    $update_photo->bind_param("si", $new_filename, $admin_data['id']);
-                    
-                    if ($update_photo->execute()) {
-                        $_SESSION['success_message'] = "Foto profile berhasil diubah.";
-                        // Refresh data admin untuk menampilkan foto baru
-                        $admin_data['profile_photo'] = $new_filename;
-                    } else {
-                        $_SESSION['error_message'] = "Gagal mengupdate foto profile di database.";
-                    }
-                } else {
-                    $_SESSION['error_message'] = "Gagal mengupload foto.";
-                }
-            } else {
-                $_SESSION['error_message'] = "Ukuran foto terlalu besar. Maksimal 2MB.";
-            }
-        } else {
-            $_SESSION['error_message'] = "Format foto tidak diizinkan. Gunakan JPG, JPEG, PNG, atau GIF.";
-        }
-    }
-    
-    header("Location: admin_profile.php");
-    exit;
-}
-
-// Refresh data admin setelah ada perubahan (untuk memastikan data selalu terbaru)
- $query_admin->execute();
- $admin_data = $query_admin->get_result()->fetch_assoc();
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Profile Admin</h1>
 </div>
+
+<?php include '../../includes/alerts.php'; ?>
 
 <div class="row">
     <div class="col-md-4">
@@ -169,10 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
                 <h5 class="mb-0">Foto Profile</h5>
             </div>
             <div class="card-body text-center">
-                <img src="../../../assets/images/profiles/<?php echo !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png'; ?>" 
-                     class="rounded-circle mb-3" width="150" height="150" alt="Profile Photo" style="object-fit: cover;">
+                <img src="../../assets/images/profile/<?php echo !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png'; ?>" 
+                     class="rounded-circle mb-3" width="150" height="150" alt="Profile Photo">
                 
-                <form method="POST" enctype="multipart/form-data">
+                <!-- PERUBAHAN: action diubah ke proses_admin.php -->
+                <form method="POST" action="proses/proses_admin.php" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="profile_photo" class="form-label">Ganti Foto</label>
                         <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
@@ -210,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
             <div class="card-body">
                 <div class="tab-content">
                     <div class="tab-pane fade show active" id="profile" role="tabpanel">
-                        <form method="POST">
+                        <!-- PERUBAHAN: action diubah ke proses_admin.php -->
+                        <form method="POST" action="proses/proses_admin.php">
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -237,7 +102,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
                     </div>
                     
                     <div class="tab-pane fade" id="password" role="tabpanel">
-                        <form method="POST">
+                        <!-- PERUBAHAN: action diubah ke proses_admin.php -->
+                        <form method="POST" action="proses/proses_admin.php">
                             <div class="mb-3">
                                 <label for="current_password" class="form-label">Password Saat Ini</label>
                                 <input type="password" class="form-control" id="current_password" name="current_password" required>

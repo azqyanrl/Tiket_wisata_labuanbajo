@@ -108,7 +108,7 @@ if ($editing) {
                         <?php if ($editing && !empty($tiket['gambar'])): ?>
                             <div class="mt-2">
                                 <p class="form-text">Gambar saat ini:</p>
-                                <img src="../../assets/images/tiket<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                                <img src="../../../assets/images/tiket<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
                             </div>
                         <?php endif; ?>
                     </div>

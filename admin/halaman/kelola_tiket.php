@@ -1,4 +1,3 @@
-### FILE: admin/halaman/kelola_tiket.php (SUDAH DISESUAIKAN)
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -7,16 +6,16 @@ if (session_status() === PHP_SESSION_NONE) {
 // PERBAIKAN: Gunakan notifikasi session dan redirect, bukan alert
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
-    header('location: ../../login/login_admin.php');
+    header('location: ../login/login_admin.php');
     exit;
 }
 
 // Path include sudah benar untuk file di admin/halaman/
-include '../../../database/konek.php';
-include '../../../includes/boot.php';
+include '../../database/konek.php';
+include '../../includes/boot.php';
 
 // PERBAIKAN: Gunakan file notifikasi yang konsisten
-include '../../../includes/alerts.php';
+include '../../includes/alerts.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -58,7 +57,7 @@ include '../../../includes/alerts.php';
                     }
                     
                     echo "<tr>
-                        <td><img src='../../../assets/images/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
+                        <td><img src='../../assets/images/tiket".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
                         <td>".htmlspecialchars($data['nama_paket'])."</td>
                         <td>Rp " . number_format($data['harga'], 0, ',', '.') . "</td>
                         <td>" . htmlspecialchars($stok_tersedia) . "</td>

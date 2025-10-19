@@ -28,23 +28,23 @@ if (isset($_SESSION['error_message'])) {
     <h1 class="h2">Kelola Pemesanan</h1>
 </div>
 
-<!-- Tambahkan form pencarian -->
+<!-- Form Pencarian -->
 <div class="row mb-3">
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <!-- PERBAIKAN: action form diisi dengan URL saat ini dan ada input tersembunyi untuk 'page' -->
                 <form method="GET" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
                     <input type="hidden" name="page" value="kelola_pemesanan">
-
                     <div class="row">
                         <div class="col-md-3">
                             <label for="tanggal_awal" class="form-label">Tanggal Awal</label>
-                            <input type="date" class="form-control" id="tanggal_awal" name="tanggal_awal" value="<?php echo isset($_GET['tanggal_awal']) ? htmlspecialchars($_GET['tanggal_awal']) : ''; ?>">
+                            <input type="date" class="form-control" id="tanggal_awal" name="tanggal_awal"
+                                value="<?php echo isset($_GET['tanggal_awal']) ? htmlspecialchars($_GET['tanggal_awal']) : ''; ?>">
                         </div>
                         <div class="col-md-3">
                             <label for="tanggal_akhir" class="form-label">Tanggal Akhir</label>
-                            <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir" value="<?php echo isset($_GET['tanggal_akhir']) ? htmlspecialchars($_GET['tanggal_akhir']) : ''; ?>">
+                            <input type="date" class="form-control" id="tanggal_akhir" name="tanggal_akhir"
+                                value="<?php echo isset($_GET['tanggal_akhir']) ? htmlspecialchars($_GET['tanggal_akhir']) : ''; ?>">
                         </div>
                         <div class="col-md-3">
                             <label for="status_filter" class="form-label">Status</label>
@@ -58,7 +58,6 @@ if (isset($_SESSION['error_message'])) {
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">Cari</button>
-                            <!-- PERBAIKAN: Link reset juga menuju ke URL yang benar -->
                             <a href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>?page=kelola_pemesanan" class="btn btn-secondary">Reset</a>
                         </div>
                     </div>
@@ -75,6 +74,7 @@ if (isset($_SESSION['error_message'])) {
                 <th>Kode Booking</th>
                 <th>User</th>
                 <th>Tiket</th>
+                <th>Jumlah Tiket</th>
                 <th>Tanggal Kunjungan</th>
                 <th>Total</th>
                 <th>Metode Pembayaran</th>
@@ -84,46 +84,44 @@ if (isset($_SESSION['error_message'])) {
         </thead>
         <tbody>
             <?php
-            // --- PERBAIKAN: Query Dinamis untuk Pencarian ---
             // Query dasar
-            $sql = "SELECT p.*, u.nama_lengkap, t.nama_paket FROM pemesanan p JOIN users u ON p.user_id = u.id JOIN tiket t ON p.tiket_id = t.id";
+            $sql = "SELECT p.*, u.nama_lengkap, t.nama_paket 
+                    FROM pemesanan p 
+                    JOIN users u ON p.user_id = u.id 
+                    JOIN tiket t ON p.tiket_id = t.id";
 
-            // Array untuk menyimpan kondisi WHERE
             $conditions = [];
             $params = [];
             $types = '';
 
-            // Tambahkan kondisi filter tanggal
-            if (isset($_GET['tanggal_awal']) && !empty($_GET['tanggal_awal'])) {
+            // Filter tanggal awal
+            if (!empty($_GET['tanggal_awal'])) {
                 $conditions[] = "p.tanggal_kunjungan >= ?";
                 $params[] = $_GET['tanggal_awal'];
                 $types .= 's';
             }
 
-            if (isset($_GET['tanggal_akhir']) && !empty($_GET['tanggal_akhir'])) {
+            // Filter tanggal akhir
+            if (!empty($_GET['tanggal_akhir'])) {
                 $conditions[] = "p.tanggal_kunjungan <= ?";
                 $params[] = $_GET['tanggal_akhir'];
                 $types .= 's';
             }
 
-            // Tambahkan kondisi filter status
-            if (isset($_GET['status_filter']) && !empty($_GET['status_filter'])) {
+            // Filter status
+            if (!empty($_GET['status_filter'])) {
                 $conditions[] = "p.status = ?";
                 $params[] = $_GET['status_filter'];
                 $types .= 's';
             }
 
-            // Gabungkan kondisi WHERE jika ada
             if (count($conditions) > 0) {
                 $sql .= " WHERE " . implode(' AND ', $conditions);
             }
 
-            // Tambahkan ORDER BY
             $sql .= " ORDER BY p.created_at DESC";
 
-            // Persiapkan dan eksekusi query dengan prepared statement untuk keamanan
             $stmt = $konek->prepare($sql);
-
             if ($stmt) {
                 if (!empty($params)) {
                     $stmt->bind_param($types, ...$params);
@@ -131,25 +129,30 @@ if (isset($_SESSION['error_message'])) {
                 $stmt->execute();
                 $result = $stmt->get_result();
             } else {
-                // Jika prepare gagal, tampilkan error (untuk debugging)
                 $result = false;
-                // echo "<tr><td colspan='7' class='text-center text-danger'>Error pada query database.</td></tr>";
             }
 
             if ($result && $result->num_rows > 0) {
                 while ($data = $result->fetch_assoc()) {
-                    $statusClass = ($data['status'] == 'pending') ? 'bg-warning text-dark' : (($data['status'] == 'dibayar') ? 'bg-info' : (($data['status'] == 'selesai') ? 'bg-success' : 'bg-danger'));
+                    $statusClass = match ($data['status']) {
+                        'pending' => 'bg-warning text-dark',
+                        'dibayar' => 'bg-info text-dark',
+                        'selesai' => 'bg-success',
+                        'batal'   => 'bg-danger',
+                        default   => 'bg-secondary'
+                    };
                     echo "<tr>
                         <td>" . htmlspecialchars($data['kode_booking']) . "</td>
                         <td>" . htmlspecialchars($data['nama_lengkap']) . "</td>
                         <td>" . htmlspecialchars($data['nama_paket']) . "</td>
+                        <td>" . (int)$data['jumlah_tiket'] . "</td>
                         <td>" . date('d/m/Y', strtotime($data['tanggal_kunjungan'])) . "</td>
                         <td>Rp " . number_format($data['total_harga'], 0, ',', '.') . "</td>
                         <td>" . htmlspecialchars($data['metode_pembayaran']) . "</td>
                         <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($data['status'])) . "</span></td>
                         <td>";
 
-                    // --- PERBAIKAN: Tampilkan tombol berdasarkan status ---
+                    // Tombol Aksi berdasarkan status
                     if ($data['status'] == 'pending') {
                         echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=confirm' class='btn btn-sm btn-success'>Konfirmasi</a> ";
                         echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=reject' class='btn btn-sm btn-danger'>Tolak</a>";
@@ -158,13 +161,14 @@ if (isset($_SESSION['error_message'])) {
                         echo "<a href='proses/proses_pemesanan.php?id=" . htmlspecialchars($data['id']) . "&action=cancel' class='btn btn-sm btn-danger' onclick='return confirm(\"Apakah Anda yakin ingin membatalkan pesanan ini?\")'>Batalkan</a>";
                     } elseif ($data['status'] == 'selesai') {
                         echo "<span class='text-muted'>Selesai</span>";
-                    } else { // status 'batal'
+                    } else {
                         echo "<span class='text-muted'>Dibatalkan</span>";
                     }
+
                     echo "</td></tr>";
                 }
             } else {
-                echo "<tr><td colspan='7' class='text-center'>Tidak ada data yang cocok dengan kriteria pencarian.</td></tr>";
+                echo "<tr><td colspan='9' class='text-center'>Tidak ada data yang cocok dengan kriteria pencarian.</td></tr>";
             }
             ?>
         </tbody>

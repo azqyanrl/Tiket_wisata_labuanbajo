@@ -4,54 +4,54 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    // PERBAIKAN: Gunakan session untuk notifikasi, bukan alert
     $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
     header('location: ../login/login.php');
     exit;
 }
 
-// Path include tidak diubah sesuai permintaan
 include '../../database/konek.php';
 include '../../includes/boot.php';
-
-// Tampilkan notifikasi jika ada
 include '../../includes/alerts.php';
 
 // --- QUERY STATISTIK DASHBOARD ---
- $query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
- $query_total->execute();
- $result_total = $query_total->get_result();
- $totalPemesanan = $result_total->fetch_assoc()['total'];
+$query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
+$query_total->execute();
+$result_total = $query_total->get_result();
+$totalPemesanan = $result_total->fetch_assoc()['total'];
 
- $query_selesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'");
- $query_selesai->execute();
- $result_selesai = $query_selesai->get_result();
- $totalSelesai = $result_selesai->fetch_assoc()['total'];
+$query_selesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'");
+$query_selesai->execute();
+$result_selesai = $query_selesai->get_result();
+$totalSelesai = $result_selesai->fetch_assoc()['total'];
 
- $query_pending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'");
- $query_pending->execute();
- $result_pending = $query_pending->get_result();
- $totalPending = $result_pending->fetch_assoc()['total'];
+$query_pending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'");
+$query_pending->execute();
+$result_pending = $query_pending->get_result();
+$totalPending = $result_pending->fetch_assoc()['total'];
 
- $query_pendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'");
- $query_pendapatan->execute();
- $result_pendapatan = $query_pendapatan->get_result();
- $pendapatan = $result_pendapatan->fetch_assoc()['total'] ?? 0;
+$query_pendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'");
+$query_pendapatan->execute();
+$result_pendapatan = $query_pendapatan->get_result();
+$pendapatan = $result_pendapatan->fetch_assoc()['total'] ?? 0;
 
 // --- TAMBAHAN: QUERY TOTAL USER ---
- $query_total_user = $konek->prepare("SELECT COUNT(*) as total FROM users WHERE role = 'user'");
- $query_total_user->execute();
- $result_total_user = $query_total_user->get_result();
- $totalUser = $result_total_user->fetch_assoc()['total'];
+$query_total_user = $konek->prepare("SELECT COUNT(*) as total FROM users WHERE role = 'user'");
+$query_total_user->execute();
+$result_total_user = $query_total_user->get_result();
+$totalUser = $result_total_user->fetch_assoc()['total'];
 
-// --- QUERY PEMESANAN TERBARU ---
- $query_recent = $konek->prepare("SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, p.total_harga, p.status, p.created_at 
-                               FROM pemesanan p 
-                               JOIN users u ON p.user_id = u.id 
-                               JOIN tiket t ON p.tiket_id = t.id 
-                               ORDER BY p.created_at DESC LIMIT 5");
- $query_recent->execute();
- $recentBookings = $query_recent->get_result();
+// --- QUERY PEMESANAN TERBARU (DENGAN JUMLAH TIKET) ---
+$query_recent = $konek->prepare("
+    SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, p.jumlah_tiket, 
+           p.total_harga, p.status, p.created_at 
+    FROM pemesanan p 
+    JOIN users u ON p.user_id = u.id 
+    JOIN tiket t ON p.tiket_id = t.id 
+    ORDER BY p.created_at DESC 
+    LIMIT 5
+");
+$query_recent->execute();
+$recentBookings = $query_recent->get_result();
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -112,21 +112,22 @@ include '../../includes/alerts.php';
             </div>
         </div>
     </div>
-    <!-- TAMBAHAN: KARTU TOTAL USER -->
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-white bg-secondary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="mb-0"><?php echo $totalUser; ?></h4>
-                        <p class="mb-0">Total Pengguna</p>
-                    </div>
-                    <i class="bi bi-people-fill fs-1 opacity-75"></i>
+
+    <!-- Kartu Total User -->
+<div class="col-xl-3 col-md-6 ">
+    <div class="card text-white" style="background: linear-gradient(45deg, #6a11cb, #2575fc);">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h4 class="mb-0"><?php echo $totalUser; ?></h4>
+                    <p class="mb-0">Total Pengguna</p>
                 </div>
+                <i class="bi bi-people-fill fs-1 opacity-75"></i>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Tabel Pemesanan Terbaru -->
 <h4 class="mb-3">Pemesanan Terbaru</h4>
@@ -137,6 +138,7 @@ include '../../includes/alerts.php';
                 <th>Kode Booking</th>
                 <th>User</th>
                 <th>Tiket</th>
+                <th>Jumlah Tiket</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th>Tanggal</th>
@@ -145,18 +147,21 @@ include '../../includes/alerts.php';
         <tbody>
             <?php if ($recentBookings->num_rows > 0) { 
                 while($row = $recentBookings->fetch_assoc()) { 
-                    $statusClass = ($row['status']=='pending')?'bg-warning text-dark':(($row['status']=='dibayar')?'bg-info':(($row['status']=='selesai')?'bg-success':'bg-danger')); 
+                    $statusClass = ($row['status']=='pending')?'bg-warning text-dark':
+                                   (($row['status']=='dibayar')?'bg-info':
+                                   (($row['status']=='selesai')?'bg-success':'bg-danger')); 
                     echo "<tr>
                         <td>" . htmlspecialchars($row['kode_booking']) . "</td>
                         <td>" . htmlspecialchars($row['nama_lengkap']) . "</td>
                         <td>" . htmlspecialchars($row['nama_paket']) . "</td>
+                        <td>" . htmlspecialchars($row['jumlah_tiket']) . "</td>
                         <td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td>
                         <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($row['status'])) . "</span></td>
                         <td>" . date('d/m/Y', strtotime($row['created_at'])) . "</td>
                     </tr>"; 
                 } 
             } else { 
-                echo "<tr><td colspan='6' class='text-center text-muted'>Tidak ada data.</td></tr>"; 
+                echo "<tr><td colspan='7' class='text-center text-muted'>Tidak ada data.</td></tr>"; 
             } ?>
         </tbody>
     </table>

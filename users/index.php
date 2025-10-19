@@ -65,7 +65,7 @@
     <div class="row g-0 h-100">
       <!-- Gambar di kiri -->
       <div class="col-md-5 h-100">
-        <img src="https://images.unsplash.com/photo-1590523278191-995cbcda646b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+        <img src="../assets/uploads/komodo.jpg" 
              class="img-fluid h-100 rounded-start-4" 
              alt="Labuan Bajo"
              style="object-fit: cover; width: 100%; height: 100%;">
@@ -117,30 +117,6 @@
     </div>
 </div>
 </section>
-
-
-  <!-- Testimoni -->
-  <section id="testimoni" style="padding:60px 0;">
-    <div class="container">
-      <h2 style="text-align:center; margin-bottom:40px; font-weight:bold;">Apa Kata Mereka</h2>
-      <div id="testiCarousel" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-inner text-center">
-          <div class="carousel-item active">
-            <blockquote class="blockquote">
-              <p style="font-size:18px;">"Liburan terbaik! Booking tiket super mudah."</p>
-              <footer class="blockquote-footer">Andi, Jakarta</footer>
-            </blockquote>
-          </div>
-          <div class="carousel-item">
-            <blockquote class="blockquote">
-              <p style="font-size:18px;">"Destinasi lengkap, harga transparan, recommended!"</p>
-              <footer class="blockquote-footer">Sinta, Surabaya</footer>
-            </blockquote>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Footer -->
   <footer style="background:#111; color:white; text-align:center; padding:20px;">

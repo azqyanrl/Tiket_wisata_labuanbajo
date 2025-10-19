@@ -1,7 +1,9 @@
 <?php
+ob_start();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
@@ -21,21 +23,23 @@ if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard'; // Kembali ke default
 }
 
-// Cek jika ini adalah request proses
 if (isset($_GET['action']) && $_GET['action'] === 'proses') {
     // Path menuju file proses
-    $proses_file = __DIR__ . '/proses_' . $page . '.php';
+    $proses_file = __DIR__ . '/proses/' . 'proses_' . $page . '.php';
     if (file_exists($proses_file)) {
-        include $proses_file;
-        exit; // Hentikan eksekusi setelah proses selesai
+        // Redirect ke file proses langsung (bukan include)
+        header("Location: proses/proses_" . $page . ".php");
+        exit;
     } else {
         die("File proses tidak ditemukan");
     }
 }
 
+
 // Path menuju file halaman (di folder yang sama dengan index.php)
  $content_file = __DIR__ . '/' . $page . '.php';
-?>
+ ob_end_flush(); ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

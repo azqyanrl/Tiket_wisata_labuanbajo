@@ -43,7 +43,7 @@ if (isset($_POST['login'])) {
             $_SESSION['success_message'] = "Login berhasil! Selamat datang, Admin.";
             
             // Redirect ke dashboard admin
-            header('Location: ../admin/index.php');
+            header('Location: ../halaman/index.php');
             exit; // Hentikan eksekusi skrip
 
         } else {

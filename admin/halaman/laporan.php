@@ -9,320 +9,319 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-include '../../database/konek.php';
-include '../../includes/boot.php';
-include '../../includes/alerts.php';
+include '../../database/konek.php'; // <-- ubah path jika perlu
 
-// Ambil filter tanggal dan tipe laporan
-$filter_type = isset($_GET['filter_type']) ? $_GET['filter_type'] : 'bulanan';
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-01');
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
-
-// --- QUERY RINGKASAN PERIODE ---
-$query_summary = $konek->prepare("SELECT 
-    COUNT(p.id) as total_transaksi,
-    SUM(p.total_harga) as total_pendapatan,
-    COUNT(CASE WHEN p.status = 'selesai' THEN 1 END) as transaksi_selesai
-FROM pemesanan p 
-WHERE DATE(p.created_at) BETWEEN ? AND ?");
-$query_summary->bind_param("ss", $start_date, $end_date);
-$query_summary->execute();
-$summary = $query_summary->get_result()->fetch_assoc();
-
-// --- QUERY TIKET TERLARIS ---
-$query_top_ticket = $konek->prepare("SELECT t.nama_paket, SUM(p.jumlah_tiket) as total_terjual
-    FROM pemesanan p
-    JOIN tiket t ON p.tiket_id = t.id
-    WHERE DATE(p.created_at) BETWEEN ? AND ? AND p.status = 'selesai'
-    GROUP BY t.id
-    ORDER BY total_terjual DESC
-    LIMIT 1");
-$query_top_ticket->bind_param("ss", $start_date, $end_date);
-$query_top_ticket->execute();
-$top_ticket = $query_top_ticket->get_result()->fetch_assoc();
-
-// --- QUERY DETAIL LAPORAN BERDASARKAN FILTER ---
-switch ($filter_type) {
-    case 'harian':
-        $label_format = 'd M Y';
-        $sql_laporan = "
-            SELECT DATE(p.created_at) AS periode,
-                   COUNT(p.id) AS total_transaksi,
-                   SUM(CASE WHEN p.status = 'selesai' THEN 1 ELSE 0 END) AS transaksi_selesai,
-                   SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) AS transaksi_pending,
-                   SUM(CASE WHEN p.status = 'batal' THEN 1 ELSE 0 END) AS transaksi_batal,
-                   SUM(p.total_harga) AS total_pendapatan
-            FROM pemesanan p
-            WHERE DATE(p.created_at) BETWEEN ? AND ?
-            GROUP BY DATE(p.created_at)
-            ORDER BY DATE(p.created_at)";
-        break;
-
-    case 'tahunan':
-        $label_format = 'Y';
-        $sql_laporan = "
-            SELECT YEAR(p.created_at) AS periode,
-                   COUNT(p.id) AS total_transaksi,
-                   SUM(CASE WHEN p.status = 'selesai' THEN 1 ELSE 0 END) AS transaksi_selesai,
-                   SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) AS transaksi_pending,
-                   SUM(CASE WHEN p.status = 'batal' THEN 1 ELSE 0 END) AS transaksi_batal,
-                   SUM(p.total_harga) AS total_pendapatan
-            FROM pemesanan p
-            WHERE DATE(p.created_at) BETWEEN ? AND ?
-            GROUP BY YEAR(p.created_at)
-            ORDER BY YEAR(p.created_at)";
-        break;
-
-    default: // bulanan
-        $label_format = 'M Y';
-        $sql_laporan = "
-            SELECT DATE_FORMAT(p.created_at, '%Y-%m') AS periode,
-                   COUNT(p.id) AS total_transaksi,
-                   SUM(CASE WHEN p.status = 'selesai' THEN 1 ELSE 0 END) AS transaksi_selesai,
-                   SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) AS transaksi_pending,
-                   SUM(CASE WHEN p.status = 'batal' THEN 1 ELSE 0 END) AS transaksi_batal,
-                   SUM(p.total_harga) AS total_pendapatan
-            FROM pemesanan p
-            WHERE DATE(p.created_at) BETWEEN ? AND ?
-            GROUP BY DATE_FORMAT(p.created_at, '%Y-%m')
-            ORDER BY DATE_FORMAT(p.created_at, '%Y-%m')";
-        break;
+// --- Sanitasi & helper ---
+function esc($conn, $v) {
+    return mysqli_real_escape_string($conn, trim($v));
+}
+function is_valid_date($d) {
+    $dt = DateTime::createFromFormat('Y-m-d', $d);
+    return $dt && $dt->format('Y-m-d') === $d;
+}
+function rupiah($n) {
+    return 'Rp ' . number_format($n, 0, ',', '.');
 }
 
-$stmt_laporan = $konek->prepare($sql_laporan);
-$stmt_laporan->bind_param("ss", $start_date, $end_date);
-$stmt_laporan->execute();
-$result_laporan = $stmt_laporan->get_result();
+// --- Ambil parameter filter dari GET ---
+$filter_type = isset($_GET['filter_type']) ? $_GET['filter_type'] : '';
+$date = isset($_GET['date']) ? $_GET['date'] : ''; // yyyy-mm-dd
+$month = isset($_GET['month']) ? (int)$_GET['month'] : 0; // 1-12
+$year = isset($_GET['year']) ? (int)$_GET['year'] : 0; // yyyy
+$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
+$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
 
-// --- QUERY 10 TIKET TERLARIS ---
-$query_tiket = $konek->prepare("
-    SELECT t.nama_paket,
-           SUM(p.jumlah_tiket) AS total_tiket_terjual,
-           SUM(p.total_harga) AS total_pendapatan
-    FROM pemesanan p
-    JOIN tiket t ON p.tiket_id = t.id
-    WHERE DATE(p.created_at) BETWEEN ? AND ? AND p.status = 'selesai'
-    GROUP BY t.id
-    ORDER BY total_tiket_terjual DESC
-    LIMIT 10");
-$query_tiket->bind_param("ss", $start_date, $end_date);
-$query_tiket->execute();
-$result_tiket = $query_tiket->get_result();
+// --- Bangun WHERE clause (hanya status='selesai') ---
+$where = "p.status = 'selesai'";
+
+if ($filter_type === 'daily' && is_valid_date($date)) {
+    $d = esc($konek, $date);
+    $where .= " AND p.tanggal_kunjungan = '$d'";
+} elseif ($filter_type === 'monthly' && $month >= 1 && $month <= 12 && $year > 0) {
+    $m = str_pad($month, 2, '0', STR_PAD_LEFT);
+    $y = (int)$year;
+    $where .= " AND MONTH(p.tanggal_kunjungan) = $m AND YEAR(p.tanggal_kunjungan) = $y";
+} elseif ($filter_type === 'yearly' && $year > 0) {
+    $y = (int)$year;
+    $where .= " AND YEAR(p.tanggal_kunjungan) = $y";
+} elseif ($filter_type === 'range' && is_valid_date($start_date) && is_valid_date($end_date)) {
+    $s = esc($konek, $start_date);
+    $e = esc($konek, $end_date);
+    if ($s > $e) {
+        $tmp = $s; $s = $e; $e = $tmp;
+    }
+    $where .= " AND p.tanggal_kunjungan BETWEEN '$s' AND '$e'";
+}
+
+// --- Query utama (daftar transaksi) ---
+$sql = "SELECT p.*, u.nama_lengkap, t.nama_paket
+        FROM pemesanan p
+        LEFT JOIN users u ON p.user_id = u.id
+        LEFT JOIN tiket t ON p.tiket_id = t.id
+        WHERE $where
+        ORDER BY p.tanggal_kunjungan DESC, p.created_at DESC";
+
+$res = mysqli_query($konek, $sql);
+
+// --- Hitung total pendapatan & jumlah transaksi (yang tampil) ---
+$total_pendapatan = 0;
+$total_transaksi = 0;
+$rows = [];
+if ($res) {
+    while ($r = mysqli_fetch_assoc($res)) {
+        $rows[] = $r;
+        $total_pendapatan += (float)$r['total_harga'];
+        $total_transaksi++;
+    }
+}
+
+// --- Query tiket terlaris (top 5) ---
+$sql_top = "SELECT p.tiket_id, t.nama_paket, SUM(p.jumlah_tiket) AS total_terjual, COUNT(*) AS transaksi
+            FROM pemesanan p
+            LEFT JOIN tiket t ON p.tiket_id = t.id
+            WHERE p.status = 'selesai'
+            GROUP BY p.tiket_id
+            ORDER BY total_terjual DESC
+            LIMIT 5";
+$res_top = mysqli_query($konek, $sql_top);
+$top_list = [];
+if ($res_top) {
+    while ($r = mysqli_fetch_assoc($res_top)) {
+        $top_list[] = $r;
+    }
+}
+
+// --- HTML output (Bootstrap) ---
 ?>
-
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Laporan Penjualan</h1>
-</div>
-
-<!-- Form Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-3">
-                <label for="filter_type" class="form-label">Tipe Laporan</label>
-                <select name="filter_type" id="filter_type" class="form-select">
-                    <option value="harian" <?php echo $filter_type == 'harian' ? 'selected' : ''; ?>>Harian</option>
-                    <option value="bulanan" <?php echo $filter_type == 'bulanan' ? 'selected' : ''; ?>>Bulanan</option>
-                    <option value="tahunan" <?php echo $filter_type == 'tahunan' ? 'selected' : ''; ?>>Tahunan</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="start_date" class="form-label">Dari Tanggal</label>
-                <input type="date" name="start_date" class="form-control" value="<?php echo $start_date ?>">
-            </div>
-            <div class="col-md-3">
-                <label for="end_date" class="form-label">Sampai Tanggal</label>
-                <input type="date" name="end_date" class="form-control" value="<?php echo $end_date ?>">
-            </div>
-            <div class="col-md-3 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">Filter</button>
-                <button type="button" class="btn btn-secondary" onclick="window.print()">Cetak</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Kartu Ringkasan -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Pendapatan Periode</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800">Rp <?php echo number_format($summary['total_pendapatan'] ?? 0, 0, ',', '.'); ?></div>
-            </div>
+<!doctype html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Laporan Transaksi - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        @media print {
+            body { -webkit-print-color-adjust: exact; }
+            .no-print, .no-print * { display: none !important; }
+            .table { font-size: 12px; }
+            .card { box-shadow: none; border: none; }
+            .container { max-width: 100%; padding: 0; }
+        }
+        .table thead th { vertical-align: middle; }
+        .filter-row .form-control, .filter-row .btn { min-height: 40px; }
+        .small-muted { font-size: .85rem; color: #6c757d; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Laporan Transaksi</h3>
+        <div class="no-print">
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="bi bi-printer"></i> Cetak Laporan
+            </button>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card border-left-success shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Transaksi Selesai</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $summary['transaksi_selesai'] ?? 0; ?></div>
+
+    <div class="card mb-3 no-print">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <input type="hidden" name="page" value="laporan">
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Tipe Filter</label>
+                    <select name="filter_type" id="filter_type" class="form-select">
+                        <option value="">-- Tanpa Filter --</option>
+                        <option value="daily" <?= $filter_type==='daily' ? 'selected' : '' ?>>Harian</option>
+                        <option value="monthly" <?= $filter_type==='monthly' ? 'selected' : '' ?>>Bulanan</option>
+                        <option value="yearly" <?= $filter_type==='yearly' ? 'selected' : '' ?>>Tahunan</option>
+                        <option value="range" <?= $filter_type==='range' ? 'selected' : '' ?>>Rentang Tanggal</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 filter-item" id="filter_daily" style="display: none;">
+                    <label class="form-label">Pilih Tanggal</label>
+                    <input type="date" name="date" class="form-control" value="<?= htmlspecialchars($date) ?>">
+                </div>
+
+                <div class="col-12 col-md-2 filter-item" id="filter_monthly" style="display: none;">
+                    <label class="form-label">Bulan</label>
+                    <select name="month" class="form-select">
+                        <option value="">-- Pilih Bulan --</option>
+                        <?php for ($m=1;$m<=12;$m++): ?>
+                            <option value="<?= $m ?>" <?= ($filter_type==='monthly' && (int)$month===$m) ? 'selected' : '' ?>>
+                                <?= str_pad($m,2,'0',STR_PAD_LEFT) ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 filter-item" id="filter_monthly_year" style="display: none;">
+                    <label class="form-label">Tahun</label>
+                    <select name="year" class="form-select">
+                        <option value="">-- Pilih Tahun --</option>
+                        <?php
+                        $startY = date('Y') - 5;
+                        for ($yy = date('Y'); $yy >= $startY; $yy--): ?>
+                            <option value="<?= $yy ?>" <?= ($filter_type==='monthly' && (int)$year===$yy) || ($filter_type==='yearly' && (int)$year===$yy) ? 'selected' : '' ?>>
+                                <?= $yy ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 filter-item" id="filter_yearly" style="display: none;">
+                    <label class="form-label">Tahun</label>
+                    <select name="year_y" id="year_y" class="form-select">
+                        <option value="">-- Pilih Tahun --</option>
+                        <?php
+                        for ($yy = date('Y'); $yy >= date('Y')-5; $yy--): ?>
+                            <option value="<?= $yy ?>" <?= ($filter_type==='yearly' && (int)$year===$yy) ? 'selected' : '' ?>>
+                                <?= $yy ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-2 filter-item" id="filter_range" style="display: none;">
+                    <label class="form-label">Dari</label>
+                    <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($start_date) ?>">
+                </div>
+                <div class="col-12 col-md-2 filter-item" id="filter_range_to" style="display: none;">
+                    <label class="form-label">Sampai</label>
+                    <input type="date" name="end_date" class="form-control" value="<?= htmlspecialchars($end_date) ?>">
+                </div>
+
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-success">Tampilkan</button>
+                </div>
+                <div class="col-auto">
+                    <a href="<?= strtok($_SERVER["REQUEST_URI"], '?') ?>?page=laporan" class="btn btn-secondary">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6>Total Pendapatan</h6>
+                    <h4 class="mb-0"><?= rupiah($total_pendapatan) ?></h4>
+                    <p class="small-muted mb-0">Jumlah transaksi: <?= $total_transaksi ?></p>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card border-left-info shadow h-100 py-2">
-            <div class="card-body">
-                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tiket Terlaris</div>
-                <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo htmlspecialchars($top_ticket['nama_paket'] ?? 'N/A'); ?></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Grafik Penjualan -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5>Grafik Penjualan</h5>
-    </div>
-    <div class="card-body">
-        <canvas id="salesChart" height="100"></canvas>
-    </div>
-</div>
-
-<!-- Tabel Detail Laporan -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5>Detail Laporan Penjualan</h5>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead class="table-light">
-                    <tr>
-                        <th>Periode</th>
-                        <th>Total Transaksi</th>
-                        <th>Transaksi Selesai</th>
-                        <th>Transaksi Pending</th>
-                        <th>Transaksi Batal</th>
-                        <th>Total Pendapatan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($result_laporan->num_rows > 0): ?>
-                        <?php $result_laporan->data_seek(0); while($row = $result_laporan->fetch_assoc()): ?>
-                        <tr>
-                            <td>
-                                <?php 
-                                if ($filter_type == 'harian') {
-                                    echo date($label_format, strtotime($row['periode']));
-                                } elseif ($filter_type == 'bulanan') {
-                                    $date = DateTime::createFromFormat('Y-m', $row['periode']);
-                                    echo $date->format($label_format);
-                                } else {
-                                    echo $row['periode'];
-                                }
-                                ?>
-                            </td>
-                            <td><?php echo $row['total_transaksi']; ?></td>
-                            <td><?php echo $row['transaksi_selesai']; ?></td>
-                            <td><?php echo $row['transaksi_pending']; ?></td>
-                            <td><?php echo $row['transaksi_batal']; ?></td>
-                            <td>Rp <?php echo number_format($row['total_pendapatan'], 0, ',', '.'); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr><td colspan="6" class="text-center">Tidak ada data laporan.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- Tabel 10 Tiket Terlaris -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header"><h5>10 Tiket Terlaris</h5></div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead class="table-light">
-                            <tr><th>Nama Paket</th><th>Jumlah</th><th>Pendapatan</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php if ($result_tiket->num_rows > 0): ?>
-                                <?php while($row = $result_tiket->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo $row['nama_paket']; ?></td>
-                                    <td><?php echo $row['total_tiket_terjual']; ?></td>
-                                    <td>Rp <?php echo number_format($row['total_pendapatan'], 0, ',', '.'); ?></td>
-                                </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr><td colspan="3" class="text-center">Tidak ada data tiket terlaris.</td></tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6>Tiket Terlaris (Top <?= count($top_list) ?>)</h6>
+                    <ul class="list-group list-group-flush">
+                        <?php if (count($top_list) === 0): ?>
+                            <li class="list-group-item">Belum ada data</li>
+                        <?php else: ?>
+                            <?php foreach ($top_list as $t): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong><?= htmlspecialchars($t['nama_paket'] ?: '—') ?></strong><br>
+                                        <small class="text-muted">Transaksi: <?= $t['transaksi'] ?> — Tiket terjual: <?= $t['total_terjual'] ?></small>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Table -->
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:60px">No</th>
+                            <th>Kode Booking</th>
+                            <th>Nama Pelanggan</th>
+                            <th>Nama Paket</th>
+                            <th>Tanggal Kunjungan</th>
+                            <th>Jumlah Tiket</th>
+                            <th>Total Harga</th>
+                            <th>Metode Pembayaran</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (count($rows) === 0): ?>
+                            <tr><td colspan="9" class="text-center py-4">Tidak ada data.</td></tr>
+                        <?php else: ?>
+                            <?php $no=1; foreach ($rows as $r): ?>
+                                <tr>
+                                    <td><?= $no++ ?></td>
+                                    <td><?= htmlspecialchars($r['kode_booking']) ?></td>
+                                    <td><?= htmlspecialchars($r['nama_lengkap'] ?: '-') ?></td>
+                                    <td><?= htmlspecialchars($r['nama_paket'] ?: '-') ?></td>
+                                    <td><?= htmlspecialchars($r['tanggal_kunjungan']) ?></td>
+                                    <td><?= (int)$r['jumlah_tiket'] ?></td>
+                                    <td><?= rupiah($r['total_harga']) ?></td>
+                                    <td><?= htmlspecialchars($r['metode_pembayaran']) ?></td>
+                                    <td><?= htmlspecialchars($r['status']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                    <?php if (count($rows) > 0): ?>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="6" class="text-end">Total</th>
+                                <th><?= rupiah($total_pendapatan) ?></th>
+                                <th colspan="2">Transaksi: <?= $total_transaksi ?></th>
+                            </tr>
+                        </tfoot>
+                    <?php endif; ?>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const labels = [];
-    const dataPendapatan = [];
-    const dataTransaksi = [];
-    <?php 
-    $result_laporan->data_seek(0);
-    while($row = $result_laporan->fetch_assoc()): ?>
-        labels.push('<?php 
-            if ($filter_type == 'harian') {
-                echo date($label_format, strtotime($row['periode']));
-            } elseif ($filter_type == 'bulanan') {
-                $date = DateTime::createFromFormat('Y-m', $row['periode']);
-                echo $date->format($label_format);
-            } else {
-                echo $row['periode'];
-            } ?>');
-        dataPendapatan.push(<?php echo $row['total_pendapatan']; ?>);
-        dataTransaksi.push(<?php echo $row['total_transaksi']; ?>);
-    <?php endwhile; ?>
+    function toggleFilterUI() {
+        const type = document.getElementById('filter_type').value;
+        document.querySelectorAll('.filter-item').forEach(el => el.style.display = 'none');
+        if (type === 'daily') document.getElementById('filter_daily').style.display = 'block';
+        else if (type === 'monthly') {
+            document.getElementById('filter_monthly').style.display = 'block';
+            document.getElementById('filter_monthly_year').style.display = 'block';
+        } else if (type === 'yearly') document.getElementById('filter_yearly').style.display = 'block';
+        else if (type === 'range') {
+            document.getElementById('filter_range').style.display = 'block';
+            document.getElementById('filter_range_to').style.display = 'block';
+        }
+    }
+    document.getElementById('filter_type').addEventListener('change', toggleFilterUI);
+    toggleFilterUI();
 
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Pendapatan (Rp)',
-                    data: dataPendapatan,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    yAxisID: 'y'
-                },
-                {
-                    label: 'Jumlah Transaksi',
-                    data: dataTransaksi,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 2,
-                    yAxisID: 'y1'
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    type: 'linear',
-                    position: 'left',
-                    title: { display: true, text: 'Pendapatan (Rp)' }
-                },
-                y1: {
-                    type: 'linear',
-                    position: 'right',
-                    title: { display: true, text: 'Jumlah Transaksi' },
-                    grid: { drawOnChartArea: false }
-                }
+    document.querySelector('form').addEventListener('submit', function(e){
+        const type = document.getElementById('filter_type').value;
+        if (type === 'yearly') {
+            const y = document.getElementById('year_y').value;
+            if (y) {
+                let existing = document.querySelector('input[name="year"]');
+                if (!existing) {
+                    let inp = document.createElement('input');
+                    inp.type = 'hidden'; inp.name = 'year'; inp.value = y;
+                    this.appendChild(inp);
+                } else existing.value = y;
             }
         }
     });
 </script>
+</body>
+</html>

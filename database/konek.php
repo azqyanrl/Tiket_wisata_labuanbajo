@@ -1,3 +1,3 @@
 <?php
-$konek = new mysqli("localhost", "root", "", "aku");
+$konek = new mysqli("localhost", "root", "", "labuanbajo");
 ?>
