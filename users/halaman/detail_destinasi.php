@@ -30,16 +30,14 @@ if (!$data_paket) {
 
 <!-- ====== HERO SECTION ====== -->
 <section class="hero-section" style="height: 60vh; position: relative; overflow: hidden;">
-    <img src="../../assets/images/<?= htmlspecialchars($data_paket['gambar']); ?>" alt="<?= htmlspecialchars($data_paket['nama_paket']); ?>" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+    <img src="../../assets/images/tiket/<?= htmlspecialchars($data_paket['gambar']); ?>" alt="<?= htmlspecialchars($data_paket['nama_paket']); ?>" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
     <div class="hero-overlay" style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); display: flex; align-items: center; justify-content: center;">
         <h1 class="text-white fw-bold display-5"><?= htmlspecialchars($data_paket['nama_paket']); ?></h1>
     </div>
 </section>
 
-<!-- ====== DETAIL DESTINASI & FORM BOOKING ====== -->
 <div class="container my-5">
     <div class="row">
-        <!-- Kolom Deskripsi -->
         <div class="col-md-8">
             <h3 class="fw-bold"><?= htmlspecialchars($data_paket['nama_paket']); ?></h3>
             <p><?= nl2br(htmlspecialchars($data_paket['deskripsi'])); ?></p>

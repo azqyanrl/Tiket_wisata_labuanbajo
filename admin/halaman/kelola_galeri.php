@@ -11,84 +11,90 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 
 include '../../database/konek.php';
 include '../../includes/boot.php';
+?>
 
-// Tampilkan pesan sukses atau error dari session
-if (isset($_SESSION['success_message'])): ?>
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <?php echo htmlspecialchars($_SESSION['success_message']); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="container-fluid mt-3">
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['success_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['success_message']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['error_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['error_message']); ?>
+    <?php endif; ?>
+
+    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+        <h1 class="h4 fw-bold">Kelola Galeri</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahFoto">
+            <i class="bi bi-plus-circle me-1"></i> Tambah Foto
+        </button>
     </div>
-    <?php unset($_SESSION['success_message']); ?>
-<?php endif; ?>
 
-<?php if (isset($_SESSION['error_message'])): ?>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <?php echo htmlspecialchars($_SESSION['error_message']); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <?php unset($_SESSION['error_message']); ?>
-<?php endif; ?>
-
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Kelola Galeri</h1>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahFoto">
-        <i class="bi bi-plus-circle me-1"></i> Tambah Foto
-    </button>
-</div>
-
-<div class="row g-3">
-    <?php 
-    $query_galeri = $konek->query("SELECT * FROM galleries ORDER BY created_at DESC"); 
-    if ($query_galeri->num_rows > 0) { 
-        while($data = $query_galeri->fetch_assoc()) { ?>
-            <div class="col-md-3">
-                <div class="card">
-                    <img src='../../assets/images/galery/<?php echo htmlspecialchars($data['gambar']); ?>' 
-                         class='card-img-top' 
-                         style='height:200px;object-fit:cover;' 
-                         alt='<?php echo htmlspecialchars($data['judul']); ?>'>
-                    <div class='card-body'>
-                        <h6 class='card-title'><?php echo htmlspecialchars($data['judul']); ?></h6>
-                        <p class='card-text'>
-                            <small class='text-muted'>Kategori: <?php echo htmlspecialchars($data['kategori']); ?></small>
-                        </p>
-                        <a href='proses/hapus_galeri.php?id=<?php echo htmlspecialchars($data['id']); ?>' 
-                           class='btn btn-sm btn-danger'
-                           onclick='return confirm("Yakin ingin menghapus foto ini?")'>
-                           Hapus
-                        </a>
+    <div class="row g-3">
+        <?php 
+        $query_galeri = $konek->query("SELECT * FROM galleries ORDER BY created_at DESC"); 
+        if ($query_galeri && $query_galeri->num_rows > 0): 
+            while($data = $query_galeri->fetch_assoc()): ?>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="card shadow-sm border-0">
+                        <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>' 
+                             class='card-img-top' 
+                             style='height:200px;object-fit:cover;' 
+                             alt='<?= htmlspecialchars($data['judul']); ?>'>
+                        <div class='card-body'>
+                            <h6 class='card-title mb-1 fw-semibold'><?= htmlspecialchars($data['judul']); ?></h6>
+                            <small class='text-muted d-block mb-2'>Kategori: <?= htmlspecialchars($data['kategori']); ?></small>
+                            <div class="d-flex justify-content-between">
+                                <a href='proses/hapus_galeri.php?id=<?= htmlspecialchars($data['id']); ?>' 
+                                   class='btn btn-sm btn-danger'
+                                   onclick='return confirm("Yakin ingin menghapus foto ini?")'>
+                                   <i class="bi bi-trash"></i> Hapus
+                                </a>
+                                <button class='btn btn-sm btn-warning' 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEditFoto<?= $data['id']; ?>">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php }
-    } else { 
-        echo "<p class='col-12 text-center'>Tidak ada foto.</p>"; 
-    } 
-    ?>
+        <?php endwhile; else: ?>
+            <p class='col-12 text-center text-muted'>Tidak ada foto.</p>
+        <?php endif; ?>
+    </div>
 </div>
 
-<!-- Modal Tambah Foto -->
 <div class="modal fade" id="modalTambahFoto" tabindex="-1" aria-labelledby="modalTambahFotoLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white">
         <h5 class="modal-title" id="modalTambahFotoLabel">Tambah Foto Baru</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form action="proses/proses_galeri.php" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
             <div class="mb-3">
-                <label for="judul" class="form-label">Judul</label>
+                <label for="judul" class="form-label fw-semibold">Judul</label>
                 <input type="text" class="form-control" name="judul" id="judul" required>
             </div>
             <div class="mb-3">
-                <label for="kategori" class="form-label">Kategori</label>
+                <label for="kategori" class="form-label fw-semibold">Kategori</label>
                 <input type="text" class="form-control" name="kategori" id="kategori" required>
             </div>
             <div class="mb-3">
-                <label for="gambar" class="form-label">Gambar</label>
+                <label for="gambar" class="form-label fw-semibold">Gambar</label>
                 <input type="file" class="form-control" name="gambar" id="gambar" accept="image/*" required>
-                <div class="form-text">Format diizinkan: JPG, JPEG, PNG, GIF. Maksimal 2MB.</div>
+                <div class="form-text">Format: JPG, JPEG, PNG, GIF (maks 2MB).</div>
+                <img id="previewTambah" class="img-fluid rounded mt-2 d-none" style="max-height:150px;">
             </div>
         </div>
         <div class="modal-footer">
@@ -99,3 +105,73 @@ if (isset($_SESSION['success_message'])): ?>
     </div>
   </div>
 </div>
+
+<?php
+if ($query_galeri && $query_galeri->num_rows > 0):
+$query_galeri->data_seek(0);
+while ($data = $query_galeri->fetch_assoc()): ?>
+<div class="modal fade" id="modalEditFoto<?= $data['id']; ?>" tabindex="-1" aria-labelledby="modalEditFotoLabel<?= $data['id']; ?>" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title text-dark" id="modalEditFotoLabel<?= $data['id']; ?>">Edit Foto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="proses/edit_galeri.php" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+            <input type="hidden" name="id" value="<?= $data['id']; ?>">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Judul</label>
+                <input type="text" class="form-control" name="judul" value="<?= htmlspecialchars($data['judul']); ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Kategori</label>
+                <input type="text" class="form-control" name="kategori" value="<?= htmlspecialchars($data['kategori']); ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Ganti Gambar (Opsional)</label>
+                <input type="file" class="form-control previewEdit" name="gambar" accept="image/*" data-preview="previewEdit<?= $data['id']; ?>">
+                <div class="form-text">Kosongkan jika tidak ingin mengubah gambar.</div>
+                <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>' 
+                     id="previewEdit<?= $data['id']; ?>"
+                     class='img-fluid rounded mt-2' 
+                     style='max-height:150px;object-fit:cover;'>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-warning text-dark">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php endwhile; endif; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tambahInput = document.getElementById('gambar');
+    const tambahPreview = document.getElementById('previewTambah');
+
+    tambahInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            tambahPreview.classList.remove('d-none');
+            tambahPreview.src = URL.createObjectURL(file);
+        } else {
+            tambahPreview.classList.add('d-none');
+        }
+    });
+
+    document.querySelectorAll('.previewEdit').forEach(input => {
+        input.addEventListener('change', function() {
+            const target = document.getElementById(this.dataset.preview);
+            const file = this.files[0];
+            if (file) target.src = URL.createObjectURL(file);
+        });
+    });
+});
+</script>

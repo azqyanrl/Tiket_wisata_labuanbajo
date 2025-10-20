@@ -6,7 +6,7 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
 ?>
 
 <!-- Hero Section -->
-<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
+<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../../assets/images/bg/pantai.jpg'); background-size: cover; background-position: center;">
     <div class="container py-5">
         <h1 class="display-4 fw-bold">Galeri Labuan Bajo</h1>
         <p class="lead">Lihat momen-momen indah dan keindahan destinasi yang kami tawarkan.</p>
@@ -43,11 +43,11 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
                     <div class="card h-100 shadow-sm gallery-card" style="cursor: pointer;" 
                          data-bs-toggle="modal" 
                          data-bs-target="#lightboxModal"
-                         data-img-src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>"
+                         data-img-src="../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>"
                          data-title="<?= htmlspecialchars($data['judul']); ?>"
                          data-caption="<?= htmlspecialchars(ucfirst($data['kategori'])); ?>">
                         
-                        <img src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top gallery-img" alt="<?= htmlspecialchars($data['judul']); ?>">
+                        <img src="../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top gallery-img" alt="<?= htmlspecialchars($data['judul']); ?>">
                         <div class="card-img-overlay d-flex flex-column justify-content-end text-white p-2">
                              <h5 class="card-title"><?= htmlspecialchars($data['judul']); ?></h5>
                              <p class="card-text small"><?= htmlspecialchars(ucfirst($data['kategori'])); ?></p>

@@ -62,7 +62,7 @@ include '../../includes/boot.php';
     <title>Register | Labuan Bajo</title>
 </head>
 <body class="d-flex align-items-center justify-content-center min-vh-100" 
-      style="background: url('../../assets/images/hero/padarhd.avif') no-repeat center center fixed; background-size: cover;">
+      style="background: url('../../assets/images/bg/padar4.jpg') no-repeat center center fixed; background-size: cover;">
     <div class="card shadow-lg border-0" 
          style="max-width: 450px; width: 100%; background: hsla(199, 100%, 89%, 0.63); backdrop-filter: blur(8px); border-radius: 15px;">
         <div class="card-body p-4">
@@ -108,10 +108,10 @@ include '../../includes/boot.php';
 
                 <!-- No HP -->
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">No HP (Opsional)</label>
+                    <label class="form-label fw-semibold">No HP</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                        <input type="text" name="no_hp" class="form-control" placeholder="08xx-xxxx-xxxx">
+                        <input type="text" name="no_hp" class="form-control" placeholder="08xx-xxxx-xxxx" required>
                     </div>
                 </div>
 

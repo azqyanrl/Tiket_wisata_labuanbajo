@@ -109,7 +109,7 @@ if (isset($_GET['id'])) {
                 <tr>
                     <td><?php echo htmlspecialchars($pemesanan['kode_booking']); ?></td>
                     <td><?php echo htmlspecialchars($pemesanan['nama_paket']); ?></td>
-                    <td><img src="../../assets/images/<?php echo htmlspecialchars($pemesanan['gambar']); ?>" class="ticket-img" alt="<?php echo htmlspecialchars($pemesanan['nama_paket']); ?>"></td>
+                    <td><img src="../../../assets/images/tiket/<?php echo htmlspecialchars($pemesanan['gambar']); ?>" class="ticket-img" alt="<?php echo htmlspecialchars($pemesanan['nama_paket']); ?>"></td>
                     <td><?php echo date('d/m/Y', strtotime($pemesanan['tanggal_kunjungan'])); ?></td>
                     <td><?php echo htmlspecialchars($pemesanan['jumlah_tiket']); ?></td>
                     <td>Rp <?php echo number_format($pemesanan['total_harga'], 0, ',', '.'); ?></td>

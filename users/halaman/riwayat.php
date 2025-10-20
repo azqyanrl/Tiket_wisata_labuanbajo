@@ -27,7 +27,7 @@ if (!isset($_SESSION['user_id'])) {
 ?>
 
 <!-- Hero Section -->
-<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1558979158-65a1eaa08691?auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
+<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../../assets/images/bg/padar3.jpg'); background-size: cover; background-position: center;">
     <div class="container py-5">
         <h1 class="display-4 fw-bold mb-3">Jelajahi Keindahan Labuan Bajo</h1>
         <p class="lead mb-4">Temukan pengalaman tak terlupakan dengan paket wisata terbaik kami</p>
@@ -61,7 +61,7 @@ if (!isset($_SESSION['user_id'])) {
                             <td>
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <?php if (!empty($data_booking['gambar'])): ?>
-                                        <img src="../../assets/images/<?= htmlspecialchars($data_booking['gambar']); ?>" alt="<?= htmlspecialchars($data_booking['nama_paket']); ?>" style="width: 60px; height: 45px; object-fit: cover; border-radius: 4px;">
+                                        <img src="../../assets/images/tiket/<?= htmlspecialchars($data_booking['gambar']); ?>" alt="<?= htmlspecialchars($data_booking['nama_paket']); ?>" style="width: 60px; height: 45px; object-fit: cover; border-radius: 4px;">
                                     <?php endif; ?>
                                     <span><?= htmlspecialchars($data_booking['nama_paket']); ?></span>
                                 </div>

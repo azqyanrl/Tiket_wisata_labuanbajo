@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 // PERBAIKAN: Gunakan notifikasi session dan redirect, bukan alert
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
-    header('location: ../login/login_admin.php');
+    header('location: ../login/login.php');
     exit;
 }
 
@@ -57,7 +57,7 @@ include '../../includes/alerts.php';
                     }
                     
                     echo "<tr>
-                        <td><img src='../../assets/images/tiket".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
+                        <td><img src='../../assets/images/tiket/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
                         <td>".htmlspecialchars($data['nama_paket'])."</td>
                         <td>Rp " . number_format($data['harga'], 0, ',', '.') . "</td>
                         <td>" . htmlspecialchars($stok_tersedia) . "</td>

@@ -17,10 +17,10 @@
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h5 style="font-weight: 600; margin-bottom: 20px;">Navigasi</h5>
                     <ul class="list-unstyled" style="padding: 0;">
-                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Beranda</a></li>
-                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Destinasi</a></li>
-                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Promo</a></li>
-                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Blog</a></li>
+                        <li class="mb-2"><a href="../admin/halaman/beranda.php" style="color: #adb5bd; text-decoration: none;">Beranda</a></li>
+                        <li class="mb-2"><a href="../admin/halaman/destinasi.php" style="color: #adb5bd; text-decoration: none;">Destinasi</a></li>
+                        <li class="mb-2"><a href="../admin/halaman/destinasi.php" style="color: #adb5bd; text-decoration: none;"> Galeri</a></li>
+                        <li class="mb-2"><a href="../admin/halaman/riwayat.php" style="color: #adb5bd; text-decoration: none;">Riwayat</a></li>
                         <li><a href="#" style="color: #adb5bd; text-decoration: none;">Kontak</a></li>
                     </ul>
                 </div>
@@ -29,7 +29,6 @@
                     <h5 style="font-weight: 600; margin-bottom: 20px;">Informasi</h5>
                     <ul class="list-unstyled" style="padding: 0;">
                         <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Tentang Kami</a></li>
-                        <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">FAQ</a></li>
                         <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Syarat & Ketentuan</a></li>
                         <li class="mb-2"><a href="#" style="color: #adb5bd; text-decoration: none;">Kebijakan Privasi</a></li>
                         <li><a href="#" style="color: #adb5bd; text-decoration: none;">Karir</a></li>
@@ -45,11 +44,11 @@
                         </li>
                         <li class="mb-3 d-flex align-items-center" style="color: #adb5bd;">
                             <i class="bi bi-telephone me-3" style="font-size: 1.2rem;"></i>
-                            <span>+62 812 3456 7890</span>
+                            <span>+62 838 1234 567</span>
                         </li>
                         <li class="mb-3 d-flex align-items-center" style="color: #adb5bd;">
                             <i class="bi bi-envelope me-3" style="font-size: 1.2rem;"></i>
-                            <span>info@tiketlabuanbajo.com</span>
+                            <span>azqyanurul27@gmail.com</span>
                         </li>
                     </ul>
                 </div>

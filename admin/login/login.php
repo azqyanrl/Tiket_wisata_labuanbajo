@@ -72,7 +72,7 @@ include '../../includes/boot.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin | Labuan Bajo</title>
 </head>
-<body style="background:url('../../assets/images/hero/padarhd.avif') no-repeat center center fixed; background-size:cover;">
+<body style="background:url('../../assets/images/bg/padar4.jpg') no-repeat center center fixed; background-size:cover;">
 
     <!-- Card Login -->
     <div class="container" style="max-width:500px; margin-top:200px;">

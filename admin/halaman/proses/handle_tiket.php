@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $gambar = $gambar_lama;
     if (!empty($_FILES['gambar']['name'])) {
-        $upload_dir = __DIR__ . '/../../assets/images/tiket';
+        $upload_dir = __DIR__ . '/../../../assets/images/tiket/';
 
         $imageFileType = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
         $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];

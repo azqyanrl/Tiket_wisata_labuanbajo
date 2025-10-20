@@ -21,7 +21,6 @@
         <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link active" href="#">Beranda</a></li>
             <li class="nav-item"><a class="nav-link" href="#destinasi">Destinasi</a></li>
-            <li class="nav-item"><a class="nav-link" href="#testimoni">Testimoni</a></li>
             <li class="nav-item">
             <a class="nav-link btn btn-primary text-white px-4 ms-3" href="login/login.php" 
                 style="border-radius:25px; padding:8px 18px; font-size:15px;">
@@ -36,13 +35,13 @@
 
 <div class="hero-section position-relative d-flex align-items-center vh-100">
     <!-- Background image -->
-    <img src="../assets/images/hero/padar.jpg"
+    <img src="../assets/images/bg/padar3.jpg"
          alt="Labuan Bajo"
          class="w-100 h-100 position-absolute top-0 start-0 object-fit-cover"
          style="z-index: -2;">
 
     <!-- Overlay gelap -->
-    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -1; background: rgba(0, 0, 0, 0.76);"></div>
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -1; background: rgba(0, 0, 0, 0.51);"></div>
 
     <div class="container position-relative text-white">
         <div class="row">
@@ -87,7 +86,7 @@
 <!-- Destinasi -->
 <section id="destinasi" style="padding:60px 0; background:#f8f9fa;">
 <div class="container my-5">
-    <h3 class="mb-4 text-center">Paket Wisata Unggulan</h3>
+    <h3 class="mb-4 text-center">Paket Wisata</h3>
     <div class="row">
         <?php
         include '../database/konek.php';
@@ -99,7 +98,7 @@
         ?>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100 shadow-sm border-0">
-                        <img src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>">
+                        <img src="../assets/images/tiket/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>" style="height: 210px; width: 100%; object-fit: cover;">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
                             <p class="text-muted mb-1"><?= htmlspecialchars($data['durasi']); ?></p>

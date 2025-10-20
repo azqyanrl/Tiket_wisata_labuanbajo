@@ -18,12 +18,12 @@ if ($cari != '') {
 ?>
 
 <!-- Hero Section -->
-<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1558979158-65a1eaa08691?auto=format&fit=crop&w=1350&q=80'); background-size: cover; background-position: center;">
+<section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../../assets/images/bg/kelor_island.jpg'); background-size: cover; background-position: center;">
     <div class="container py-5">
         <h1 class="display-4 fw-bold mb-3">Jelajahi Keindahan Labuan Bajo</h1>
         <p class="lead mb-4">Temukan pengalaman tak terlupakan dengan paket wisata terbaik kami</p>
-        <a href="destinasi.php" class="btn btn-primary btn-lg rounded-pill fw-semibold px-4">
-            <i class="bi bi-ticket-detailed me-2"></i>Lihat Paket Tiket
+        <a href="galeri.php" class="btn btn-primary btn-lg rounded-pill fw-semibold px-4">
+            <i class="bi bi-ticket-detailed me-2"></i>Lihat Galeri
         </a>
     </div>
 </section>
@@ -43,8 +43,8 @@ if ($cari != '') {
             while ($data = $result->fetch_assoc()) {
         ?>
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="../../assets/images/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>">
+                    <div class="card h-100 shadow-sm border-0 ">
+                        <img src="../../assets/images/tiket/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>"  style="height: 210px; width: 100%; object-fit: cover;">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
                             <p class="text-muted small"><?= htmlspecialchars(substr($data['deskripsi'], 0, 100)); ?>...</p>

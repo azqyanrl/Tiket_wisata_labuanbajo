@@ -87,28 +87,13 @@ if ($editing) {
                             <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
                         </select>
                     </div>
-
-                    <!-- Field Tambahan -->
-                    <div class="mb-3">
-                        <label class="form-label">Fasilitas</label>
-                        <textarea name="fasilitas" class="form-control" rows="2"><?= htmlspecialchars($tiket['fasilitas'] ?? '') ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Itinerary</label>
-                        <textarea name="itinerary" class="form-control" rows="3"><?= htmlspecialchars($tiket['itinerary'] ?? '') ?></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Syarat & Ketentuan</label>
-                        <textarea name="syarat" class="form-control" rows="2"><?= htmlspecialchars($tiket['syarat'] ?? '') ?></textarea>
-                    </div>
-
                     <div class="mb-3">
                         <label class="form-label">Gambar</label>
                         <input type="file" name="gambar" class="form-control" accept="image/*">
                         <?php if ($editing && !empty($tiket['gambar'])): ?>
                             <div class="mt-2">
                                 <p class="form-text">Gambar saat ini:</p>
-                                <img src="../../../assets/images/tiket<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                                <img src="/../../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
                             </div>
                         <?php endif; ?>
                     </div>
