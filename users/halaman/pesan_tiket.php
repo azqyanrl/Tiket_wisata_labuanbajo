@@ -1,52 +1,67 @@
 <?php
 include '../../database/konek.php';
-include "session_cek.php";
+session_start();
 
-// Validasi user login
 if (!isset($_SESSION['user_id'])) {
-    echo "<script>alert('Silakan login terlebih dahulu.'); window.location='../login/login.php';</script>";
-    exit;
+    die("<script>alert('Silakan login terlebih dahulu!'); window.location='../login/login.php';</script>");
 }
 
- $user_id = $_SESSION['user_id'];
- $id_tiket = isset($_GET['id_paket_wisata']) ? intval($_GET['id_paket_wisata']) : 0;
- $tanggal_kunjungan = $_GET['tanggal_kunjungan_user'] ?? '';
- $jumlah_tiket = isset($_GET['jumlah_tiket_dipesan']) ? intval($_GET['jumlah_tiket_dipesan']) : 1;
+$tiket_id = intval($_GET['id_paket_wisata'] ?? 0);
+$jumlah_tiket = intval($_GET['jumlah_tiket_dipesan'] ?? 0);
+$tanggal_kunjungan = $_GET['tanggal_kunjungan_user'] ?? '';
 
-// Validasi tanggal kunjungan
-if (empty($tanggal_kunjungan) || strtotime($tanggal_kunjungan) < strtotime(date('Y-m-d'))) {
-    echo "<script>alert('Tanggal kunjungan tidak valid.'); history.back();</script>";
-    exit;
+if ($tiket_id <= 0 || $jumlah_tiket <= 0 || empty($tanggal_kunjungan)) {
+    die("<script>alert('Data booking tidak valid!'); window.history.back();</script>");
 }
 
-// Ambil data tiket untuk validasi dan harga
- $stmt = $konek->prepare("SELECT harga FROM tiket WHERE id=?");
- $stmt->bind_param("i", $id_tiket);
- $stmt->execute();
- $tiket = $stmt->get_result()->fetch_assoc();
+$query = $konek->prepare("SELECT nama_paket, harga, stok_total FROM tiket WHERE id = ?");
+$query->bind_param("i", $tiket_id);
+$query->execute();
+$data_tiket = $query->get_result()->fetch_assoc();
+$query->close();
 
-if (!$tiket) {
-    echo "<script>alert('Data tiket tidak ditemukan.'); window.location='destinasi.php';</script>";
-    exit;
+if (!$data_tiket) {
+    die("<script>alert('Tiket tidak ditemukan!'); window.history.back();</script>");
 }
 
- $total_harga = $tiket['harga'] * $jumlah_tiket;
- $kode_booking = 'LBJ' . date('YmdHis') . rand(100, 999);
- $jenis = 'booking';
- $metode = 'offline';
- $status = 'pending';
- $batas_waktu = date('Y-m-d H:i:s', strtotime('+1 day'));
+$harga = $data_tiket['harga'];
+$total_harga = $harga * $jumlah_tiket;
 
-// Simpan ke database
- $simpan = $konek->prepare("INSERT INTO pemesanan (kode_booking, user_id, tiket_id, jenis, tanggal_kunjungan, batas_waktu, jumlah_tiket, total_harga, metode_pembayaran, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-  $simpan->bind_param("siisssidss", $kode_booking, $user_id, $id_tiket, $jenis, $tanggal_kunjungan, $batas_waktu, $jumlah_tiket, $total_harga, $metode, $status);
+// Cek stok tersisa
+$qstok = $konek->prepare("
+    SELECT t.stok_total - IFNULL(SUM(p.jumlah_tiket), 0) AS stok_tersisa
+    FROM tiket t
+    LEFT JOIN pemesanan p ON t.id = p.tiket_id 
+        AND p.tanggal_kunjungan = ? 
+        AND p.status IN ('pending', 'dibayar', 'selesai')
+    WHERE t.id = ?
+    GROUP BY t.id
+");
+$qstok->bind_param("si", $tanggal_kunjungan, $tiket_id);
+$qstok->execute();
+$stok_result = $qstok->get_result()->fetch_assoc();
+$qstok->close();
 
-if ($simpan->execute()) {
-    echo "<script>
-            alert('Booking berhasil! Kode Booking Anda: $kode_booking. Silakan lakukan pembayaran.');
-            window.location='riwayat.php';
-          </script>";
+$stok_tersisa = $stok_result ? intval($stok_result['stok_tersisa']) : $data_tiket['stok_total'];
+
+if ($stok_tersisa < $jumlah_tiket) {
+    die("<script>alert('Maaf, stok tiket untuk tanggal tersebut tidak mencukupi! Tersisa: $stok_tersisa'); window.history.back();</script>");
+}
+
+$user_id = $_SESSION['user_id'];
+$status = 'pending';
+$kode_booking = 'LBJ' . date('YmdHis') . rand(100, 999);
+
+$insert = $konek->prepare("
+    INSERT INTO pemesanan (kode_booking, user_id, tiket_id, tanggal_kunjungan, jumlah_tiket, total_harga, status, metode_pembayaran, jenis, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'offline', 'booking', NOW())
+");
+$insert->bind_param("siisdis", $kode_booking, $user_id, $tiket_id, $tanggal_kunjungan, $jumlah_tiket, $total_harga, $status);
+
+if ($insert->execute()) {
+    echo "<script>alert('Booking berhasil!'); window.location='riwayat.php';</script>";
 } else {
-    echo "<script>alert('Gagal menyimpan data booking.'); history.back();</script>";
+    echo "<script>alert('Gagal melakukan booking.'); window.history.back();</script>";
 }
+$insert->close();
 ?>

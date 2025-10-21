@@ -14,7 +14,8 @@ include '../../includes/boot.php';
 
 // Ambil data tiket jika sedang dalam mode edit
 $editing = isset($_GET['id']);
-$tiket = null; // Inisialisasi $tiket untuk menghindari error
+$tiket = null;
+
 if ($editing) {
     $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?");
     $query_tiket->bind_param("i", $_GET['id']);
@@ -22,7 +23,6 @@ if ($editing) {
     $tiket = $query_tiket->get_result()->fetch_assoc();
 }
 ?>
-
 
 <!-- Modal untuk Tambah/Edit Tiket -->
 <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
@@ -42,10 +42,12 @@ if ($editing) {
                         <label class="form-label">Nama Paket</label>
                         <input type="text" name="nama_paket" class="form-control" value="<?= htmlspecialchars($tiket['nama_paket'] ?? '') ?>" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Deskripsi</label>
                         <textarea name="deskripsi" class="form-control" rows="3" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
                     </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -60,6 +62,7 @@ if ($editing) {
                             </div>
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -80,6 +83,7 @@ if ($editing) {
                             </div>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Status</label>
                         <select name="status" class="form-select">
@@ -87,13 +91,14 @@ if ($editing) {
                             <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Gambar</label>
                         <input type="file" name="gambar" class="form-control" accept="image/*">
                         <?php if ($editing && !empty($tiket['gambar'])): ?>
                             <div class="mt-2">
                                 <p class="form-text">Gambar saat ini:</p>
-                                <img src="/../../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                                <img src="../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
                             </div>
                         <?php endif; ?>
                     </div>
