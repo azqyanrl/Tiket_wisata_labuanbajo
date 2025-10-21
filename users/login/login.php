@@ -72,7 +72,8 @@ include '../../includes/boot.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Labuan Bajo</title>
 </head>
-<body style="background:url('../../assets/images/bg/padar4.jpg') no-repeat center center fixed; background-size:cover;">
+<body style="background:url('../../assets/images/bg/padarhd.avif') no-repeat center center fixed; background-size:cover;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -1; background: rgba(18, 24, 24, 0.6);"></div>
 
     <!-- Card Login -->
     <div class="container" style="max-width:500px; margin-top:200px;">
@@ -91,10 +92,16 @@ include '../../includes/boot.php';
                             <label class="form-label">Username atau Email</label>
                             <input type="text" name="username" class="form-control" required autofocus>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
+                       <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                                <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" id="password" class="form-control" placeholder="Minimal 6 karakter" required minlength="6">
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
                         <button type="submit" class="btn btn-primary w-100" name="login">Login</button>
                     </form>
 

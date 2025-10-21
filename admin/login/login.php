@@ -1,10 +1,7 @@
 <?php
-// Aktifkan pelaporan error untuk debugging (HAPUS BARIS INI DI PRODUKSI)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-// Mulai session di paling atas, JANGAN ADA SPASI ATAU TEKS SEBELUMNYA
 session_start();
 
 // Jika admin sudah login, redirect ke dashboard

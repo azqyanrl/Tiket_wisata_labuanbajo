@@ -99,7 +99,6 @@
 if (isset($_POST['register'])) {
     include "../../database/konek.php";
 
-    // Ambil data dari form (sesuai dengan name di HTML)
     $nama = $_POST['nama'];
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT);

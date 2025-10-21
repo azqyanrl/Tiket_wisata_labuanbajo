@@ -62,7 +62,8 @@ include '../../includes/boot.php';
     <title>Register | Labuan Bajo</title>
 </head>
 <body class="d-flex align-items-center justify-content-center min-vh-100" 
-      style="background: url('../../assets/images/bg/padar4.jpg') no-repeat center center fixed; background-size: cover;">
+      style="background: url('../../assets/images/bg/padarhd.avif') no-repeat center center fixed; background-size: cover;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="z-index: -1; background: rgba(18, 24, 24, 0.6);"></div>
     <div class="card shadow-lg border-0" 
          style="max-width: 450px; width: 100%; background: hsla(199, 100%, 89%, 0.63); backdrop-filter: blur(8px); border-radius: 15px;">
         <div class="card-body p-4">
@@ -105,7 +106,7 @@ include '../../includes/boot.php';
                         </button>
                     </div>
                 </div>
-
+ 
                 <!-- No HP -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold">No HP</label>

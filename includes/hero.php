@@ -1,4 +1,3 @@
-
 <?php
 function heroSection($title, $subtitle, $image, $height = '60vh') {
   echo "

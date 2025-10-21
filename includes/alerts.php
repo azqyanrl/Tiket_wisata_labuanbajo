@@ -1,11 +1,8 @@
-
 <?php
-// Pastikan session sudah dimulai
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Notifikasi Sukses (Hijau)
 if (isset($_SESSION['success_message'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i>

@@ -158,14 +158,17 @@ if (!$data_booking) {
 
                     <hr class="my-4">
 
-                    <!-- Catatan Penting -->
+                   <!-- Catatan Penting -->
                     <div class="alert alert-info d-flex align-items-center" role="alert">
                         <i class="bi bi-info-circle-fill me-3 fs-4"></i>
                         <div>
-                            <strong>Catatan Penting:</strong> Silakan tunjukkan bukti booking ini kepada admin saat melakukan pembayaran.
+                            <strong>Catatan Penting:</strong> 
+                            <ul class="mb-0 mt-2">
+                                <li>Silakan tunjukkan bukti booking ini kepada admin saat melakukan pembayaran/verifikasi.</li>
+                                <li>Tiket berlaku untuk masuk pada tanggal <strong><?= date('d F Y', strtotime($data_booking['tanggal_kunjungan'])); ?></strong> selama jam operasional.</li>
+                            </ul>
                         </div>
                     </div>
-                </div>
 
                 <!-- Card Footer -->
                 <div class="card-footer bg-light py-3 text-center">
