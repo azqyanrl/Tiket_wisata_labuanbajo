@@ -1,75 +1,79 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// admin/proses/tiket_simpan.php
+session_start();
+include '../../../database/konek.php';
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
-    header('location: ../../login/login_admin.php');
+    header("Location: ../../login/login.php");
     exit;
 }
 
-include '../../../database/konek.php';
-include '../../../includes/boot.php';
-
+// Proses hanya untuk request POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id         = isset($_POST['id']) ? intval($_POST['id']) : 0;
+    $nama_paket = trim($_POST['nama_paket'] ?? '');
+    $deskripsi  = trim($_POST['deskripsi'] ?? '');
+    $harga      = floatval($_POST['harga'] ?? 0);
+    $stok       = intval($_POST['stok'] ?? 0);
+    $durasi     = trim($_POST['durasi'] ?? '');
+    $kategori   = trim($_POST['kategori'] ?? '');
+    $status     = trim($_POST['status'] ?? '');
 
-    $editing = isset($_POST['id']) && !empty($_POST['id']);
-    $tiket_id = $_POST['id'] ?? null;
-
-    $nama_paket = $_POST['nama_paket'];
-    $deskripsi = $_POST['deskripsi'];
-    $harga = $_POST['harga'];
-    $durasi = $_POST['durasi'];
-    $kategori = $_POST['kategori'];
-    $status = $_POST['status'];
-    $stok = $_POST['stok'];
-
-    // Ambil gambar lama
-    $gambar_lama = '';
-    if ($editing) {
-        $cek = $konek->prepare("SELECT gambar FROM tiket WHERE id=?");
-        $cek->bind_param("i", $tiket_id);
-        $cek->execute();
-        $res = $cek->get_result();
-        if ($res->num_rows > 0) {
-            $gambar_lama = $res->fetch_assoc()['gambar'];
-        }
+    // Validasi dasar
+    if (empty($nama_paket) || empty($deskripsi) || $harga <= 0) {
+        $_SESSION['error_message'] = "Data tidak lengkap atau tidak valid!";
+        header("Location: ../index.php?page=kelola_tiket");
+        exit;
     }
 
     // Upload gambar
-    $gambar = $gambar_lama;
-    if (!empty($_FILES['gambar']['name'])) {
-        $upload_dir = __DIR__ . '/../../../assets/images/tiket/';
-        $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        if (in_array($ext, $allowed)) {
-            $new_name = uniqid() . '.' . $ext;
-            if (move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $new_name)) {
-                $gambar = $new_name;
-                if ($editing && !empty($gambar_lama) && file_exists($upload_dir . $gambar_lama)) {
-                    unlink($upload_dir . $gambar_lama);
-                }
-            }
-        }
+    $gambar = '';
+    if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = '../../../assets/images/tiket/';
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        $gambar = time() . '_' . basename($_FILES['gambar']['name']);
+        move_uploaded_file($_FILES['gambar']['tmp_name'], $upload_dir . $gambar);
     }
 
-    try {
-        if ($editing) {
-            $stmt = $konek->prepare("UPDATE tiket SET nama_paket=?, deskripsi=?, harga=?, durasi=?, kategori=?, status=?, gambar=?, stok=? WHERE id=?");
-            $stmt->bind_param("ssdssssii", $nama_paket, $deskripsi, $harga, $durasi, $kategori, $status, $gambar, $stok, $tiket_id);
-            $stmt->execute();
-        } else {
-            $stmt = $konek->prepare("INSERT INTO tiket (nama_paket, deskripsi, harga, durasi, kategori, status, gambar, stok) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssdssssi", $nama_paket, $deskripsi, $harga, $durasi, $kategori, $status, $gambar, $stok);
-            $stmt->execute();
+    // Update atau Insert
+    if ($id > 0) {
+        // UPDATE
+        $sql = "UPDATE tiket SET nama_paket=?, deskripsi=?, harga=?, stok=?, durasi=?, kategori=?, status=?";
+        $params = [$nama_paket, $deskripsi, $harga, $stok, $durasi, $kategori, $status];
+        $types = "ssdiiss";
+
+        if (!empty($gambar)) {
+            $sql .= ", gambar=?";
+            $params[] = $gambar;
+            $types .= "s";
         }
 
-        $_SESSION['success_message'] = "Tiket berhasil disimpan!";
-    } catch (Exception $e) {
-        $_SESSION['error_message'] = "Kesalahan database: " . $e->getMessage();
+        $sql .= " WHERE id=?";
+        $params[] = $id;
+        $types .= "i";
+
+        $stmt = $konek->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+    } else {
+        // INSERT
+        $sql = "INSERT INTO tiket (nama_paket, deskripsi, harga, stok, durasi, kategori, status, gambar)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $konek->prepare($sql);
+        $stmt->bind_param("ssdissss", $nama_paket, $deskripsi, $harga, $stok, $durasi, $kategori, $status, $gambar);
     }
 
+    // Eksekusi
+    if ($stmt->execute()) {
+        $_SESSION['success_message'] = ($id > 0)
+            ? "Tiket berhasil diperbarui!"
+            : "Tiket baru berhasil ditambahkan!";
+    } else {
+        $_SESSION['error_message'] = "Gagal menyimpan tiket: " . $stmt->error;
+    }
+
+    $stmt->close();
     header("Location: ../index.php?page=kelola_tiket");
     exit;
 }
+?>

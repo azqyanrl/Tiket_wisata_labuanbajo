@@ -113,8 +113,8 @@ while ($data = $query_galeri->fetch_assoc()): ?>
 <div class="modal fade" id="modalEditFoto<?= $data['id']; ?>" tabindex="-1" aria-labelledby="modalEditFotoLabel<?= $data['id']; ?>" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">
-      <div class="modal-header bg-warning">
-        <h5 class="modal-title text-dark" id="modalEditFotoLabel<?= $data['id']; ?>">Edit Foto</h5>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalEditFotoLabel<?= $data['id']; ?>">Edit Foto</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form action="proses/edit_galeri.php" method="POST" enctype="multipart/form-data">
@@ -143,7 +143,7 @@ while ($data = $query_galeri->fetch_assoc()): ?>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn btn-warning text-dark">Simpan Perubahan</button>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </div>
       </form>
     </div>

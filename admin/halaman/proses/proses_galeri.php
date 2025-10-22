@@ -3,6 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    header('location: ../login/login.php');
+    exit;
+}
+
 include '../../../database/konek.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
