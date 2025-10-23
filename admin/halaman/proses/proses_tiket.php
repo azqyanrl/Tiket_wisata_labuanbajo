@@ -9,12 +9,11 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-include '../../database/konek.php';
-include '../../includes/boot.php';
+include '../../../database/konek.php';
 
 // Ambil data tiket jika sedang dalam mode edit
-$editing = isset($_GET['id']);
-$tiket = null;
+ $editing = isset($_GET['id']);
+ $tiket = null;
 
 if ($editing) {
     $query_tiket = $konek->prepare("SELECT * FROM tiket WHERE id = ?");
@@ -22,15 +21,18 @@ if ($editing) {
     $query_tiket->execute();
     $tiket = $query_tiket->get_result()->fetch_assoc();
 }
+
+// Ambil data kategori untuk dropdown
+ $query_kategori = $konek->query("SELECT * FROM kategori ORDER BY nama ASC");
 ?>
 
 <!-- Modal untuk Tambah/Edit Tiket -->
-<div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="tiketModal" tabindex="-1" aria-labelledby="tiketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5>
-                <a href="?page=kelola_tiket" class="btn-close"></a>
+                <h5 class="modal-title" id="tiketModalLabel"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="proses/handle_tiket.php" enctype="multipart/form-data">
                 <div class="modal-body">
@@ -38,76 +40,135 @@ if ($editing) {
                         <input type="hidden" name="id" value="<?= htmlspecialchars($_GET['id']) ?>">
                     <?php endif; ?>
 
-                    <div class="mb-3">
-                        <label class="form-label">Nama Paket</label>
-                        <input type="text" name="nama_paket" class="form-control" value="<?= htmlspecialchars($tiket['nama_paket'] ?? '') ?>" required>
-                    </div>
+                    <!-- Informasi Dasar -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Informasi Dasar</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nama Paket</label>
+                                        <input type="text" name="nama_paket" class="form-control" value="<?= htmlspecialchars($tiket['nama_paket'] ?? '') ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Kategori</label>
+                                        <select name="kategori_id" class="form-select" required>
+                                            <option value="">-- Pilih Kategori --</option>
+                                            <?php while($kat = $query_kategori->fetch_assoc()): ?>
+                                                <option value="<?= $kat['id'] ?>" <?= ($tiket['kategori_id'] ?? '') == $kat['id'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($kat['nama']) ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Deskripsi</label>
-                        <textarea name="deskripsi" class="form-control" rows="3" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Harga</label>
-                                <input type="number" name="harga" class="form-control" value="<?= htmlspecialchars($tiket['harga'] ?? '') ?>" required>
+                                <label class="form-label">Deskripsi</label>
+                                <textarea name="deskripsi" class="form-control" rows="3" required><?= htmlspecialchars($tiket['deskripsi'] ?? '') ?></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Harga</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" name="harga" class="form-control" value="<?= htmlspecialchars($tiket['harga'] ?? '') ?>" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Stok Harian</label>
+                                        <input type="number" name="stok" class="form-control" value="<?= htmlspecialchars($tiket['stok'] ?? '0') ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Stok Default</label>
+                                        <input type="number" name="stok_default" class="form-control" value="<?= htmlspecialchars($tiket['stok_default'] ?? $tiket['stok'] ?? '0') ?>">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Durasi</label>
+                                        <input type="text" name="durasi" class="form-control" value="<?= htmlspecialchars($tiket['durasi'] ?? '') ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Status</label>
+                                        <select name="status" class="form-select">
+                                            <option value="aktif" <?= ($tiket['status'] ?? '') == 'aktif' ? 'selected' : '' ?>>Aktif</option>
+                                            <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Gambar</label>
+                                        <input type="file" name="gambar" class="form-control" accept="image/*" <?= !$editing ? 'required' : '' ?>>
+                                        <?php if ($editing && !empty($tiket['gambar'])): ?>
+                                            <div class="mt-2">
+                                                <p class="form-text">Gambar saat ini:</p>
+                                                <img src="../../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Stok Harian</label>
-                                <input type="number" name="stok" class="form-control" value="<?= htmlspecialchars($tiket['stok'] ?? '0') ?>" required>
-                            </div>
-                        </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
+                    <!-- Informasi Detail -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">Informasi Detail</h6>
+                        </div>
+                        <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label">Durasi</label>
-                                <input type="text" name="durasi" class="form-control" value="<?= htmlspecialchars($tiket['durasi'] ?? '') ?>" required>
+                                <label class="form-label">Fasilitas</label>
+                                <textarea name="fasilitas" class="form-control" rows="3"><?= htmlspecialchars($tiket['fasilitas'] ?? '') ?></textarea>
+                                <div class="form-text">Pisahkan setiap fasilitas dengan koma (,)</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Itinerary</label>
+                                <textarea name="itinerary" class="form-control" rows="5"><?= htmlspecialchars($tiket['itinerary'] ?? '') ?></textarea>
+                                <div class="form-text">Jelaskan rencana perjalanan hari per hari</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Syarat & Ketentuan</label>
+                                <textarea name="syarat" class="form-control" rows="3"><?= htmlspecialchars($tiket['syarat'] ?? '') ?></textarea>
+                                <div class="form-text">Jelaskan syarat dan ketentuan yang berlaku</div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Kategori</label>
-                                <select name="kategori" class="form-select" required>
-                                    <option value="">-- Pilih Kategori --</option>
-                                    <option value="Trekking" <?= ($tiket['kategori'] ?? '') == 'Trekking' ? 'selected' : '' ?>>Trekking</option>
-                                    <option value="Adventure" <?= ($tiket['kategori'] ?? '') == 'Adventure' ? 'selected' : '' ?>>Adventure</option>
-                                    <option value="Snorkeling" <?= ($tiket['kategori'] ?? '') == 'Snorkeling' ? 'selected' : '' ?>>Snorkeling</option>
-                                    <option value="Cultural" <?= ($tiket['kategori'] ?? '') == 'Cultural' ? 'selected' : '' ?>>Cultural</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="aktif" <?= ($tiket['status'] ?? '') == 'aktif' ? 'selected' : '' ?>>Aktif</option>
-                            <option value="nonaktif" <?= ($tiket['status'] ?? '') == 'nonaktif' ? 'selected' : '' ?>>Nonaktif</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Gambar</label>
-                        <input type="file" name="gambar" class="form-control" accept="image/*">
-                        <?php if ($editing && !empty($tiket['gambar'])): ?>
-                            <div class="mt-2">
-                                <p class="form-text">Gambar saat ini:</p>
-                                <img src="../../assets/images/tiket/<?= htmlspecialchars($tiket['gambar']) ?>" width="100" alt="Current image">
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Simpan</button>
-                    <a href="?page=kelola_tiket" class="btn btn-secondary">Batal</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<?php if ($editing): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var myModal = new bootstrap.Modal(document.getElementById('tiketModal'));
+    myModal.show();
+});
+</script>
+<?php endif; ?>

@@ -3,10 +3,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (empty($_SESSION['user_id'])) {
-    $_SESSION['flash_message'] = 'Silakan login terlebih dahulu.';
-    header('Location:../login/login.php');
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'user') {
+    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai user.";
+    header('location: ../login/login.php');
     exit;
 }
-
 ?>

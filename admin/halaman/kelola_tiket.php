@@ -18,6 +18,7 @@ include '../../includes/stok_otomatis.php';
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Kelola Tiket</h1>
+    <!-- Gunakan button dengan atribut Bootstrap untuk modal -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tiketModal">
         <i class="bi bi-plus-circle me-1"></i> Tambah Tiket
     </button>
@@ -29,6 +30,7 @@ include '../../includes/stok_otomatis.php';
             <tr>
                 <th>Gambar</th>
                 <th>Nama Paket</th>
+                <th>Kategori</th>
                 <th>Harga</th>
                 <th>Stok Total</th>
                 <th>Stok Tersisa (Hari Ini)</th>
@@ -38,7 +40,8 @@ include '../../includes/stok_otomatis.php';
         </thead>
         <tbody>
             <?php 
-            $query_tiket = $konek->query("SELECT * FROM tiket ORDER BY created_at DESC"); 
+            // Query dengan JOIN untuk mendapatkan nama kategori
+            $query_tiket = $konek->query("SELECT t.*, k.nama as nama_kategori FROM tiket t LEFT JOIN kategori k ON t.kategori_id = k.id ORDER BY t.created_at DESC"); 
             if ($query_tiket->num_rows > 0) { 
                 while($data = $query_tiket->fetch_assoc()) { 
                     // 🔹 Ambil stok otomatis dari helper
@@ -46,6 +49,7 @@ include '../../includes/stok_otomatis.php';
                     echo "<tr>
                         <td><img src='../../assets/images/tiket/".htmlspecialchars($data['gambar'])."' width='60' class='rounded'></td>
                         <td>".htmlspecialchars($data['nama_paket'])."</td>
+                        <td>".htmlspecialchars($data['nama_kategori'] ?? 'Tidak ada kategori')."</td>
                         <td>Rp " . number_format($data['harga'], 0, ',', '.') . "</td>
                         <td>" . htmlspecialchars($data['stok']) . "</td>
                         <td>" . htmlspecialchars($stok_tersisa) . "</td>
@@ -61,15 +65,11 @@ include '../../includes/stok_otomatis.php';
                     </tr>"; 
                 } 
             } else { 
-                echo "<tr><td colspan='7' class='text-center'>Tidak ada data.</td></tr>"; 
+                echo "<tr><td colspan='8' class='text-center'>Tidak ada data.</td></tr>"; 
             } 
             ?>
         </tbody>
     </table>
 </div>
 
-<?php 
-if (isset($_GET['action']) && in_array($_GET['action'], ['add', 'edit'])) { 
-    include 'form_tiket.php'; 
-} 
-?>
+<?php include 'proses/proses_tiket.php'; ?>

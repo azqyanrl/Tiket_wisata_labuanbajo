@@ -17,7 +17,7 @@ include '../../includes/boot.php';
  $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
 
 // Daftar halaman yang diizinkan
- $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket', 'kelola_user', 'kelola_galeri', 'laporan', 'input_pembayaran', 'admin_profile'];
+ $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket','kelola_kategori', 'kelola_user', 'kelola_galeri', 'laporan', 'input_pembayaran', 'admin_profile'];
 
 if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard'; // Kembali ke default
@@ -80,6 +80,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'proses') {
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_pemesanan') ? 'active' : ''; ?>" href="?page=kelola_pemesanan"><i class="bi bi-list-check me-2"></i> Kelola Pemesanan</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'input_pembayaran') ? 'active' : ''; ?>" href="?page=input_pembayaran"><i class="bi bi-cash-coin me-2"></i> Input Pembayaran</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_tiket') ? 'active' : ''; ?>" href="?page=kelola_tiket"><i class="bi bi-ticket-perforated me-2"></i> Kelola Tiket</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page == 'input_pembayaran') ? 'active' : ''; ?>" href="?page=input_pembayaran"><i class="bi bi-cash-coin me-2"></i> Input Pembayaran</a></li>
+          <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_kategori') ? 'active' : ''; ?>" href="?page=kelola_kategori"><i class="bi bi-ticket-perforated me-2"></i> Kelola Kategori</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_user') ? 'active' : ''; ?>" href="?page=kelola_user"><i class="bi bi-people me-2"></i> Kelola User</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'kelola_galeri') ? 'active' : ''; ?>" href="?page=kelola_galeri"><i class="bi bi-images me-2"></i> Kelola Galeri</a></li>
           <li class="nav-item"><a class="nav-link <?php echo ($page == 'laporan') ? 'active' : ''; ?>" href="?page=laporan"><i class="bi bi-file-earmark-bar-graph me-2"></i> Laporan</a></li>

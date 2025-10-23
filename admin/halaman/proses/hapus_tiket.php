@@ -15,7 +15,7 @@ include '../../../includes/boot.php';
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     $_SESSION['error_message'] = "ID tidak valid.";
-    header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
+    header("Location: ../index.php?page=kelola_tiket");
     exit;
 }
 
@@ -30,9 +30,17 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 
 if ($data_cek['total'] > 0) {
     $_SESSION['error_message'] = "Tidak dapat menghapus tiket yang sudah memiliki pemesanan.";
-    header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
+    header("Location: ../index.php?page=kelola_tiket");
     exit;
 }
+
+// Ambil nama gambar untuk dihapus
+ $query_gambar = $konek->prepare("SELECT gambar FROM tiket WHERE id = ?");
+ $query_gambar->bind_param("i", $id);
+ $query_gambar->execute();
+ $result_gambar = $query_gambar->get_result();
+ $gambar = $result_gambar->fetch_assoc()['gambar'];
+ $query_gambar->close();
 
  $konek->begin_transaction();
 
@@ -50,11 +58,21 @@ try {
     $stmt2->close();
 
     $konek->commit();
+    
+    // Hapus file gambar
+    if (!empty($gambar)) {
+        $file_path = "../../../assets/images/tiket/" . $gambar;
+        if (file_exists($file_path)) {
+            unlink($file_path);
+        }
+    }
+    
     $_SESSION['success_message'] = "Tiket dan data terkait berhasil dihapus.";
 } catch (Exception $e) {
     $konek->rollback();
     $_SESSION['error_message'] = "Gagal menghapus tiket: " . $e->getMessage();
 }
 
-header("Location: ../index.php?page=kelola_tiket"); // Path redirect diperbaiki
+header("Location: ../index.php?page=kelola_tiket");
 exit;
+?>
