@@ -96,16 +96,25 @@ include '../../includes/boot.php';
     <title>Laporan Transaksi - Admin</title>
     <style>
         @media print {
-            body { -webkit-print-color-adjust: exact; }
-            .no-print, .no-print * { display: none !important; }
-            .table { font-size: 12px; }
-            .card { box-shadow: none; border: none; }
-            .container { max-width: 100%; padding: 0; }
+            .no-print, .sidebar, header, nav, .navbar, .offcanvas, .footer { 
+                display: none !important; 
+            }
+            body { background: white; font-size: 14px; margin: 20px; }
+            .card { border: none !important; box-shadow: none !important; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #000 !important; padding: 8px; }
+            thead th { 
+                background-color: #343a40 !important; 
+                color: white !important; 
+                -webkit-print-color-adjust: exact !important; 
+            }
+            main, .content, .container {
+                width: 100% !important;
+                margin-left: 0 !important;
+            }
         }
-        .table thead th { vertical-align: middle; }
-        .filter-row .form-control, .filter-row .btn { min-height: 40px; }
-        .small-muted { font-size: .85rem; color: #6c757d; }
     </style>
+
 </head>
 <body class="bg-light">
 <div class="container my-4">

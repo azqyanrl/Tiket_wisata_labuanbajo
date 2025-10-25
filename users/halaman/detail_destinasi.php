@@ -109,7 +109,7 @@ if (!$data_paket) {
 
                         <div class="mb-3">
                             <label for="tanggal_kunjungan_user" class="form-label">Tanggal Kunjungan</label>
-                            <input type="date" name="tanggal_kunjungan_user" id="tanggal_kunjungan_user" class="form-control" required min="<?= date('Y-m-d'); ?>">
+                            <input type="date" name="tanggal_kunjungan_user" id="tanggal_kunjungan_user" class="form-control" required min="<?= date('Y-m-d'); ?>" required>
                         </div>
 
                         <div class="mb-3">

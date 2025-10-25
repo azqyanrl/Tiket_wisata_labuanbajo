@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    $_SESSION['error_message'] = "Akses ditolak!";
     header('location: ../login/login.php');
     exit;
 }
@@ -13,8 +13,14 @@ include '../../../database/konek.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = intval($_POST['id']);
-    $judul = trim($_POST['judul']);
-    $kategori = trim($_POST['kategori']);
+    $judul = trim($_POST['judul'] ?? '');
+    $kategori_id = intval($_POST['kategori_id'] ?? 0);
+
+    if ($judul === '' || $kategori_id === 0) {
+        $_SESSION['error_message'] = "Judul dan kategori wajib diisi!";
+        header("Location: ../index.php?page=kelola_galeri");
+        exit;
+    }
 
     $stmt = $konek->prepare("SELECT gambar FROM galleries WHERE id = ?");
     $stmt->bind_param("i", $id);
@@ -32,15 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gambar_baru = $data_lama['gambar'];
     $upload_dir = __DIR__ . '/../../../assets/images/galery/';
 
-    // Jika user mengunggah gambar baru
     if (!empty($_FILES['gambar']['name'])) {
-        if ($_FILES['gambar']['error'] !== UPLOAD_ERR_OK) {
-            $_SESSION['error_message'] = "Gagal menerima file upload baru.";
-            header("Location: ../index.php?page=kelola_galeri");
-            exit;
-        }
-
-        $allowed = ['jpg','jpeg','png','gif'];
+        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
         $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
 
         if (!in_array($ext, $allowed)) {
@@ -63,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (file_exists($old_file)) unlink($old_file);
             $gambar_baru = $nama_baru;
         } else {
-            $_SESSION['error_message'] = "Upload gambar gagal.";
+            $_SESSION['error_message'] = "Upload gagal.";
             header("Location: ../index.php?page=kelola_galeri");
             exit;
         }
     }
 
-    $update = $konek->prepare("UPDATE galleries SET judul=?, kategori=?, gambar=? WHERE id=?");
-    $update->bind_param("sssi", $judul, $kategori, $gambar_baru, $id);
+    $update = $konek->prepare("UPDATE galleries SET judul=?, kategori_id=?, gambar=? WHERE id=?");
+    $update->bind_param("sisi", $judul, $kategori_id, $gambar_baru, $id);
     if ($update->execute()) {
         $_SESSION['success_message'] = "Foto berhasil diperbarui ✅";
     } else {

@@ -16,7 +16,6 @@ if (!isset($_SESSION['user_id'])) {
  $tanggal_kunjungan = $_POST['tanggal_kunjungan_user'] ?? '';
 
 if ($tiket_id <= 0 || $jumlah_tiket <= 0 || empty($tanggal_kunjungan)) {
-    $_SESSION['error_message'] = "Data booking tidak valid!";
     header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
 }

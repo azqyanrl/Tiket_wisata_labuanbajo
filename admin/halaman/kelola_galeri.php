@@ -38,20 +38,34 @@ include '../../includes/boot.php';
         </button>
     </div>
 
+    <?php 
+    // Ambil data galeri dan kategori
+    $query_galeri = $konek->query("
+        SELECT g.*, k.nama AS kategori_nama 
+        FROM galleries g
+        LEFT JOIN kategori k ON g.kategori_id = k.id
+        ORDER BY g.created_at DESC
+    "); 
+
+    // Ambil daftar kategori untuk dropdown
+    $kategori_result = $konek->query("SELECT id, nama FROM kategori ORDER BY nama ASC");
+    $kategori_options = $kategori_result ? $kategori_result->fetch_all(MYSQLI_ASSOC) : [];
+    ?>
+
     <div class="row g-3">
-        <?php 
-        $query_galeri = $konek->query("SELECT * FROM galleries ORDER BY created_at DESC"); 
-        if ($query_galeri && $query_galeri->num_rows > 0): 
-            while($data = $query_galeri->fetch_assoc()): ?>
+        <?php if ($query_galeri && $query_galeri->num_rows > 0): ?>
+            <?php while($data = $query_galeri->fetch_assoc()): ?>
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <div class="card shadow-sm border-0">
-                        <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>' 
+                        <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar'] ?? ''); ?>' 
                              class='card-img-top' 
                              style='height:200px;object-fit:cover;' 
-                             alt='<?= htmlspecialchars($data['judul']); ?>'>
+                             alt='<?= htmlspecialchars($data['judul'] ?? ''); ?>'>
                         <div class='card-body'>
-                            <h6 class='card-title mb-1 fw-semibold'><?= htmlspecialchars($data['judul']); ?></h6>
-                            <small class='text-muted d-block mb-2'>Kategori: <?= htmlspecialchars($data['kategori']); ?></small>
+                            <h6 class='card-title mb-1 fw-semibold'><?= htmlspecialchars($data['judul'] ?? ''); ?></h6>
+                            <small class='text-muted d-block mb-2'>
+                                Kategori: <?= htmlspecialchars($data['kategori_nama'] ?? 'Tanpa Kategori'); ?>
+                            </small>
                             <div class="d-flex justify-content-between">
                                 <a href='proses/hapus_galeri.php?id=<?= htmlspecialchars($data['id']); ?>' 
                                    class='btn btn-sm btn-danger'
@@ -67,12 +81,14 @@ include '../../includes/boot.php';
                         </div>
                     </div>
                 </div>
-        <?php endwhile; else: ?>
+            <?php endwhile; ?>
+        <?php else: ?>
             <p class='col-12 text-center text-muted'>Tidak ada foto.</p>
         <?php endif; ?>
     </div>
 </div>
 
+<!-- Modal Tambah Foto -->
 <div class="modal fade" id="modalTambahFoto" tabindex="-1" aria-labelledby="modalTambahFotoLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">
@@ -88,7 +104,14 @@ include '../../includes/boot.php';
             </div>
             <div class="mb-3">
                 <label for="kategori" class="form-label fw-semibold">Kategori</label>
-                <input type="text" class="form-control" name="kategori" id="kategori" required>
+                <select class="form-select" name="kategori_id" id="kategori" required>
+                    <option value="">-- Pilih Kategori --</option>
+                    <?php foreach ($kategori_options as $kat): ?>
+                        <option value="<?= htmlspecialchars($kat['id']); ?>">
+                            <?= htmlspecialchars($kat['nama']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="gambar" class="form-label fw-semibold">Gambar</label>
@@ -106,6 +129,7 @@ include '../../includes/boot.php';
   </div>
 </div>
 
+<!-- Modal Edit Foto -->
 <?php
 if ($query_galeri && $query_galeri->num_rows > 0):
 $query_galeri->data_seek(0);
@@ -123,19 +147,27 @@ while ($data = $query_galeri->fetch_assoc()): ?>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Judul</label>
-                <input type="text" class="form-control" name="judul" value="<?= htmlspecialchars($data['judul']); ?>" required>
+                <input type="text" class="form-control" name="judul" value="<?= htmlspecialchars($data['judul'] ?? ''); ?>" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Kategori</label>
-                <input type="text" class="form-control" name="kategori" value="<?= htmlspecialchars($data['kategori']); ?>" required>
+                <select class="form-select" name="kategori_id" required>
+                    <option value="">-- Pilih Kategori --</option>
+                    <?php foreach ($kategori_options as $kat): ?>
+                        <option value="<?= htmlspecialchars($kat['id']); ?>"
+                            <?= ($kat['id'] == $data['kategori_id']) ? 'selected' : ''; ?>>
+                            <?= htmlspecialchars($kat['nama']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Ganti Gambar (Opsional)</label>
                 <input type="file" class="form-control previewEdit" name="gambar" accept="image/*" data-preview="previewEdit<?= $data['id']; ?>">
                 <div class="form-text">Kosongkan jika tidak ingin mengubah gambar.</div>
-                <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>' 
+                <img src='../../assets/images/galery/<?= htmlspecialchars($data['gambar'] ?? ''); ?>' 
                      id="previewEdit<?= $data['id']; ?>"
                      class='img-fluid rounded mt-2' 
                      style='max-height:150px;object-fit:cover;'>

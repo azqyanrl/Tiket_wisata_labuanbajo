@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
+    $_SESSION['error_message'] = "Akses ditolak!";
     header('location: ../login/login.php');
     exit;
 }
@@ -12,58 +12,48 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 include '../../../database/konek.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $judul = trim($_POST['judul']);
-    $kategori = trim($_POST['kategori']);
+    $judul = trim($_POST['judul'] ?? '');
+    $kategori_id = intval($_POST['kategori_id'] ?? 0);
 
-    // Direktori upload
+    if ($judul === '' || $kategori_id === 0) {
+        $_SESSION['error_message'] = "Judul dan kategori wajib diisi!";
+        header("Location: ../index.php?page=kelola_galeri");
+        exit;
+    }
+
     $upload_dir = __DIR__ . '/../../../assets/images/galery/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
-    }
+    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
-    // Cek file upload
     if (!isset($_FILES['gambar']) || $_FILES['gambar']['error'] !== UPLOAD_ERR_OK) {
-        $_SESSION['error_message'] = "Gagal menerima file upload.";
+        $_SESSION['error_message'] = "Gambar tidak valid.";
         header("Location: ../index.php?page=kelola_galeri");
         exit;
     }
 
-    // Validasi tipe file
-    $gambar_asli = basename($_FILES['gambar']['name']);
-    $imageFileType = strtolower(pathinfo($gambar_asli, PATHINFO_EXTENSION));
-    $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
+    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+    $ext = strtolower(pathinfo($_FILES['gambar']['name'], PATHINFO_EXTENSION));
 
-    if (!in_array($imageFileType, $allowed_types)) {
-        $_SESSION['error_message'] = "Hanya file JPG, JPEG, PNG & GIF yang diizinkan.";
+    if (!in_array($ext, $allowed)) {
+        $_SESSION['error_message'] = "Format gambar tidak diizinkan.";
         header("Location: ../index.php?page=kelola_galeri");
         exit;
     }
 
-    // Validasi ukuran (maks 2MB)
-    if ($_FILES['gambar']['size'] > 2097152) {
-        $_SESSION['error_message'] = "Ukuran file terlalu besar (maksimal 2MB).";
-        header("Location: ../index.php?page=kelola_galeri");
-        exit;
-    }
-
-    // Buat nama unik dan simpan
-    $nama_baru = uniqid('img_', true) . '.' . $imageFileType;
+    $nama_baru = uniqid('img_', true) . '.' . $ext;
     $target_file = $upload_dir . $nama_baru;
 
     if (move_uploaded_file($_FILES['gambar']['tmp_name'], $target_file)) {
-        $stmt = $konek->prepare("INSERT INTO galleries (judul, gambar, kategori) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $judul, $nama_baru, $kategori);
-
+        $stmt = $konek->prepare("INSERT INTO galleries (judul, gambar, kategori_id) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $judul, $nama_baru, $kategori_id);
         if ($stmt->execute()) {
-            $_SESSION['success_message'] = "Foto berhasil ditambahkan 🎉";
+            $_SESSION['success_message'] = "Foto berhasil ditambahkan ✅";
         } else {
-            $_SESSION['error_message'] = "Gagal menyimpan data ke database.";
+            $_SESSION['error_message'] = "Gagal menyimpan ke database.";
             unlink($target_file);
         }
-
         $stmt->close();
     } else {
-        $_SESSION['error_message'] = "Terjadi kesalahan saat mengupload file.";
+        $_SESSION['error_message'] = "Upload gagal.";
     }
 
     header("Location: ../index.php?page=kelola_galeri");
