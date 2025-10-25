@@ -11,7 +11,6 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
 
 include '../../database/konek.php'; 
 
-// --- Sanitasi & helper ---
 function esc($conn, $v) {
     return mysqli_real_escape_string($conn, trim($v));
 }
@@ -24,12 +23,12 @@ function rupiah($n) {
 }
 
 // --- Ambil parameter filter dari GET ---
-$filter_type = isset($_GET['filter_type']) ? $_GET['filter_type'] : '';
-$date = isset($_GET['date']) ? $_GET['date'] : ''; // yyyy-mm-dd
-$month = isset($_GET['month']) ? (int)$_GET['month'] : 0; // 1-12
-$year = isset($_GET['year']) ? (int)$_GET['year'] : 0; // yyyy
-$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : '';
-$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : '';
+$filter_type = $_GET['filter_type'] ?? '';
+$date = $_GET['date'] ?? '';
+$month = isset($_GET['month']) ? (int)$_GET['month'] : 0;
+$year = isset($_GET['year']) ? (int)$_GET['year'] : 0;
+$start_date = $_GET['start_date'] ?? '';
+$end_date = $_GET['end_date'] ?? '';
 
 $where = "p.status = 'selesai'";
 
@@ -46,13 +45,11 @@ if ($filter_type === 'daily' && is_valid_date($date)) {
 } elseif ($filter_type === 'range' && is_valid_date($start_date) && is_valid_date($end_date)) {
     $s = esc($konek, $start_date);
     $e = esc($konek, $end_date);
-    if ($s > $e) {
-        $tmp = $s; $s = $e; $e = $tmp;
-    }
+    if ($s > $e) [$s, $e] = [$e, $s];
     $where .= " AND p.tanggal_kunjungan BETWEEN '$s' AND '$e'";
 }
 
-// --- Query utama (daftar transaksi) ---
+// --- Query utama ---
 $sql = "SELECT p.*, u.nama_lengkap, t.nama_paket
         FROM pemesanan p
         LEFT JOIN users u ON p.user_id = u.id
@@ -62,7 +59,6 @@ $sql = "SELECT p.*, u.nama_lengkap, t.nama_paket
 
 $res = mysqli_query($konek, $sql);
 
-// --- Hitung total pendapatan & jumlah transaksi (yang tampil) ---
 $total_pendapatan = 0;
 $total_transaksi = 0;
 $rows = [];
@@ -74,7 +70,7 @@ if ($res) {
     }
 }
 
-// --- Query tiket terlaris (top 5) ---
+// --- Query tiket terlaris (Top 5) ---
 $sql_top = "SELECT p.tiket_id, t.nama_paket, SUM(p.jumlah_tiket) AS total_terjual, COUNT(*) AS transaksi
             FROM pemesanan p
             LEFT JOIN tiket t ON p.tiket_id = t.id
@@ -138,11 +134,13 @@ include '../../includes/boot.php';
                     </select>
                 </div>
 
+                <!-- Filter Harian -->
                 <div class="col-12 col-md-2 filter-item" id="filter_daily" style="display: none;">
                     <label class="form-label">Pilih Tanggal</label>
                     <input type="date" name="date" class="form-control" value="<?= htmlspecialchars($date) ?>">
                 </div>
 
+                <!-- Filter Bulanan -->
                 <div class="col-12 col-md-2 filter-item" id="filter_monthly" style="display: none;">
                     <label class="form-label">Bulan</label>
                     <select name="month" class="form-select">
@@ -159,29 +157,28 @@ include '../../includes/boot.php';
                     <label class="form-label">Tahun</label>
                     <select name="year" class="form-select">
                         <option value="">-- Pilih Tahun --</option>
-                        <?php
-                        $startY = date('Y') - 5;
-                        for ($yy = date('Y'); $yy >= $startY; $yy--): ?>
-                            <option value="<?= $yy ?>" <?= ($filter_type==='monthly' && (int)$year===$yy) || ($filter_type==='yearly' && (int)$year===$yy) ? 'selected' : '' ?>>
+                        <?php for ($yy = date('Y'); $yy <= date('Y') + 10; $yy++): ?>
+                            <option value="<?= $yy ?>" <?= ((int)$year===$yy) ? 'selected' : '' ?>>
                                 <?= $yy ?>
                             </option>
                         <?php endfor; ?>
                     </select>
                 </div>
 
+                <!-- Filter Tahunan -->
                 <div class="col-12 col-md-2 filter-item" id="filter_yearly" style="display: none;">
                     <label class="form-label">Tahun</label>
                     <select name="year_y" id="year_y" class="form-select">
                         <option value="">-- Pilih Tahun --</option>
-                        <?php
-                        for ($yy = date('Y'); $yy >= date('Y')-5; $yy--): ?>
-                            <option value="<?= $yy ?>" <?= ($filter_type==='yearly' && (int)$year===$yy) ? 'selected' : '' ?>>
+                        <?php for ($yy = date('Y'); $yy <= date('Y') + 10; $yy++): ?>
+                            <option value="<?= $yy ?>" <?= ((int)$year===$yy) ? 'selected' : '' ?>>
                                 <?= $yy ?>
                             </option>
                         <?php endfor; ?>
                     </select>
                 </div>
 
+                <!-- Filter Rentang -->
                 <div class="col-12 col-md-2 filter-item" id="filter_range" style="display: none;">
                     <label class="form-label">Dari</label>
                     <input type="date" name="start_date" class="form-control" value="<?= htmlspecialchars($start_date) ?>">
@@ -242,7 +239,7 @@ include '../../includes/boot.php';
                 <table class="table table-striped table-bordered mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th style="width:60px">No</th>
+                            <th>No</th>
                             <th>Kode Booking</th>
                             <th>Nama Pelanggan</th>
                             <th>Nama Paket</th>

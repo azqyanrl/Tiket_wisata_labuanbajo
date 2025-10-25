@@ -9,7 +9,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-include '../../../database/konek.php';
+include '../../database/konek.php';
 
 // Ambil data tiket jika sedang dalam mode edit
  $editing = isset($_GET['id']);
@@ -102,7 +102,6 @@ if ($editing) {
                                     </div>
                                 </div>
                             </div>
-
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">

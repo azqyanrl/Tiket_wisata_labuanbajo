@@ -38,7 +38,6 @@ try {
     }
 }
 
-// Redirect kembali ke halaman utama dari /proses/ ke /halaman/
-header("Location: ../kelola_kategori.php");
+header("Location: ../index.php?page=kelola_kategori");
 exit;
 ?>

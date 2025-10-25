@@ -5,7 +5,8 @@ include '../../database/konek.php';
 include '../../includes/stok_otomatis.php';
 
 if (!isset($_SESSION['user_id'])) {
-    echo "<script>alert('Silakan login terlebih dahulu!'); window.location='../login/login.php';</script>";
+    $_SESSION['error_message'] = "Silakan login terlebih dahulu!";
+    header('location: ../login/login.php');
     exit;
 }
 
@@ -15,12 +16,14 @@ if (!isset($_SESSION['user_id'])) {
  $tanggal_kunjungan = $_POST['tanggal_kunjungan_user'] ?? '';
 
 if ($tiket_id <= 0 || $jumlah_tiket <= 0 || empty($tanggal_kunjungan)) {
-    echo "<script>alert('Data booking tidak valid!'); window.history.back();</script>";
+    $_SESSION['error_message'] = "Data booking tidak valid!";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
 }
 
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal_kunjungan)) {
-    echo "<script>alert('Format tanggal tidak valid (YYYY-MM-DD).'); window.history.back();</script>";
+    $_SESSION['error_message'] = "Format tanggal tidak valid (YYYY-MM-DD).";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
 }
 
@@ -32,7 +35,8 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal_kunjungan)) {
  $q->close();
 
 if (!$data_tiket) {
-    echo "<script>alert('Tiket tidak ditemukan!'); window.history.back();</script>";
+    $_SESSION['error_message'] = "Tiket tidak ditemukan!";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
 }
 
@@ -42,7 +46,8 @@ if (!$data_tiket) {
 // Cek stok tersisa untuk tanggal tersebut
  $stok_tersisa = getStokTersisa($konek, $tiket_id, $tanggal_kunjungan);
 if ($stok_tersisa < $jumlah_tiket) {
-    echo "<script>alert('Maaf, stok tiket untuk tanggal tersebut tidak mencukupi! Tersisa: $stok_tersisa'); window.history.back();</script>";
+    $_SESSION['error_message'] = "Maaf, stok tiket untuk tanggal tersebut tidak mencukupi! Tersisa: $stok_tersisa";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
     exit;
 }
 
@@ -65,24 +70,31 @@ try {
     $insert->execute();
     $insert->close();
     
-    // Kurangi stok
+    // --- PERBAIKAN: Update tiket terjual harian dengan tabel dan kolom yang benar ---
     $stmt = $konek->prepare("
-        INSERT INTO stok_harian (tiket_id, tanggal, stok) 
+        INSERT INTO tiket_terjual_harian (tiket_id, tanggal_kunjungan, jumlah_terjual) 
         VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE stok = stok - ?
+        ON DUPLICATE KEY UPDATE jumlah_terjual = jumlah_terjual + VALUES(jumlah_terjual)
     ");
-    $stmt->bind_param("isii", $tiket_id, $tanggal_kunjungan, -$jumlah_tiket, $jumlah_tiket);
+    $stmt->bind_param("isi", $tiket_id, $tanggal_kunjungan, $jumlah_tiket);
     $stmt->execute();
     $stmt->close();
     
     // Commit transaksi
     $konek->commit();
     
-    echo "<script>alert('Booking berhasil! Kode: $kode_booking'); window.location='riwayat.php';</script>";
+    // --- PERUBAHAN: Simpan sukses message ke session dan redirect ---
+    $_SESSION['success_message'] = "Booking berhasil! Kode pemesanan Anda: $kode_booking. Silakan lakukan pembayaran ke admin.";
+    header('Location: riwayat.php');
+    exit;
     
 } catch (Exception $e) {
     // Rollback jika ada error
     $konek->rollback();
-    echo "<script>alert('Gagal melakukan booking. Error: " . $e->getMessage() . "'); window.history.back();</script>";
+    
+    // --- PERUBAHAN: Simpan error message ke session dan redirect ---
+    $_SESSION['error_message'] = "Gagal melakukan booking. Silakan coba lagi.";
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
+    exit;
 }
 ?>
