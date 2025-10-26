@@ -32,12 +32,18 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
     <!-- Gallery Grid -->
     <div class="row g-4" id="gallery-container">
         <?php
-        // Ambil semua data galeri dari tabel 'galleries'
-        $result = $konek->query("SELECT * FROM galleries ORDER BY created_at DESC");
+        // Ambil semua data galeri beserta kategori
+        $result = $konek->query("
+            SELECT g.*, k.nama AS nama_kategori
+            FROM galleries g
+            LEFT JOIN kategori k ON g.kategori_id = k.id
+            ORDER BY g.created_at DESC
+        ");
 
         if ($result && $result->num_rows > 0) {
             while ($data = $result->fetch_assoc()) {
-                $kategori = strtolower(htmlspecialchars($data['kategori']));
+                // Pastikan ada fallback jika nama_kategori null
+                $kategori = strtolower(htmlspecialchars($data['nama_kategori'] ?? 'lainnya'));
         ?>
                 <div class="col-lg-3 col-md-4 col-sm-6 gallery-item" data-category="<?= $kategori; ?>">
                     <div class="card h-100 shadow-sm gallery-card" style="cursor: pointer;" 
@@ -45,12 +51,12 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
                          data-bs-target="#lightboxModal"
                          data-img-src="../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>"
                          data-title="<?= htmlspecialchars($data['judul']); ?>"
-                         data-caption="<?= htmlspecialchars(ucfirst($data['kategori'])); ?>">
+                         data-caption="<?= htmlspecialchars(ucfirst($data['nama_kategori'] ?? '')); ?>">
                         
                         <img src="../../assets/images/galery/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top gallery-img" alt="<?= htmlspecialchars($data['judul']); ?>">
                         <div class="card-img-overlay d-flex flex-column justify-content-end text-white p-2">
                              <h5 class="card-title"><?= htmlspecialchars($data['judul']); ?></h5>
-                             <p class="card-text small"><?= htmlspecialchars(ucfirst($data['kategori'])); ?></p>
+                             <p class="card-text small"><?= htmlspecialchars(ucfirst($data['nama_kategori'] ?? '')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -68,7 +74,6 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
         <p>Jangan hanya lihat, rasakan sendiri keindahannya! Temukan dan pesan tiket wisata impian Anda sekarang.</p>
         <a href="destinasi.php" class="btn btn-light btn-lg">Cari Tiket Wisata Sekarang</a>
     </section>
-
 </main>
 
 <!-- Bootstrap Modal untuk Lightbox -->
@@ -89,7 +94,7 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
     </div>
 </div>
 
-<!-- Custom CSS Tambahan -->
+<!-- Custom CSS -->
 <style>
     .gallery-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -117,21 +122,18 @@ include '../../includes/boot.php'; // Bootstrap CSS & JS
     }
 </style>
 
-<!-- JavaScript untuk Filter dan Lightbox -->
+<!-- JS Filter & Lightbox -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const filterButtons = document.querySelectorAll('[data-filter]');
     const galleryItems = document.querySelectorAll('.gallery-item');
 
-    // --- Gallery Filter ---
     filterButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // Update active state on buttons
             filterButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
             const filterValue = button.getAttribute('data-filter');
-
             galleryItems.forEach(item => {
                 const itemCategory = item.getAttribute('data-category');
                 if (filterValue === 'all' || itemCategory === filterValue) {
@@ -143,7 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // --- Lightbox (Bootstrap Modal) ---
     const lightboxModal = document.getElementById('lightboxModal');
     const lightboxImg = document.getElementById('lightbox-img');
     const lightboxTitle = lightboxModal.querySelector('.modal-title');
@@ -151,14 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (lightboxModal) {
         lightboxModal.addEventListener('show.bs.modal', function (event) {
-            // Button that triggered the modal
             const button = event.relatedTarget;
-            // Extract info from data-* attributes
             const imgSrc = button.getAttribute('data-img-src');
             const title = button.getAttribute('data-title');
             const caption = button.getAttribute('data-caption');
 
-            // Update the modal's content.
             lightboxImg.src = imgSrc;
             lightboxImg.alt = title;
             lightboxTitle.textContent = title;
