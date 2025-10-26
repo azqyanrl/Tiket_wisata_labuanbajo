@@ -4,18 +4,24 @@ include "session_cek.php";
 include '../../includes/navbar.php';
 include '../../includes/boot.php';
 
-// Logika pencarian
- $cari = isset($_GET['cari']) ? trim($_GET['cari']) : '';
-if ($cari != '') {
-    $stmt = $konek->prepare("SELECT * FROM tiket WHERE status='aktif' AND nama_paket LIKE ?");
+// Ambil kata pencarian dari GET
+$cari = isset($_GET['cari']) ? trim($_GET['cari']) : '';
+
+if($cari != '') {
     $param = "%$cari%";
-    $stmt->bind_param("s", $param);
+    $sql = "SELECT * FROM tiket
+            WHERE status='aktif' AND 
+            (nama_paket LIKE ? OR deskripsi LIKE ? OR itinerary LIKE ? OR fasilitas LIKE ? OR lokasi LIKE ?)
+            ORDER BY created_at DESC";
+    $stmt = $konek->prepare($sql);
+    $stmt->bind_param("sssss", $param, $param, $param, $param, $param);
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
     $result = $konek->query("SELECT * FROM tiket WHERE status='aktif' ORDER BY created_at DESC");
 }
 ?>
+
 
 <!-- Hero Section -->
 <section class="text-center text-white bg-dark py-5" style="background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('../../assets/images/bg/kelor_island.jpg'); background-size: cover; background-position: center;">
