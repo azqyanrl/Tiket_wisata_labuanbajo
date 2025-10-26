@@ -23,35 +23,35 @@ $to_date = isset($_GET['to_date']) ? esc($konek, $_GET['to_date']) : '';
 $filter_month = isset($_GET['filter_month']) ? esc($konek, $_GET['filter_month']) : '';
 $filter_year = isset($_GET['filter_year']) ? esc($konek, $_GET['filter_year']) : '';
 
+// 🔹 Query laporan stok otomatis tanpa tabel tiket_terjual_harian
 $query = "
     SELECT 
         t.id AS tiket_id,
         t.nama_paket,
-        t.stok_default,
-        th.tanggal_kunjungan,
-        SUM(th.jumlah_terjual) AS total_terjual
+        t.stok AS stok_default,
+        p.tanggal_kunjungan,
+        SUM(CASE WHEN p.status != 'batal' THEN p.jumlah_tiket ELSE 0 END) AS total_terjual
     FROM tiket t
-    LEFT JOIN tiket_terjual_harian th ON t.id = th.tiket_id
+    LEFT JOIN pemesanan p ON t.id = p.tiket_id
 ";
 
+// Filter berdasarkan jenis
 $where = [];
-
-// 🔹 Filter berdasarkan jenis
 if ($filter_type === 'hari' && !empty($filter_date)) {
-    $where[] = "DATE(th.tanggal_kunjungan) = '$filter_date'";
+    $where[] = "DATE(p.tanggal_kunjungan) = '$filter_date'";
 } elseif ($filter_type === 'periode' && !empty($from_date) && !empty($to_date)) {
-    $where[] = "th.tanggal_kunjungan BETWEEN '$from_date' AND '$to_date'";
+    $where[] = "p.tanggal_kunjungan BETWEEN '$from_date' AND '$to_date'";
 } elseif ($filter_type === 'bulan' && !empty($filter_month) && !empty($filter_year)) {
-    $where[] = "MONTH(th.tanggal_kunjungan) = '$filter_month' AND YEAR(th.tanggal_kunjungan) = '$filter_year'";
+    $where[] = "MONTH(p.tanggal_kunjungan) = '$filter_month' AND YEAR(p.tanggal_kunjungan) = '$filter_year'";
 } elseif ($filter_type === 'tahun' && !empty($filter_year)) {
-    $where[] = "YEAR(th.tanggal_kunjungan) = '$filter_year'";
+    $where[] = "YEAR(p.tanggal_kunjungan) = '$filter_year'";
 }
 
 if (count($where) > 0) {
     $query .= " WHERE " . implode(" AND ", $where);
 }
 
-$query .= " GROUP BY t.id, th.tanggal_kunjungan ORDER BY th.tanggal_kunjungan DESC";
+$query .= " GROUP BY t.id, p.tanggal_kunjungan ORDER BY p.tanggal_kunjungan DESC";
 
 $result = mysqli_query($konek, $query);
 ?>
@@ -64,78 +64,82 @@ $result = mysqli_query($konek, $query);
         </button>
     </div>
 
-```
 <!-- FILTER -->
+
 <div class="card card-body border-0 shadow-sm mb-4 no-print">
     <form method="GET" action="index.php" class="row g-3 align-items-end">
         <input type="hidden" name="page" value="laporan_stok">
 
-        <div class="col-md-3">
-            <label class="form-label">Filter Berdasarkan</label>
-            <select name="filter_type" id="filter_type" class="form-select" onchange="toggleFilterFields()">
-                <option value="hari" <?= $filter_type=='hari'?'selected':''; ?>>Per Hari</option>
-                <option value="periode" <?= $filter_type=='periode'?'selected':''; ?>>Per Periode</option>
-                <option value="bulan" <?= $filter_type=='bulan'?'selected':''; ?>>Per Bulan</option>
-                <option value="tahun" <?= $filter_type=='tahun'?'selected':''; ?>>Per Tahun</option>
-            </select>
-        </div>
+```
+    <div class="col-md-3">
+        <label class="form-label">Filter Berdasarkan</label>
+        <select name="filter_type" id="filter_type" class="form-select" onchange="toggleFilterFields()">
+            <option value="hari" <?= $filter_type=='hari'?'selected':''; ?>>Per Hari</option>
+            <option value="periode" <?= $filter_type=='periode'?'selected':''; ?>>Per Periode</option>
+            <option value="bulan" <?= $filter_type=='bulan'?'selected':''; ?>>Per Bulan</option>
+            <option value="tahun" <?= $filter_type=='tahun'?'selected':''; ?>>Per Tahun</option>
+        </select>
+    </div>
 
-        <div class="col-md-3 filter-hari">
-            <label class="form-label">Tanggal</label>
-            <input type="date" name="filter_date" class="form-control" value="<?= htmlspecialchars($filter_date) ?>">
-        </div>
+    <div class="col-md-3 filter-hari">
+        <label class="form-label">Tanggal</label>
+        <input type="date" name="filter_date" class="form-control" value="<?= htmlspecialchars($filter_date) ?>">
+    </div>
 
-        <div class="col-md-3 filter-periode" style="display:none;">
-            <label class="form-label">Dari</label>
-            <input type="date" name="from_date" class="form-control" value="<?= htmlspecialchars($from_date) ?>">
-        </div>
-        <div class="col-md-3 filter-periode" style="display:none;">
-            <label class="form-label">Sampai</label>
-            <input type="date" name="to_date" class="form-control" value="<?= htmlspecialchars($to_date) ?>">
-        </div>
+    <div class="col-md-3 filter-periode" style="display:none;">
+        <label class="form-label">Dari</label>
+        <input type="date" name="from_date" class="form-control" value="<?= htmlspecialchars($from_date) ?>">
+    </div>
+    <div class="col-md-3 filter-periode" style="display:none;">
+        <label class="form-label">Sampai</label>
+        <input type="date" name="to_date" class="form-control" value="<?= htmlspecialchars($to_date) ?>">
+    </div>
 
-        <div class="col-md-3 filter-bulan" style="display:none;">
-            <label class="form-label">Bulan</label>
-            <select name="filter_month" class="form-select">
-                <option value="">-- Pilih Bulan --</option>
-                <?php for($i=1;$i<=12;$i++): ?>
-                    <option value="<?= $i ?>" <?= ($filter_month==$i)?'selected':''; ?>>
-                        <?= date('F', mktime(0,0,0,$i,1)); ?>
-                    </option>
-                <?php endfor; ?>
-            </select>
-        </div>
+    <div class="col-md-3 filter-bulan" style="display:none;">
+        <label class="form-label">Bulan</label>
+        <select name="filter_month" class="form-select">
+            <option value="">-- Pilih Bulan --</option>
+            <?php for($i=1;$i<=12;$i++): ?>
+                <option value="<?= $i ?>" <?= ($filter_month==$i)?'selected':''; ?>>
+                    <?= date('F', mktime(0,0,0,$i,1)); ?>
+                </option>
+            <?php endfor; ?>
+        </select>
+    </div>
 
-        <div class="col-md-3 filter-bulan" style="display:none;">
-            <label class="form-label">Tahun</label>
-            <select name="filter_year" class="form-select">
-                <option value="">-- Pilih Tahun --</option>
-                <?php for($y=2025;$y<=2035;$y++): ?>
-                    <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
-                <?php endfor; ?>
-            </select>
-        </div>
+    <div class="col-md-3 filter-bulan" style="display:none;">
+        <label class="form-label">Tahun</label>
+        <select name="filter_year" class="form-select">
+            <option value="">-- Pilih Tahun --</option>
+            <?php for($y=2025;$y<=2035;$y++): ?>
+                <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
+            <?php endfor; ?>
+        </select>
+    </div>
 
-        <div class="col-md-3 filter-tahun" style="display:none;">
-            <label class="form-label">Tahun</label>
-            <select name="filter_year" class="form-select">
-                <option value="">-- Pilih Tahun --</option>
-                <?php for($y=2025;$y<=2035;$y++): ?>
-                    <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
-                <?php endfor; ?>
-            </select>
-        </div>
+    <div class="col-md-3 filter-tahun" style="display:none;">
+        <label class="form-label">Tahun</label>
+        <select name="filter_year" class="form-select">
+            <option value="">-- Pilih Tahun --</option>
+            <?php for($y=2025;$y<=2035;$y++): ?>
+                <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
+            <?php endfor; ?>
+        </select>
+    </div>
 
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-success w-100"><i class="bi bi-funnel"></i> Filter</button>
-        </div>
-        <div class="col-md-2">
-            <a href="index.php?page=laporan_stok" class="btn btn-secondary w-100"><i class="bi bi-arrow-repeat"></i> Reset</a>
-        </div>
-    </form>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-success w-100"><i class="bi bi-funnel"></i> Filter</button>
+    </div>
+    <div class="col-md-2">
+        <a href="index.php?page=laporan_stok" class="btn btn-secondary w-100"><i class="bi bi-arrow-repeat"></i> Reset</a>
+    </div>
+</form>
+```
+
 </div>
 
 <!-- TABEL -->
+
 <div id="laporanArea" class="card card-body border-0 shadow-sm">
     <div class="text-center mb-4">
         <h4 class="fw-bold">LAPORAN STOK TIKET LABUAN BAJO</h4>
@@ -151,42 +155,43 @@ $result = mysqli_query($konek, $query);
         <hr>
     </div>
 
-    <table class="table table-bordered table-striped align-middle">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>No</th>
-                <th>Nama Paket</th>
-                <th>Tanggal Kunjungan</th>
-                <th>Tiket Terjual</th>
-                <th>Tiket Tersisa</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (mysqli_num_rows($result) > 0): ?>
-                <?php $no=1; while($row=mysqli_fetch_assoc($result)): ?>
-                    <?php
-                        $stok_awal = $row['stok_default'] ?? 0;
-                        $terjual = $row['total_terjual'] ?? 0;
-                        $tersisa = max(0, $stok_awal - $terjual);
-                    ?>
-                    <tr class="text-center">
-                        <td><?= $no++; ?></td>
-                        <td><?= htmlspecialchars($row['nama_paket']); ?></td>
-                        <td><?= htmlspecialchars($row['tanggal_kunjungan'] ?? '-'); ?></td>
-                        <td><?= $terjual; ?></td>
-                        <td><?= $tersisa; ?></td>
-                    </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <tr><td colspan="5" class="text-center text-muted">Tidak ada data ditemukan</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+```
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark text-center">
+        <tr>
+            <th>No</th>
+            <th>Nama Paket</th>
+            <th>Tanggal Kunjungan</th>
+            <th>Tiket Terjual</th>
+            <th>Tiket Tersisa</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (mysqli_num_rows($result) > 0): ?>
+            <?php $no=1; while($row=mysqli_fetch_assoc($result)): ?>
+                <?php
+                    $stok_awal = $row['stok_default'] ?? 0;
+                    $terjual = $row['total_terjual'] ?? 0;
+                    $tersisa = max($stok_awal - $terjual, 0);
+                ?>
+                <tr class="text-center">
+                    <td><?= $no++; ?></td>
+                    <td><?= htmlspecialchars($row['nama_paket']); ?></td>
+                    <td><?= htmlspecialchars($row['tanggal_kunjungan'] ?? '-'); ?></td>
+                    <td><?= $terjual; ?></td>
+                    <td><?= $tersisa; ?></td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr><td colspan="5" class="text-center text-muted">Tidak ada data ditemukan</td></tr>
+        <?php endif; ?>
+    </tbody>
+</table>
 
-    <p class="mt-3 text-end text-muted">Dicetak pada: <?= date('d M Y, H:i'); ?></p>
-</div>
+<p class="mt-3 text-end text-muted">Dicetak pada: <?= date('d M Y, H:i'); ?></p>
 ```
 
+</div>
 </div>
 
 <script>

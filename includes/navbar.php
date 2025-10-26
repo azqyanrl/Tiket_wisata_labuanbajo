@@ -2,8 +2,10 @@
 require_once __DIR__ . '/common.php';
 
 $username = $_SESSION['username'] ?? null;
-$photo = $_SESSION['profile_photo'] ?? null;
-$initial = $username ? strtoupper(substr($username, 0, 1)) : '?';
+$photo = $_SESSION['profile_photo'] ?? '';
+$nama = $_SESSION['nama_lengkap'] ?? $username ?? 'U';
+$inisial = strtoupper(substr($nama, 0, 1));
+$path = __DIR__ . '/../../assets/images/profile/' . $photo;
 ?>
 
 <nav class="navbar navbar-expand-lg fixed-top navbar-dark"
@@ -19,25 +21,30 @@ $initial = $username ? strtoupper(substr($username, 0, 1)) : '?';
         <li class="nav-item"><a class="nav-link" href="destinasi.php">Destinasi</a></li>
         <li class="nav-item"><a class="nav-link" href="galeri.php">Galeri</a></li>
         <li class="nav-item"><a class="nav-link" href="riwayat.php">Riwayat</a></li>
-    <?php if ($username): ?>
-      <li class="nav-item">
-        <a href="profile.php" class="nav-link p-0 ms-3">
-          <?php if ($photo): ?>
-            <img src="<?= '../../assets/images/profile/' . e($photo) ?>"
-                 alt="avatar" class="rounded-circle" width="36" height="36" style="object-fit:cover;">
-          <?php else: ?>
-            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center"
-                 style="width:36px; height:36px; font-weight:bold; font-size:16px;">
-              <?= e($initial) ?>
-            </div>a
-          <?php endif; ?>
-        </a>
-      </li>
-    <?php else: ?>
-      <li class="nav-item"><a class="nav-link" href="../login/login.php">Login</a></li>
-    <?php endif; ?>
-  </ul>
-</div>
 
+        <?php if ($username): ?>
+          <li class="nav-item">
+            <a href="profile.php" class="nav-link p-0 ms-3">
+              <?php if (!empty($photo) && file_exists($path)): ?>
+                <!-- Jika user punya foto profil -->
+                <img src="<?= '../../assets/images/profile/' . e($photo) ?>"
+                     alt="avatar"
+                     class="rounded-circle"
+                     width="36" height="36"
+                     style="object-fit:cover;">
+              <?php else: ?>
+                <!-- Jika tidak punya foto profil -->
+                <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fw-bold border"
+                     style="width:36px; height:36px; font-size:16px;">
+                  <?= e($inisial) ?>
+                </div>
+              <?php endif; ?>
+            </a>
+          </li>
+        <?php else: ?>
+          <li class="nav-item"><a class="nav-link" href="../login/login.php">Login</a></li>
+        <?php endif; ?>
+      </ul>
+    </div>
   </div>
 </nav>

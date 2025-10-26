@@ -36,7 +36,7 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
                 $query_payment->execute();
             } else {
                 // Ambil user_id dan tiket_id dari pemesanan
-                $query_info = $konek->prepare("SELECT user_id, tiket_id FROM pemesanan WHERE id = ?");
+                $query_info = $konek->prepare("SELECT user_id, tiket_id, jumlah_tiket, tanggal_pemesanan FROM pemesanan WHERE id = ?");
                 $query_info->bind_param("i", $pemesanan_id);
                 $query_info->execute();
                 $result_info = $query_info->get_result();
@@ -44,8 +44,15 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
 
                 $user_id = $info['user_id'];
                 $tiket_id = $info['tiket_id'];
+                $jumlah_tiket = $info['jumlah_tiket'];
+                $tanggal_pemesanan = $info['tanggal_pemesanan'];
 
-                // Ambil transaction_id yang cocok berdasarkan user_id & ticket_id
+                // Kurangi stok pada tabel stok_tiket sesuai tanggal
+                $update_stok = $konek->prepare("UPDATE stok_tiket SET tiket_tersisa = tiket_tersisa - ? WHERE id_paket_wisata = ? AND tanggal = ?");
+                $update_stok->bind_param("iis", $jumlah_tiket, $tiket_id, $tanggal_pemesanan);
+                $update_stok->execute();
+
+                // Ambil transaction_id jika ada
                 $query_get_transaction = $konek->prepare("SELECT id FROM transactions WHERE user_id = ? AND ticket_id = ? ORDER BY id DESC LIMIT 1");
                 $query_get_transaction->bind_param("ii", $user_id, $tiket_id);
                 $query_get_transaction->execute();
@@ -73,7 +80,7 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
                 $query_payment->execute();
             }
             
-            $_SESSION['success_message'] = "Pembayaran berhasil diverifikasi dan pesanan dikonfirmasi.";
+            $_SESSION['success_message'] = "Pembayaran berhasil diverifikasi, pesanan dikonfirmasi, dan stok tiket dikurangi.";
             break;
 
         case 'reject':
@@ -100,11 +107,30 @@ if (isset($_GET['id']) && isset($_GET['action'])) {
             break;
 
         case 'cancel':
+            // Ambil data pemesanan untuk mengembalikan stok
+            $query_info = $konek->prepare("SELECT tiket_id, jumlah_tiket, tanggal_pemesanan FROM pemesanan WHERE id = ?");
+            $query_info->bind_param("i", $pemesanan_id);
+            $query_info->execute();
+            $result_info = $query_info->get_result();
+            if ($result_info->num_rows > 0) {
+                $info = $result_info->fetch_assoc();
+                $tiket_id = $info['tiket_id'];
+                $jumlah_tiket = $info['jumlah_tiket'];
+                $tanggal_pemesanan = $info['tanggal_pemesanan'];
+
+                // Kembalikan stok ke tabel stok_tiket sesuai tanggal booking
+                $update_stok = $konek->prepare("UPDATE stok_tiket SET tiket_tersisa = tiket_tersisa + ? WHERE id_paket_wisata = ? AND tanggal = ?");
+                $update_stok->bind_param("iis", $jumlah_tiket, $tiket_id, $tanggal_pemesanan);
+                $update_stok->execute();
+            }
+
+            // Update status pemesanan
             $query = $konek->prepare("UPDATE pemesanan SET status = 'batal' WHERE id = ? AND status = 'dibayar'");
             $query->bind_param("i", $pemesanan_id);
             $query->execute();
+
             if ($query->affected_rows > 0) {
-                $_SESSION['success_message'] = "Pesanan berhasil dibatalkan.";
+                $_SESSION['success_message'] = "Pesanan berhasil dibatalkan dan stok tiket dikembalikan ke tanggal pemesanan.";
             } else {
                 $_SESSION['error_message'] = "Gagal membatalkan pesanan. Pastikan status pesanan adalah 'Dibayar'.";
             }
