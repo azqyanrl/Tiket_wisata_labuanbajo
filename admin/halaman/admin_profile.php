@@ -1,127 +1,149 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
-    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
+    echo "<script>alert('Akses ditolak!'); location.href='../login/login.php';</script>";
     exit;
 }
 
 include '../../database/konek.php';
-include '../../includes/boot.php';
 
-// Ambil data admin yang sedang login untuk ditampilkan di form
- $query_admin = $konek->prepare("SELECT * FROM users WHERE username = ?");
- $query_admin->bind_param("s", $_SESSION['username']);
- $query_admin->execute();
- $result_admin = $query_admin->get_result();
- $admin_data = $result_admin->fetch_assoc();
+$stmt = $konek->prepare("SELECT * FROM users WHERE username = ?");
+$stmt->bind_param("s", $_SESSION['username']);
+$stmt->execute();
+$admin_data = $stmt->get_result()->fetch_assoc();
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Profile Admin</h1>
-</div>
-
-<?php include '../../includes/alerts.php'; ?>
-
-<div class="row">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Foto Profile</h5>
-            </div>
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Profile Admin</h2>
+        <p class="text-muted">Kelola informasi profil dan keamanan akun Anda</p>
+        <hr>
+    </div>
+<div class="row g-4">
+    <!-- Kartu kiri -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
             <div class="card-body text-center">
-                <img src="../../assets/images/profile/<?php echo !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png'; ?>" 
-                     class="rounded-circle mb-3" width="150" height="150" alt="Profile Photo">
-                
-                <!-- PERUBAHAN: action diubah ke proses_admin.php -->
+                <img src="../../assets/images/profile/<?= !empty($admin_data['profile_photo']) ? htmlspecialchars($admin_data['profile_photo']) : 'default_admin.png' ?>" 
+                     class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
                 <form method="POST" action="proses/proses_admin.php" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label for="profile_photo" class="form-label">Ganti Foto</label>
+                        <label for="profile_photo" class="form-label fw-semibold">Ganti Foto Profil</label>
                         <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept="image/*">
-                        <div class="form-text">Format: JPG, JPEG, PNG, GIF. Maksimal: 2MB</div>
+                        <div class="form-text">Format: JPG, PNG, GIF. Maks. 2MB</div>
                     </div>
-                    <button type="submit" name="upload_photo" class="btn btn-primary btn-sm">Upload Foto</button>
+                    <button type="submit" name="upload_photo" class="btn btn-primary w-100">
+                        <i class="bi bi-upload me-1"></i> Upload
+                    </button>
                 </form>
             </div>
         </div>
-        
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0">Informasi Akun</h5>
-            </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white fw-semibold">Informasi Akun</div>
             <div class="card-body">
-                <p><strong>Username:</strong> <?php echo htmlspecialchars($admin_data['username']); ?></p>
-                <p><strong>Role:</strong> <span class="badge bg-danger">Admin</span></p>
-                <p><strong>Bergabung:</strong> <?php echo date('d/m/Y', strtotime($admin_data['created_at'])); ?></p>
+                <p><strong>Username:</strong> <?= htmlspecialchars($admin_data['username']); ?></p>
+                <p><strong>Role:</strong> <span class="badge bg-gradient bg-info">Admin</span></p>
+                <p><strong>Bergabung:</strong> <?= date('d F Y', strtotime($admin_data['created_at'])); ?></p>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#profile" role="tab">Data Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#password" role="tab">Ubah Password</a>
-                    </li>
+
+    <!-- Kartu kanan -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProfile" type="button">Data Profil</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPassword" type="button">Ubah Password</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAktivitas" type="button">Aktivitas</button></li>
                 </ul>
             </div>
-            <div class="card-body">
-                <div class="tab-content">
-                    <div class="tab-pane fade show active" id="profile" role="tabpanel">
-                        <!-- PERUBAHAN: action diubah ke proses_admin.php -->
-                        <form method="POST" action="proses/proses_admin.php">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
-                                        <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" 
-                                               value="<?php echo htmlspecialchars($admin_data['nama_lengkap']); ?>" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" 
-                                               value="<?php echo htmlspecialchars($admin_data['email']); ?>" required>
-                                    </div>
-                                </div>
+
+            <div class="card-body tab-content">
+                <!-- Tab Profile -->
+                <div class="tab-pane fade show active" id="tabProfile">
+                    <form method="POST" action="proses/proses_admin.php">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nama Lengkap</label>
+                                <input type="text" name="nama_lengkap" class="form-control" required
+                                       value="<?= htmlspecialchars($admin_data['nama_lengkap']); ?>">
                             </div>
-                            <div class="mb-3">
-                                <label for="no_hp" class="form-label">No. HP</label>
-                                <input type="tel" class="form-control" id="no_hp" name="no_hp" 
-                                       value="<?php echo htmlspecialchars($admin_data['no_hp']); ?>">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email</label>
+                                <input type="email" name="email" class="form-control" required
+                                       value="<?= htmlspecialchars($admin_data['email']); ?>">
                             </div>
-                            <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
-                        </form>
-                    </div>
-                    
-                    <div class="tab-pane fade" id="password" role="tabpanel">
-                        <!-- PERUBAHAN: action diubah ke proses_admin.php -->
-                        <form method="POST" action="proses/proses_admin.php">
-                            <div class="mb-3">
-                                <label for="current_password" class="form-label">Password Saat Ini</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nomor HP</label>
+                                <input type="text" name="no_hp" class="form-control"
+                                       value="<?= htmlspecialchars($admin_data['no_hp']); ?>">
                             </div>
-                            <div class="mb-3">
-                                <label for="new_password" class="form-label">Password Baru</label>
-                                <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                <div class="form-text">Minimal 6 karakter</div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Alamat</label>
+                                <textarea name="alamat" rows="3" class="form-control"><?= htmlspecialchars($admin_data['alamat'] ?? ''); ?></textarea>
                             </div>
-                            <div class="mb-3">
-                                <label for="confirm_password" class="form-label">Konfirmasi Password Baru</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <button type="submit" name="update_profile" class="btn btn-success">
+                                <i class="bi bi-save me-1"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Password -->
+                <div class="tab-pane fade" id="tabPassword">
+                    <form method="POST" action="proses/proses_admin.php">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password Saat Ini</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password Baru</label>
+                            <input type="password" name="new_password" id="new_password" class="form-control" required>
+                            <div class="progress mt-2" style="height:6px;">
+                                <div id="password-strength" class="progress-bar"></div>
                             </div>
-                            <button type="submit" name="change_password" class="btn btn-primary">Ubah Password</button>
-                        </form>
-                    </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Konfirmasi Password Baru</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                        <button type="submit" name="change_password" class="btn btn-warning">
+                            <i class="bi bi-shield-lock me-1"></i> Ubah Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tab Aktivitas -->
+                <div class="tab-pane fade" id="tabAktivitas">
+                    <p class="text-muted">Aktivitas terakhir akun ini:</p>
+                    <ul class="list-group small">
+                        <li class="list-group-item">Login ke sistem (2 jam lalu)</li>
+                        <li class="list-group-item">Perbarui profil (1 hari lalu)</li>
+                        <li class="list-group-item">Ubah password (3 hari lalu)</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+</div>
+
+<script>
+// Cek kekuatan password
+document.getElementById('new_password').addEventListener('input', e => {
+    const p = e.target.value, bar = document.getElementById('password-strength');
+    let val = 0;
+    if (p.length >= 6) val += 25;
+    if (/[a-z]/.test(p)) val += 25;
+    if (/[A-Z]/.test(p)) val += 25;
+    if (/[0-9]/.test(p)) val += 25;
+    bar.style.width = val + '%';
+    bar.className = 'progress-bar ' + (val < 50 ? 'bg-danger' : val < 75 ? 'bg-warning' : 'bg-success');
+});
+</script>
