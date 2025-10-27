@@ -16,12 +16,17 @@ function esc($konek, $v) {
 }
 
 // Ambil input filter
-$filter_type = isset($_GET['filter_type']) ? esc($konek, $_GET['filter_type']) : 'hari';
-$filter_date = isset($_GET['filter_date']) ? esc($konek, $_GET['filter_date']) : '';
-$from_date = isset($_GET['from_date']) ? esc($konek, $_GET['from_date']) : '';
-$to_date = isset($_GET['to_date']) ? esc($konek, $_GET['to_date']) : '';
+$filter_type  = isset($_GET['filter_type']) ? esc($konek, $_GET['filter_type']) : 'hari';
+$filter_date  = isset($_GET['filter_date']) ? esc($konek, $_GET['filter_date']) : '';
+$from_date    = isset($_GET['from_date']) ? esc($konek, $_GET['from_date']) : '';
+$to_date      = isset($_GET['to_date']) ? esc($konek, $_GET['to_date']) : '';
 $filter_month = isset($_GET['filter_month']) ? esc($konek, $_GET['filter_month']) : '';
-$filter_year = isset($_GET['filter_year']) ? esc($konek, $_GET['filter_year']) : '';
+$filter_year  = isset($_GET['filter_year']) ? esc($konek, $_GET['filter_year']) : '';
+
+// Jika user memilih filter "bulan" tapi tidak memilih tahun, pakai tahun sekarang
+if ($filter_type === 'bulan' && !empty($filter_month) && empty($filter_year)) {
+    $filter_year = date('Y');
+}
 
 // 🔹 Query laporan stok otomatis tanpa tabel tiket_terjual_harian
 $query = "
@@ -35,14 +40,17 @@ $query = "
     LEFT JOIN pemesanan p ON t.id = p.tiket_id
 ";
 
-// Filter berdasarkan jenis
 $where = [];
 if ($filter_type === 'hari' && !empty($filter_date)) {
     $where[] = "DATE(p.tanggal_kunjungan) = '$filter_date'";
 } elseif ($filter_type === 'periode' && !empty($from_date) && !empty($to_date)) {
     $where[] = "p.tanggal_kunjungan BETWEEN '$from_date' AND '$to_date'";
-} elseif ($filter_type === 'bulan' && !empty($filter_month) && !empty($filter_year)) {
-    $where[] = "MONTH(p.tanggal_kunjungan) = '$filter_month' AND YEAR(p.tanggal_kunjungan) = '$filter_year'";
+} elseif ($filter_type === 'bulan' && !empty($filter_month)) {
+    if (!empty($filter_year)) {
+        $where[] = "MONTH(p.tanggal_kunjungan) = '$filter_month' AND YEAR(p.tanggal_kunjungan) = '$filter_year'";
+    } else {
+        $where[] = "MONTH(p.tanggal_kunjungan) = '$filter_month'";
+    }
 } elseif ($filter_type === 'tahun' && !empty($filter_year)) {
     $where[] = "YEAR(p.tanggal_kunjungan) = '$filter_year'";
 }
@@ -70,7 +78,6 @@ $result = mysqli_query($konek, $query);
     <form method="GET" action="index.php" class="row g-3 align-items-end">
         <input type="hidden" name="page" value="laporan_stok">
 
-```
     <div class="col-md-3">
         <label class="form-label">Filter Berdasarkan</label>
         <select name="filter_type" id="filter_type" class="form-select" onchange="toggleFilterFields()">
@@ -97,7 +104,7 @@ $result = mysqli_query($konek, $query);
 
     <div class="col-md-3 filter-bulan" style="display:none;">
         <label class="form-label">Bulan</label>
-        <select name="filter_month" class="form-select">
+        <select name="filter_month" id="filter_month" class="form-select">
             <option value="">-- Pilih Bulan --</option>
             <?php for($i=1;$i<=12;$i++): ?>
                 <option value="<?= $i ?>" <?= ($filter_month==$i)?'selected':''; ?>>
@@ -107,19 +114,9 @@ $result = mysqli_query($konek, $query);
         </select>
     </div>
 
-    <div class="col-md-3 filter-bulan" style="display:none;">
+    <div class="col-md-3 filter-year" style="display:none;">
         <label class="form-label">Tahun</label>
-        <select name="filter_year" class="form-select">
-            <option value="">-- Pilih Tahun --</option>
-            <?php for($y=2025;$y<=2035;$y++): ?>
-                <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
-            <?php endfor; ?>
-        </select>
-    </div>
-
-    <div class="col-md-3 filter-tahun" style="display:none;">
-        <label class="form-label">Tahun</label>
-        <select name="filter_year" class="form-select">
+        <select name="filter_year" id="filter_year" class="form-select">
             <option value="">-- Pilih Tahun --</option>
             <?php for($y=2025;$y<=2035;$y++): ?>
                 <option value="<?= $y ?>" <?= ($filter_year==$y)?'selected':''; ?>><?= $y ?></option>
@@ -134,7 +131,6 @@ $result = mysqli_query($konek, $query);
         <a href="index.php?page=laporan_stok" class="btn btn-secondary w-100"><i class="bi bi-arrow-repeat"></i> Reset</a>
     </div>
 </form>
-```
 
 </div>
 
@@ -155,7 +151,6 @@ $result = mysqli_query($konek, $query);
         <hr>
     </div>
 
-```
 <table class="table table-bordered table-striped align-middle">
     <thead class="table-dark text-center">
         <tr>
@@ -188,9 +183,6 @@ $result = mysqli_query($konek, $query);
     </tbody>
 </table>
 
-<p class="mt-3 text-end text-muted">Dicetak pada: <?= date('d M Y, H:i'); ?></p>
-```
-
 </div>
 </div>
 
@@ -200,7 +192,15 @@ function toggleFilterFields() {
     document.querySelectorAll('.filter-hari').forEach(el => el.style.display = (type === 'hari') ? '' : 'none');
     document.querySelectorAll('.filter-periode').forEach(el => el.style.display = (type === 'periode') ? '' : 'none');
     document.querySelectorAll('.filter-bulan').forEach(el => el.style.display = (type === 'bulan') ? '' : 'none');
-    document.querySelectorAll('.filter-tahun').forEach(el => el.style.display = (type === 'tahun') ? '' : 'none');
+    document.querySelectorAll('.filter-year').forEach(el => el.style.display = (type === 'bulan' || type === 'tahun') ? '' : 'none');
+
+    // Isi otomatis tahun sekarang kalau pilih "Bulan" tapi belum isi tahun
+    if (type === 'bulan') {
+        const yr = document.getElementById('filter_year');
+        if (yr && !yr.value) {
+            yr.value = new Date().getFullYear();
+        }
+    }
 }
 toggleFilterFields();
 
