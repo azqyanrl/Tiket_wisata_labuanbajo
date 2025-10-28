@@ -57,7 +57,6 @@ $admin_data = $stmt->get_result()->fetch_assoc();
                 <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabProfile" type="button">Data Profil</button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPassword" type="button">Ubah Password</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabAktivitas" type="button">Aktivitas</button></li>
                 </ul>
             </div>
 
@@ -87,14 +86,13 @@ $admin_data = $stmt->get_result()->fetch_assoc();
                             </div>
                         </div>
                         <div class="mt-3 text-end">
-                            <button type="submit" name="update_profile" class="btn btn-success">
+                            <button type="submit" name="update_profile" class="btn " style="background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); color: white;">
                                 <i class="bi bi-save me-1"></i> Simpan Perubahan
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Tab Password -->
                 <div class="tab-pane fade" id="tabPassword">
                     <form method="POST" action="proses/proses_admin.php">
                         <div class="mb-3">
@@ -112,20 +110,10 @@ $admin_data = $stmt->get_result()->fetch_assoc();
                             <label class="form-label fw-semibold">Konfirmasi Password Baru</label>
                             <input type="password" name="confirm_password" class="form-control" required>
                         </div>
-                        <button type="submit" name="change_password" class="btn btn-warning">
+                        <button type="submit" name="change_password" class="btn" style="background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); color: white;">
                             <i class="bi bi-shield-lock me-1"></i> Ubah Password
                         </button>
                     </form>
-                </div>
-
-                <!-- Tab Aktivitas -->
-                <div class="tab-pane fade" id="tabAktivitas">
-                    <p class="text-muted">Aktivitas terakhir akun ini:</p>
-                    <ul class="list-group small">
-                        <li class="list-group-item">Login ke sistem (2 jam lalu)</li>
-                        <li class="list-group-item">Perbarui profil (1 hari lalu)</li>
-                        <li class="list-group-item">Ubah password (3 hari lalu)</li>
-                    </ul>
                 </div>
             </div>
         </div>
