@@ -15,7 +15,7 @@ include '../../includes/boot.php';
 
 // Router halaman
 $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
-$allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket','kelola_kategori', 'kelola_user', 'kelola_galeri', 'laporan','laporan_stok', 'input_pembayaran', 'admin_profile'];
+$allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket','kelola_kategori', 'kelola_user', 'kelola_galeri', 'laporan','laporan_stok', 'input_pembayaran', 'admin_profile','../login/posko_register.php'];
 
 if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard';
@@ -70,6 +70,8 @@ ob_end_flush();
 
         <ul class="nav flex-column">
           <li><a href="?page=admin_profile" class="nav-link <?= ($page=='admin_profile')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-person-circle me-2"></i> Profile Admin</a></li>
+        <ul class="nav flex-column">
+          <li><a href="?page=../login/posko_register.php" class="nav-link <?= ($page=='../login/posko_register.php')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-person-circle me-2"></i> Register Admin Posko</a></li>
           <li><a href="../login/logout.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
         </ul>
       </nav>
