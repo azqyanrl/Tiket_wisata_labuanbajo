@@ -54,10 +54,10 @@ $lokasi = $_SESSION['lokasi'] ?? '';
     <div class="brand px-3">Posko Panel</div>
     <div class="px-3 small mb-2">Lokasi: <strong><?= htmlspecialchars($lokasi) ?></strong></div>
     <nav>
-      <a href="posko_dashboard.php">🏠 Dashboard</a>
-      <a href="verifikasi_tiket.php">🧾 Verifikasi (Cari Kode)</a>
-      <a href="posko_reports.php">📊 Laporan (Opsional)</a>
-      <a href="login/logout.php">⎋ Logout</a>
+      <a href="halaman/posko_dashboard.php">🏠 Dashboard</a>
+      <a href="halaman/verifikasi_tiket.php">🧾 Verifikasi (Cari Kode)</a>
+      <a href="halaman/posko_reports.php">📊 Laporan (Opsional)</a>
+      <a href="halaman/login/logout.php">⎋ Logout</a>
     </nav>
     <div style="position:absolute;bottom:1rem;padding-left:16px;font-size:0.85rem;color:rgba(255,255,255,0.8);">
       Login: <?= htmlspecialchars($username) ?>
@@ -73,9 +73,9 @@ $lokasi = $_SESSION['lokasi'] ?? '';
       </button>
       <div class="collapse navbar-collapse" id="poskoNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="posko_dashboard.php">Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="verifikasi_tiket.php">Verifikasi</a></li>
-          <li class="nav-item"><a class="nav-link" href="login/logout.php">Logout</a></li>
+          <li class="nav-item"><a class="nav-link" href="halaman/posko_dashboard.php">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="halaman/verifikasi_tiket.php">Verifikasi</a></li>
+          <li class="nav-item"><a class="nav-link" href="halaman/login/logout.php">Logout</a></li>
         </ul>
       </div>
     </div>

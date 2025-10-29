@@ -14,90 +14,114 @@ if (isset($_SESSION['username']) && $_SESSION['role'] == 'admin') {
 if (isset($_POST['login'])) {
     include "../../database/konek.php";
 
-    // Ambil data dari form
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Query untuk mendapatkan data user ADMIN saja
     $log = $konek->prepare("SELECT * FROM users WHERE (username = ? OR email = ?) AND role = 'admin'");
     $log->bind_param("ss", $username, $username);
     $log->execute();
     $result = $log->get_result();
-    $cek = $result->num_rows;
 
-    if ($cek > 0) {
-        // Ambil data user
+    if ($result->num_rows > 0) {
         $data = $result->fetch_assoc();
-
-        // Verifikasi password
         if (password_verify($password, $data['password'])) {
-            // Set session
             $_SESSION['user_id']  = $data['id'];
             $_SESSION['username'] = $data['username'];
             $_SESSION['role']     = $data['role'];
-
-            // Set notifikasi sukses
             $_SESSION['success_message'] = "Login berhasil! Selamat datang, Admin.";
-            
-            // Redirect ke dashboard admin
             header('Location: ../halaman/index.php');
-            exit; // Hentikan eksekusi skrip
-
+            exit;
         } else {
-            // Password salah
             $_SESSION['error_message'] = "Password Admin salah!";
         }
     } else {
-        // Username/email tidak ditemukan atau bukan admin
         $_SESSION['error_message'] = "Kredensial Admin tidak valid!";
     }
-    
-    // Jika login gagal, redirect kembali ke halaman login admin
-    // Gunakan $_SERVER['PHP_SELF'] untuk redirect ke file itu sendiri
+
     header('Location: ' . $_SERVER['PHP_SELF']);
-    exit; // Hentikan eksekusi skrip
+    exit;
 }
 
-// Include file yang diperlukan untuk tampilan
 include '../../includes/boot.php';
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Admin | Labuan Bajo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login Admin | Labuan Bajo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body style="background:url('../../assets/images/bg/padar4.jpg') no-repeat center center fixed; background-size:cover;">
+<body class="bg-light d-flex align-items-center" style="min-height: 100vh;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="card shadow">
+          <div class="card-body p-4">
+            <div class="text-center mb-4">
+              <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:70px;height:70px;">
+                <i class="bi bi-person-gear fs-2"></i>
+              </div>
+              <h4 class="mb-1">Login Admin</h4>
+              <p class="text-muted small mb-0">Masuk ke akun admin Anda</p>
+            </div>
 
-    <!-- Card Login -->
-    <div class="container" style="max-width:500px; margin-top:200px;">
-        <div class="card" style="background:rgba(255,255,255,0.2); border-radius:15px; padding:25px; box-shadow:0 8px 16px rgba(0,0,0,0.3);align-items:center;backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px);">
-            <h3 class="text-center mb-4">Login Admin</h3>
-
-            <!-- Tampilkan notifikasi di sini -->
+            <!-- Alert (notifikasi) -->
             <?php include '../../includes/alerts.php'; ?>
 
-            <!-- card -->
-            <div class="card" style="width: 23rem; backdrop-filter: blur(10px);-webkit-backdrop-filter: blur(10px);background:rgba(255,255,255,0.2);">
-                <div class="card-body">
-                    <!-- Form Login -->
-                    <form method="POST" action="">
-                        <div class="mb-3">
-                            <label class="form-label">Username atau Email</label>
-                            <input type="text" name="username" class="form-control" required autofocus>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-danger w-100" name="login">Login sebagai Admin</button>
-                    </form>
+            <form method="POST" action="">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username atau Email</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
+                  <input type="text" name="username" id="username" class="form-control" placeholder="Masukkan username atau email" required autofocus>
                 </div>
-            </div>
-        </div>
-    </div>
+              </div>
 
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                  <input type="password" name="password" id="password" class="form-control" placeholder="Masukkan password" required>
+                  <button class="input-group-text" type="button" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-danger" name="login">Login sebagai Admin</button>
+              </div>
+            </form>
+
+            <hr class="my-4">
+            <div class="text-center small">
+              <p class="text-muted mb-2">Login sebagai pengguna lain?</p>
+              <a href="../../users/login/login.php" class="text-decoration-none me-2">Login User</a> |
+              <a href="../../posko/login/login.php" class="text-decoration-none ms-2">Login Posko</a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('togglePassword').addEventListener('click', function() {
+      const passwordInput = document.getElementById('password');
+      const icon = this.querySelector('i');
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+  </script>
 </body>
 </html>
