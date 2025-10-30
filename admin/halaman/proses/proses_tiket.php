@@ -66,6 +66,19 @@ if ($editing) {
                                         </select>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Lokasi</label>
+                                        <select name="Lokasi" class="form-select" required>
+                                            <option value="">-- Pilih Lokasi --</option>
+                                            <?php while($kat = $query_kategori->fetch_assoc()): ?>
+                                                <option value="<?= $kat['id'] ?>" <?= ($tiket['kategori_id'] ?? '') == $kat['id'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($kat['lokasi']) ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mb-3">

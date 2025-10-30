@@ -1,85 +1,146 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
-    $_SESSION['error_message'] = 'Akses ditolak!';
-    header('Location: login/login.php'); 
+if (!isset($_GET['kode']) && !$_POST) {
+    $_SESSION['error_message'] = 'Silakan pilih tiket yang akan diverifikasi dari halaman Dashboard.';
+    header('Location: index.php?page=posko_dashboard');
     exit;
 }
 
-include '../../database/konek.php';
-include '../../includes/boot.php';
-$lokasi = $_SESSION['lokasi'] ?? '';
-
-if (!isset($_GET['kode']) || trim($_GET['kode']) === '') {
-    echo '<div class="alert alert-warning">Silakan pilih tiket yang akan diverifikasi dari halaman Dashboard.</div>';
-    echo '<a href="index.php?page=dashboard" class="btn btn-primary">Kembali ke Dashboard</a>';
-    exit;
-}
-
- $kode = $_GET['kode'];
-
-// ambil pemesanan & pastikan lokasi cocok
- $sql = "SELECT p.*, t.nama_paket, t.lokasi, u.nama_lengkap 
-        FROM pemesanan p 
-        JOIN tiket t ON p.tiket_id = t.id 
-        JOIN users u ON p.user_id = u.id
-        WHERE p.kode_booking = ? LIMIT 1";
- $stmt = $konek->prepare($sql);
- $stmt->bind_param('s', $kode);
- $stmt->execute();
- $res = $stmt->get_result();
-if ($res->num_rows === 0) {
-    echo "<div class='alert alert-danger'>Tiket tidak ditemukan.</div>";
-    echo '<a href="index.php?page=dashboard" class="btn btn-primary">Kembali ke Dashboard</a>';
-    exit;
-}
- $row = $res->fetch_assoc();
-if ($row['lokasi'] !== $lokasi) {
-    echo "<div class='alert alert-danger'>Tiket ini bukan untuk posko Anda.</div>";
-    echo '<a href="index.php?page=dashboard" class="btn btn-primary">Kembali ke Dashboard</a>';
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $metode = $_POST['metode_pembayaran'] ?? 'cash';
-    $status = $_POST['status'] ?? 'dibayar';
+// Jika request AJAX (POST tanpa kode di GET)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_GET['kode'])) {
+    header('Content-Type: application/json');
     
-    // Update data pemesanan
-    $up = $konek->prepare("UPDATE pemesanan SET metode_pembayaran = ?, status = ? WHERE kode_booking = ?");
-    $up->bind_param('sss', $metode, $status, $kode);
-    
-    if ($up->execute()) {
-        // Catat history verifikasi
-        $admin_id = $_SESSION['user_id'] ?? 0;
+    try {
+        $kode = $_POST['kode_booking'];
+        $metode = $_POST['metode_pembayaran'] ?? 'cash';
+        $status = $_POST['status'] ?? 'dibayar';
         $catatan = $_POST['catatan'] ?? '';
         
-        $history = $konek->prepare("INSERT INTO verifikasi_history (pemesanan_id, admin_id, metode_pembayaran, status, catatan, created_at) 
-                                  VALUES (?, ?, ?, ?, ?, NOW())");
-        $history->bind_param('iisss', $row['id'], $admin_id, $metode, $status, $catatan);
-        $history->execute();
+        // Validasi status
+        $allowed_status = ['pending', 'dibayar', 'selesai', 'batal'];
+        if (!in_array($status, $allowed_status)) {
+            echo json_encode(['success' => false, 'message' => 'Status tidak valid']);
+            exit;
+        }
         
-        $_SESSION['success_message'] = 'Tiket berhasil diverifikasi!';
-        header('Location: index.php?page=dashboard');
+        // Ambil data pemesanan
+        $sql = "SELECT p.*, t.lokasi FROM pemesanan p JOIN tiket t ON p.tiket_id = t.id WHERE p.kode_booking = ?";
+        $stmt = $konek->prepare($sql);
+        $stmt->bind_param('s', $kode);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        if ($res->num_rows === 0) {
+            echo json_encode(['success' => false, 'message' => 'Tiket tidak ditemukan']);
+            exit;
+        }
+        
+        $row = $res->fetch_assoc();
+        
+        if ($row['lokasi'] !== $lokasi) {
+            echo json_encode(['success' => false, 'message' => 'Tiket ini bukan untuk posko Anda']);
+            exit;
+        }
+        
+        // Update data pemesanan
+        $up = $konek->prepare("UPDATE pemesanan SET metode_pembayaran = ?, status = ? WHERE kode_booking = ?");
+        $up->bind_param('sss', $metode, $status, $kode);
+        
+        if ($up->execute()) {
+            // Catat history verifikasi
+            $admin_id = $_SESSION['user_id'] ?? 0;
+            
+            $history = $konek->prepare("INSERT INTO verifikasi_history (pemesanan_id, admin_id, metode_pembayaran, status, catatan, created_at) 
+                                      VALUES (?, ?, ?, ?, ?, NOW())");
+            $history->bind_param('iisss', $row['id'], $admin_id, $metode, $status, $catatan);
+            $history->execute();
+            
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Gagal memperbarui data']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit;
+}
+
+// Kode verifikasi biasa (untuk GET request)
+if (isset($_GET['kode'])) {
+    $kode = $_GET['kode'];
+    
+    try {
+        // Ambil pemesanan & pastikan lokasi cocok
+        $sql = "SELECT p.*, t.nama_paket, t.lokasi, u.nama_lengkap 
+                FROM pemesanan p 
+                JOIN tiket t ON p.tiket_id = t.id 
+                JOIN users u ON p.user_id = u.id
+                WHERE p.kode_booking = ? LIMIT 1";
+        $stmt = $konek->prepare($sql);
+        $stmt->bind_param('s', $kode);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        if ($res->num_rows === 0) {
+            $_SESSION['error_message'] = 'Tiket tidak ditemukan.';
+            header('Location: index.php?page=posko_dashboard');
+            exit;
+        }
+        
+        $row = $res->fetch_assoc();
+        
+        if ($row['lokasi'] !== $lokasi) {
+            $_SESSION['error_message'] = 'Tiket ini bukan untuk posko Anda.';
+            header('Location: index.php?page=posko_dashboard');
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $metode = $_POST['metode_pembayaran'] ?? 'cash';
+            $status = $_POST['status'] ?? 'dibayar';
+            $catatan = $_POST['catatan'] ?? '';
+            
+            // Validasi status
+            $allowed_status = ['pending', 'dibayar', 'selesai', 'batal'];
+            if (!in_array($status, $allowed_status)) {
+                $_SESSION['error_message'] = 'Status tidak valid';
+                header('Location: index.php?page=verifikasi_tiket&kode=' . urlencode($kode));
+                exit;
+            }
+            
+            // Update data pemesanan
+            $up = $konek->prepare("UPDATE pemesanan SET metode_pembayaran = ?, status = ? WHERE kode_booking = ?");
+            $up->bind_param('sss', $metode, $status, $kode);
+            
+            if ($up->execute()) {
+                // Catat history verifikasi
+                $admin_id = $_SESSION['user_id'] ?? 0;
+                
+                $history = $konek->prepare("INSERT INTO verifikasi_history (pemesanan_id, admin_id, metode_pembayaran, status, catatan, created_at) 
+                                          VALUES (?, ?, ?, ?, ?, NOW())");
+                $history->bind_param('iisss', $row['id'], $admin_id, $metode, $status, $catatan);
+                $history->execute();
+                
+                $_SESSION['success_message'] = 'Tiket berhasil diverifikasi!';
+                header('Location: index.php?page=posko_dashboard');
+                exit;
+            } else {
+                $_SESSION['error_message'] = 'Gagal memperbarui data: ' . $konek->error;
+                header('Location: index.php?page=verifikasi_tiket&kode=' . urlencode($kode));
+                exit;
+            }
+        }
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = 'Terjadi kesalahan: ' . $e->getMessage();
+        header('Location: index.php?page=posko_dashboard');
         exit;
-    } else {
-        $error = "Gagal memperbarui: " . $konek->error;
     }
 }
 ?>
 
+
 <div class="page-title">
     <h1>Verifikasi Tiket</h1>
 </div>
-
-<?php if(!empty($error)): ?>
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <?= htmlspecialchars($error) ?>
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-</div>
-<?php endif; ?>
 
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white py-3">
@@ -137,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             
             <div class="d-flex justify-content-between">
-                <a href="index.php?page=dashboard" class="btn btn-secondary">
+                <a href="index.php?page=posko_dashboard" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Kembali
                 </a>
                 <button type="submit" class="btn btn-primary">

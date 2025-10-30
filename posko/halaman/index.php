@@ -1,126 +1,113 @@
 <?php
-session_start();
+ob_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-if (!isset($_SESSION['username'])) {
+// Cek login admin
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
+    $_SESSION['error_message'] = 'Akses ditolak!';
     header('Location: login/login.php');
     exit;
 }
-
-if ($_SESSION['role'] !== 'posko') {
-    $_SESSION['error_message'] = 'Akses ditolak! Harus login sebagai admin posko.';
-    header('Location: login/login.php');
-    exit;
-}
-
-$page = $_GET['page'] ?? 'dashboard';
-$allowed_pages = ['dashboard', 'verifikasi_tiket', 'cari_tiket', 'laporan_posko'];
-if (!in_array($page, $allowed_pages)) $page = 'dashboard';
 
 include '../../database/konek.php';
 include '../../includes/boot.php';
-$lokasi = $_SESSION['lokasi'] ?? null;
+
+// Pastikan lokasi tersedia
+ $lokasi = $_SESSION['lokasi'] ?? '';
+
+// Router halaman
+ $page = isset($_GET['page']) ? $_GET['page'] : 'posko_dashboard';
+ $allowed_pages = ['posko_dashboard', 'laporan_posko', 'verifikasi_tiket', 'cari_tiket'];
+
+if (!in_array($page, $allowed_pages)) {
+    $page = 'posko_dashboard';
+}
+ $content_file = __DIR__ . '/' . $page . '.php';
+
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sistem Posko - <?= htmlspecialchars($lokasi) ?></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Labuan Bajo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .sidebar {
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    .main-content {
+      margin-top: 56px;
+    }
+    .no-print {
+      @media print {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
-<body>
-<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="index.php">Sistem Posko</a>
-  <button class="navbar-toggler d-md-none collapsed" type="button" data-bs-toggle="collapse" 
-          data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" 
-          aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-      <a class="nav-link px-3" href="login/logout.php">Logout</a>
+<body class="bg-light">
+
+  <!-- NAVBAR -->
+  <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#">Labuan Bajo Admin Posko</a>
+    <div class="navbar-nav ms-auto">
+      <div class="nav-item text-nowrap">
+        <span class="nav-link px-3 text-white">Halo, <?= htmlspecialchars($_SESSION['username']); ?></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTAINER -->
+  <div class="container-fluid">
+    <div class="row">
+      
+      <!-- SIDEBAR -->
+      <nav class="col-md-3 col-lg-2 d-md-block bg-dark text-white sidebar position-fixed p-3">
+        <ul class="nav nav-pills flex-column mb-auto">
+          <li class="nav-item">
+            <a href="?page=posko_dashboard" class="nav-link <?= ($page=='posko_dashboard')?'active text-dark bg-light':'text-white'; ?>">
+              <i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+          </li>
+          <li><a href="?page=verifikasi_tiket" class="nav-link <?= ($page=='verifikasi_tiket')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-list-check me-2"></i> Verifikasi Tiket</a></li>
+          <li><a href="?page=cari_tiket" class="nav-link <?= ($page=='cari_tiket')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-search me-2"></i> Cari Tiket</a></li>
+          <li><a href="?page=laporan_posko" class="nav-link <?= ($page=='laporan_posko')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-bar-chart me-2"></i> Laporan</a></li>
+          <li><a href="login/logout.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+        </ul>
+      </nav>
+
+      <!-- MAIN CONTENT -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 offset-md-3 offset-lg-2 main-content py-4">
+        <!-- Notifikasi -->
+        <?php if (isset($_SESSION['success_message'])): ?>
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['success_message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['error_message'])): ?>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['error_message']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+        
+        <?php
+        if (file_exists($content_file)) {
+            include $content_file;
+        } else {
+            echo '<div class="alert alert-danger">Halaman tidak ditemukan.</div>';
+        }
+        ?>
+      </main>
     </div>
   </div>
-</header>
-
-<div class="container-fluid">
-  <div class="row">
-    <!-- Sidebar -->
-    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-      <div class="position-sticky pt-3">
-        <div class="text-center mb-3">
-          <span class="fw-bold text-primary"><?= htmlspecialchars($lokasi) ?></span>
-        </div>
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a class="nav-link <?= $page == 'posko_dashboard' ? 'active text-primary fw-bold' : '' ?>" 
-               href="index.php?page=dashboard">
-              <i class="bi bi-speedometer2 me-2"></i>Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <?= $page == 'verifikasi_tiket' ? 'active text-primary fw-bold' : '' ?>" 
-               href="index.php?page=verifikasi_tiket">
-              <i class="bi bi-ticket-perforated me-2"></i>Verifikasi Tiket
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <?= $page == 'cari_tiket' ? 'active text-primary fw-bold' : '' ?>" 
-               href="index.php?page=cari_tiket">
-              <i class="bi bi-search me-2"></i>Cari Tiket
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link <?= $page == 'laporan_posko' ? 'active text-primary fw-bold' : '' ?>" 
-               href="index.php?page=laporan_posko">
-              <i class="bi bi-graph-up me-2"></i>Laporan
-            </a>
-          </li>
-        </ul>
-        <hr>
-        <ul class="nav flex-column mb-2">
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="bi bi-person-circle me-2"></i>Profil
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="login/logout.php">
-              <i class="bi bi-box-arrow-right me-2"></i>Logout
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-
-    <!-- Main content -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-      <?php if (isset($_SESSION['success_message'])): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-          <?= htmlspecialchars($_SESSION['success_message']) ?>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php unset($_SESSION['success_message']); ?>
-      <?php endif; ?>
-
-      <?php if (isset($_SESSION['error_message'])): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          <?= htmlspecialchars($_SESSION['error_message']) ?>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php unset($_SESSION['error_message']); ?>
-      <?php endif; ?>
-
-      <?php
-      $page_file = 'pages/' . $page . '.php';
-      if (file_exists($page_file)) {
-          include $page_file;
-      } else {
-          echo '<div class="alert alert-danger">Halaman tidak ditemukan.</div>';
-      }
-      ?>
-    </main>
-  </div>
-</div>
-
 </body>
 </html>

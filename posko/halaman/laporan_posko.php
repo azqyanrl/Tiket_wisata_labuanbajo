@@ -4,6 +4,13 @@
  $date_from = $_GET['date_from'] ?? date('Y-m-d');
  $date_to = $_GET['date_to'] ?? date('Y-m-d');
 
+// Validasi input tanggal
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
+    $_SESSION['error_message'] = 'Format tanggal tidak valid';
+    header('Location: index.php?page=laporan_posko');
+    exit;
+}
+
 // Menentukan query berdasarkan filter
 switch($filter_type) {
     case 'today':
@@ -19,7 +26,7 @@ switch($filter_type) {
         $date_condition = "MONTH(p.created_at) = MONTH(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())";
         break;
     case 'custom':
-        $date_condition = "DATE(p.created_at) BETWEEN '$date_from' AND '$date_to'";
+        $date_condition = "DATE(p.created_at) BETWEEN ? AND ?";
         break;
     default:
         $date_condition = "DATE(p.created_at) = CURDATE()";
@@ -32,29 +39,44 @@ switch($filter_type) {
         JOIN users u ON p.user_id = u.id
         WHERE t.lokasi = ? AND $date_condition
         ORDER BY p.created_at DESC";
- $stmt = $konek->prepare($sql);
- $stmt->bind_param('s', $lokasi);
- $stmt->execute();
- $res = $stmt->get_result();
 
-// Query untuk statistik
- $total_pendapatan = 0;
- $total_tiket = 0;
- $status_counts = [
-    'pending' => 0,
-    'dibayar' => 0,
-    'selesai' => 0,
-    'batal' => 0
-];
+try {
+    $stmt = $konek->prepare($sql);
+    
+    if ($filter_type === 'custom') {
+        $stmt->bind_param('sss', $lokasi, $date_from, $date_to);
+    } else {
+        $stmt->bind_param('s', $lokasi);
+    }
+    
+    $stmt->execute();
+    $res = $stmt->get_result();
+    
+    // Query untuk statistik
+    $total_pendapatan = 0;
+    $total_tiket = 0;
+    $status_counts = [
+        'pending' => 0,
+        'dibayar' => 0,
+        'selesai' => 0,
+        'batal' => 0
+    ];
 
-while ($row = $res->fetch_assoc()) {
-    $total_pendapatan += $row['total_harga'];
-    $total_tiket += $row['jumlah_tiket'];
-    $status_counts[$row['status']]++;
+    while ($row = $res->fetch_assoc()) {
+        $total_pendapatan += $row['total_harga'];
+        $total_tiket += $row['jumlah_tiket'];
+        if (isset($status_counts[$row['status']])) {
+            $status_counts[$row['status']]++;
+        }
+    }
+
+    // Reset result pointer untuk menampilkan data lagi
+    $res->data_seek(0);
+} catch (Exception $e) {
+    $_SESSION['error_message'] = 'Terjadi kesalahan database: ' . $e->getMessage();
+    header('Location: index.php?page=laporan_posko');
+    exit;
 }
-
-// Reset result pointer untuk menampilkan data lagi
- $res->data_seek(0);
 ?>
 
 <div class="page-title">

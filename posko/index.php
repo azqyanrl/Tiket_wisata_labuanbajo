@@ -1,93 +1,83 @@
 <?php
 session_start();
 
-include_once __DIR__ . '/../database/konek.php';
-
-// jika belum login / bukan posko -> redirect ke posko login
-if (!isset($_SESSION['username']) || ($_SESSION['role'] ?? '') !== 'posko') {
-    header('Location: halaman/login/login.php');
+// Jika user sudah login, redirect ke dashboard
+if (isset($_SESSION['username']) && $_SESSION['role'] === 'posko') {
+    header('Location: halman/index.php');
     exit;
 }
-
-// baca username & lokasi dari session
-$username = $_SESSION['username'];
-$lokasi = $_SESSION['lokasi'] ?? '';
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="utf-8">
-  <title>Posko — <?= htmlspecialchars($lokasi ?: 'Dashboard') ?></title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="../includes/bootstrap.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Posko - Labuan Bajo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <style>
-    /* Simple sidebar layout */
-    body { min-height:100vh; }
-    .sidebar {
-      width: 240px;
-      position: fixed;
-      top: 0; left: 0;
-      height: 100%;
-      background: #0d6efd; /* primary */
-      color: white;
-      padding-top: 1rem;
-    }
-    .sidebar a { color: rgba(255,255,255,0.95); text-decoration: none; display:block; padding:10px 16px; }
-    .sidebar a:hover { background: rgba(255,255,255,0.08); color: #fff; }
-    .sidebar .brand { font-weight:700; font-size:1.1rem; padding:0 16px 12px 16px; }
-    .content {
-      margin-left: 240px;
-      padding: 1.25rem;
-    }
-    @media (max-width: 767px) {
-      .sidebar { position:relative; width:100%; height:auto; }
-      .content { margin-left:0; padding:0.75rem; }
-    }
-    .topbar {
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:1rem;
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%, #5900ffff 100%);
     }
   </style>
 </head>
 <body>
-  <div class="sidebar d-none d-md-block">
-    <div class="brand px-3">Posko Panel</div>
-    <div class="px-3 small mb-2">Lokasi: <strong><?= htmlspecialchars($lokasi) ?></strong></div>
-    <nav>
-      <a href="halaman/posko_dashboard.php">🏠 Dashboard</a>
-      <a href="halaman/verifikasi_tiket.php">🧾 Verifikasi (Cari Kode)</a>
-      <a href="halaman/posko_reports.php">📊 Laporan (Opsional)</a>
-      <a href="halaman/login/logout.php">⎋ Logout</a>
-    </nav>
-    <div style="position:absolute;bottom:1rem;padding-left:16px;font-size:0.85rem;color:rgba(255,255,255,0.8);">
-      Login: <?= htmlspecialchars($username) ?>
+  <div class="container py-5">
+    <div class="card shadow-lg border-0 mx-auto" style="max-width: 420px;">
+      <div class="card-header text-white text-center" style="background: #65b3fc8f;">
+        <div class="d-flex flex-column align-items-center">
+          <div class="bg-white rounded-circle d-flex align-items-center justify-content-center mb-2" style="width:70px; height:70px;">
+            <i class="bi bi-building text-primary fs-2"></i>
+          </div>
+          <h4 class="fw-bold mb-0">Sistem Posko</h4>
+          <small>Labuan Bajo</small>
+        </div>
+      </div>
+
+      <div class="card-body text-center">
+        <p class="text-muted mb-4">Silakan pilih login sesuai Posko Anda</p>
+
+        <div class="d-grid gap-3 mb-4">
+          <a href="halaman/login/login.php" class="btn btn-primary">
+            <i class="bi bi-person-badge me-2"></i>Login Posko
+          </a>
+        </div>
+
+        <div class="row text-center mb-4">
+          <div class="col">
+            <div class="bg-light rounded-circle p-3 mx-auto mb-2">
+              <i class="bi bi-ticket-perforated text-primary fs-5"></i>
+            </div>
+            <small>Verifikasi</small>
+          </div>
+          <div class="col">
+            <div class="bg-light rounded-circle p-3 mx-auto mb-2">
+              <i class="bi bi-search text-primary fs-5"></i>
+            </div>
+            <small>Cari Tiket</small>
+          </div>
+          <div class="col">
+            <div class="bg-light rounded-circle p-3 mx-auto mb-2">
+              <i class="bi bi-graph-up text-primary fs-5"></i>
+            </div>
+            <small>Laporan</small>
+          </div>
+        </div>
+
+        <p class="text-muted small mb-1">Butuh bantuan? Hubungi admin pusat</p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="#" class="text-muted small text-decoration-none">FAQ</a>
+          <a href="#" class="text-muted small text-decoration-none">Support</a>
+          <a href="#" class="text-muted small text-decoration-none">Contact</a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- mobile topbar -->
-  <nav class="navbar navbar-expand-md navbar-light bg-light d-md-none">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Posko — <?= htmlspecialchars($lokasi) ?></a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#poskoNav" aria-controls="poskoNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="poskoNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="halaman/posko_dashboard.php">Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="halaman/verifikasi_tiket.php">Verifikasi</a></li>
-          <li class="nav-item"><a class="nav-link" href="halaman/login/logout.php">Logout</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <div class="content">
-    <div class="topbar">
-      <div>
-        <button class="btn btn-sm btn-outline-secondary d-md-none" onclick="window.location='posko_dashboard.php'">Dashboard</button>
-      </div>
-      <div>
-        <small>Hi, <strong><?= htmlspecialchars($username) ?></strong></small>
-      </div>
-    </div>
-<!-- HALAMAN CONTENT DIMULAI DI SINI -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
