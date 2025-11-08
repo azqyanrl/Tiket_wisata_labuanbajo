@@ -4,5 +4,5 @@ session_destroy();
 ?>
 
 <script>
-    document.location.href='login.php';
+    document.location.href='../index.php';
 </script>
