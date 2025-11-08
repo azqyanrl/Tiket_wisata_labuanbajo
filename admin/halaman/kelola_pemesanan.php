@@ -139,9 +139,14 @@ include '../../includes/boot.php';
                     <td>
                         <?php
                         if ($data['status'] === 'pending') {
-                            echo "<span class='text-muted'>Belum diverifikasi</span>";
+                            echo "<span class='text-muted'>-</span>";
                         } elseif (!empty($data['admin_nama'])) {
-                            echo htmlspecialchars($data['admin_nama']);
+                            $get_posko = $konek->query("SELECT lokasi FROM users WHERE id = " . (int)$data['admin_id']);
+                            if ($get_posko && $row = $get_posko->fetch_assoc()) {
+                                echo htmlspecialchars($row['lokasi']) . " - " . htmlspecialchars($data['admin_nama']);
+                            } else {
+                                echo htmlspecialchars($data['admin_nama']);
+                            }
                         } else {
                             echo "<span class='text-primary'>Admin Pusat</span>";
                         }

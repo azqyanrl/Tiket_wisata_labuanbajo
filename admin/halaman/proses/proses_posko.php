@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: ../../login/login.php');
     exit();
@@ -18,12 +20,12 @@ if (isset($_POST['add_posko'])) {
     $cek->bind_param("s", $email);
     $cek->execute();
     if ($cek->get_result()->num_rows > 0) {
-        header("location:../manage_posko.php?pesan=email_ada");
+        header("location:../posko_register.php?pesan=email_ada");
     } else {
         $stmt = $konek->prepare("INSERT INTO users (username, email, password, nama_lengkap, role, lokasi) VALUES (?, ?, ?, ?, 'posko', ?)");
         $stmt->bind_param("sssss", $username, $email, $password, $nama, $lokasi);
         $stmt->execute();
-        header("location:../manage_posko.php?pesan=berhasil_tambah");
+        header("location:../posko_register.php?pesan=berhasil_tambah");
     }
 }
 
@@ -53,7 +55,7 @@ if (isset($_POST['edit_posko'])) {
     $stmt = $konek->prepare($sql);
     $stmt->bind_param($params, ...$values);
     $stmt->execute();
-    header("location:../manage_posko.php?pesan=berhasil_edit");
+    header("location:../posko_register.php?pesan=berhasil_edit");
 }
 
 // Hapus Admin Posko
@@ -62,6 +64,6 @@ if (isset($_GET['delete'])) {
     $stmt = $konek->prepare("DELETE FROM users WHERE id = ? AND role = 'posko'");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    header("location:../manage_posko.php?pesan=berhasil_hapus");
+    header("location:../posko_register.php?pesan=berhasil_hapus");
 }
 ?>

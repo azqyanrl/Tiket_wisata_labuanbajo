@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
  if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') { header('location: ../../login/login.php'); exit; }
 include '../../../database/konek.php';
 include '../../../includes/boot.php';

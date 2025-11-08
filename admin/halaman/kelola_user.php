@@ -19,12 +19,12 @@ if (isset($_SESSION['success_message'])) {
 } 
 
 // Ambil ID admin yang sedang login
-$query_admin = $konek->prepare("SELECT id FROM users WHERE username = ?");
-$query_admin->bind_param("s", $_SESSION['username']);
-$query_admin->execute();
-$result_admin = $query_admin->get_result();
-$current_admin = $result_admin->fetch_assoc();
-$current_admin_id = $current_admin['id'];
+ $query_admin = $konek->prepare("SELECT id FROM users WHERE username = ?");
+ $query_admin->bind_param("s", $_SESSION['username']);
+ $query_admin->execute();
+ $result_admin = $query_admin->get_result();
+ $current_admin = $result_admin->fetch_assoc();
+ $current_admin_id = $current_admin['id'];
 
 // Hitung total pengguna
  $query_total_admin = $konek->prepare("SELECT COUNT(*) as total FROM users WHERE role = 'admin'");
@@ -36,15 +36,14 @@ $current_admin_id = $current_admin['id'];
  $query_total_posko->execute();
  $result_total_posko = $query_total_posko->get_result();
  $totalposko = $result_total_posko->fetch_assoc()['total'];
- 
+
  $query_total_user = $konek->prepare("SELECT COUNT(*) as total FROM users WHERE role = 'user'");
  $query_total_user->execute();
  $result_total_user = $query_total_user->get_result();
  $totalUser = $result_total_user->fetch_assoc()['total'];
 
-
 // Proses pencarian
-$search = isset($_GET['search']) ? $_GET['search'] : '';
+ $search = isset($_GET['search']) ? $_GET['search'] : '';
 if (!empty($search)) {
     $query_users = $konek->prepare("SELECT * FROM users WHERE username LIKE ? OR nama_lengkap LIKE ? OR email LIKE ? ORDER BY created_at DESC");
     $search_param = "%$search%";
@@ -57,111 +56,216 @@ if (!empty($search)) {
 }
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Kelola Pengguna</h1>
-</div>
-
-<!-- Form Pencarian -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <!-- Tambahkan hidden input agar tetap di halaman kelola_user -->
-            <input type="hidden" name="page" value="kelola_user">
-
-            <div class="col-md-8">
-                <label for="search" class="form-label">Cari Pengguna</label>
-                <input type="text" class="form-control" id="search" name="search"
-                       placeholder="Username, nama lengkap, atau email..."
-                       value="<?php echo htmlspecialchars($search); ?>"
-                       onkeypress="if(event.key === 'Enter'){ this.form.submit(); }">
-            </div>
-            <div class="col-md-4 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">Cari</button>
-                <a href="?page=kelola_user" class="btn btn-secondary">Reset</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Statistik Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-white bg-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="mb-0"><?php echo $totalAdmin; ?></h4>
-                        <p class="mb-0">Total Admin</p>
-                    </div>
-                    <i class="bi bi-person-badge-fill fs-1 opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-white bg-primary shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="mb-0"><?php echo $totalposko; ?></h4>
-                        <p class="mb-0">Total Admin Posko</p>
-                    </div>
-                    <i class="bi bi-person-badge-fill fs-1 opacity-75"></i>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="fw-bold text-primary">
+                    <i class="bi bi-people-fill me-2"></i>Kelola Pengguna
+                </h2>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-xl-3 col-md-6">
-        <div class="card text-white bg-success shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4 class="mb-0"><?php echo $totalUser; ?></h4>
-                        <p class="mb-0">Total Pengguna</p>
+    <!-- Form Pencarian -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="bi bi-search me-2"></i>Pencarian Pengguna</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <input type="hidden" name="page" value="kelola_user">
+                
+                <div class="col-md-8">
+                    <label for="search" class="form-label fw-semibold">Cari Pengguna</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="search" name="search"
+                               placeholder="Username, nama lengkap, atau email..."
+                               value="<?= htmlspecialchars($search) ?>">
                     </div>
-                    <i class="bi bi-people-fill fs-1 opacity-75"></i>
                 </div>
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Cari
+                    </button>
+                    <a href="?page=kelola_user" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistik Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-4 col-md-6">
+            <div class="card bg-danger text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1"><?= $totalAdmin ?></h3>
+                            <p class="mb-0">Total Admin</p>
+                        </div>
+                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="bi bi-person-badge-fill fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="card bg-primary text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1"><?= $totalposko ?></h3>
+                            <p class="mb-0">Total Admin Posko</p>
+                        </div>
+                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="bi bi-geo-alt-fill fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-4 col-md-6">
+            <div class="card bg-success text-white shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1"><?= $totalUser ?></h3>
+                            <p class="mb-0">Total Pengguna</p>
+                        </div>
+                        <div class="rounded-circle bg-white bg-opacity-25 p-3">
+                            <i class="bi bi-people-fill fs-2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabel Pengguna -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-table me-2"></i>Daftar Pengguna
+                </h5>
+                <span class="badge bg-light text-dark">
+                    <?= $result_users->num_rows ?> Data
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%">No</th>
+                            <th width="20%">Username</th>
+                            <th width="20%">Nama Lengkap</th>
+                            <th width="25%">Email</th>
+                            <th width="15%">Role</th>
+                            <th width="15%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $no = 1;
+                        if ($result_users->num_rows > 0) {
+                            while($data = $result_users->fetch_assoc()) {
+                                $roleClass = $data['role'] == 'admin' ? 'danger' : ($data['role'] == 'posko' ? 'primary' : 'success');
+                                $roleIcon = $data['role'] == 'admin' ? 'person-badge' : ($data['role'] == 'posko' ? 'geo-alt' : 'person');
+                                
+                                echo "<tr>";
+                                echo "<td class='text-center'><span class='badge bg-secondary'>$no</span></td>";
+                                echo "<td>
+                                    <div class='d-flex align-items-center'>
+                                        <div class='rounded-circle bg-$roleClass text-white d-flex align-items-center justify-content-center me-2' 
+                                             style='width:35px;height:35px;font-size:14px;'>
+                                            " . strtoupper(substr($data['username'], 0, 1)) . "
+                                        </div>
+                                        <div>
+                                            <div class='fw-semibold'>" . htmlspecialchars($data['username']) . "</div>
+                                            <small class='text-muted'>ID: " . $data['id'] . "</small>
+                                        </div>
+                                    </div>
+                                </td>";
+                                echo "<td>" . htmlspecialchars($data['nama_lengkap']) . "</td>";
+                                echo "<td>
+                                    <div class='d-flex align-items-center'>
+                                        <i class='bi bi-envelope-fill text-muted me-2'></i>
+                                        " . htmlspecialchars($data['email']) . "
+                                    </div>
+                                </td>";
+                                echo "<td class='text-center'>
+                                    <span class='badge bg-$roleClass text-white px-3 py-2'>
+                                        <i class='bi bi-$roleIcon me-1'></i>
+                                        " . ucfirst(htmlspecialchars($data['role'])) . "
+                                    </span>
+                                </td>";
+                                echo "<td class='text-center'>";
+                                if($data['id'] != $current_admin_id) {
+                                    echo "<div class='btn-group' role='group'>";
+                                    echo "<a href='proses/hapus_pengguna.php?id=" . $data['id'] . "' 
+                                           class='btn btn-sm btn-outline-danger' 
+                                           onclick='return confirm(\"Yakin ingin menghapus user ini?\")'
+                                           title='Hapus'>
+                                        <i class='bi bi-trash'></i>
+                                    </a>";
+                                    echo "<a href='proses/cetak_user.php?id=" . $data['id'] . "' 
+                                           class='btn btn-sm btn-outline-info' 
+                                           target='_blank'
+                                           title='Cetak'>
+                                        <i class='bi bi-printer'></i>
+                                    </a>";
+                                    echo "</div>";
+                                } else {
+                                    echo "<span class='badge bg-secondary'>
+                                        <i class='bi bi-person-check me-1'></i>Anda
+                                    </span>";
+                                }
+                                echo "</td>";
+                                echo "</tr>";
+                                $no++;
+                            }
+                        } else {
+                            echo "<tr>";
+                            echo "<td colspan='6' class='text-center py-4'>
+                                <div class='text-muted'>
+                                    <i class='bi bi-inbox fs-1 d-block mb-2'></i>
+                                    Tidak ada data yang tersedia
+                                </div>
+                            </td>";
+                            echo "</tr>";
+                        }
+                        ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<div class="table-responsive">
-    <table class="table table-striped table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Username</th>
-                <th>Nama Lengkap</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            if ($result_users->num_rows > 0) {
-                while($data = $result_users->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . htmlspecialchars($data['username']) . "</td>";
-                    echo "<td>" . htmlspecialchars($data['nama_lengkap']) . "</td>";
-                    echo "<td>" . htmlspecialchars($data['email']) . "</td>";
-                    echo "<td><span class='badge bg-" . (($data['role']=='admin') ? 'danger' : 'primary') . "'>" . ucfirst(htmlspecialchars($data['role'])) . "</span></td>";
-                    echo "<td>";
-                    if($data['id'] != $current_admin_id) {
-                        echo "<a href='proses/hapus_pengguna.php?id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin hapus user ini?\")'>Hapus</a> ";
-                        echo "<a href='proses/cetak_user.php?id=" . htmlspecialchars($data['id']) . "' class='btn btn-sm btn-info' target='_blank'>Cetak</a>";
-                    } else {
-                        echo "<span class='text-muted'>Anda</span>";
-                    }
-                    echo "</td>";
-                    echo "</tr>";
-                }
-            } else {
-                echo "<tr><td colspan='5' class='text-center'>Tidak ada data.</td></tr>";
-            }
-            ?>
-        </tbody>
-    </table>
-</div>
+<script>
+// Auto-submit form on Enter key
+document.getElementById('search').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        this.form.submit();
+    }
+});
+</script>

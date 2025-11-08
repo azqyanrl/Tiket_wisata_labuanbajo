@@ -1,4 +1,13 @@
-<?php include $_SERVER['DOCUMENT_ROOT'] . '/TIKET_WISATA_LABUAN_BAJO/users/halaman/session_cek.php'; ?> 
+<?php 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'user') {
+    header('Location: ../users/login/login.php');
+    exit();
+}
+include $_SERVER['DOCUMENT_ROOT'] . '/TIKET_WISATA_LABUAN_BAJO/users/halaman/session_cek.php'; 
+?> 
     <footer class="text-white" style="background-color: #212529; padding: 60px 0 30px; margin-top:20px;">
         <div class="container">
             <div class="row">

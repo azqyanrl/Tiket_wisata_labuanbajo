@@ -178,7 +178,7 @@ include '../../includes/alerts.php';
                         <td>Rp <?= number_format($detail['total_pendapatan'], 0, ',', '.') ?></td>
                         <td><?= $admin_data ? htmlspecialchars($admin_data['nama_lengkap']) : '-' ?></td>
                         <td>
-                            <a href="?page=detail_posko&posko=<?= urlencode($detail['lokasi']) ?>&awal=<?= $tanggal_awal ?>&akhir=<?= $tanggal_akhir ?>" class="btn btn-sm btn-info">
+                            <a href="?page=detail_posko=<?= urlencode($detail['lokasi']) ?>&awal=<?= $tanggal_awal ?>&akhir=<?= $tanggal_akhir ?>" class="btn btn-sm btn-info">
                                 <i class="bi bi-eye"></i> Detail
                             </a>
                         </td>

@@ -94,26 +94,53 @@ include '../../includes/boot.php';
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Laporan Transaksi - Admin</title>
-    <style>
-        @media print {
-            .no-print, .sidebar, header, nav, .navbar, .offcanvas, .footer { 
-                display: none !important; 
-            }
-            body { background: white; font-size: 14px; margin: 20px; }
-            .card { border: none !important; box-shadow: none !important; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #000 !important; padding: 8px; }
-            thead th { 
-                background-color: #343a40 !important; 
-                color: white !important; 
-                -webkit-print-color-adjust: exact !important; 
-            }
-            main, .content, .container {
-                width: 100% !important;
-                margin-left: 0 !important;
-            }
-        }
-    </style>
+<style>
+@media print {
+    /* Sembunyikan semua elemen navigasi, sidebar, header, footer */
+    header, nav, .navbar, .sidebar, .offcanvas, .footer, .no-print {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Pastikan area konten utama memenuhi halaman */
+    main, .content, .container, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        background: white !important;
+    }
+
+    /* Hapus shadow & border pada kartu */
+    .card, .card-body {
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* Format tabel */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #000 !important;
+        padding: 8px !important;
+    }
+
+    /* Warnai header tabel saat print */
+    thead th {
+        background-color: #212529 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    /* Hindari halaman kosong di print */
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
+</style>
+
 
 </head>
 <body class="bg-light">

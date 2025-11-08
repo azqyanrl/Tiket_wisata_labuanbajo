@@ -79,8 +79,8 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
                     <li>
                         <hr class="w-100">
                     </li>
-                    <li class="nav-item w-100">
-                        <a href="#" class="nav-link text-dark">
+                    <li>
+                        <a href="?page=profil_posko" class="nav-link text-dark <?= $page == 'profil_posko' ? 'active bg-primary text-white' : '' ?>">
                             <i class="bi bi-person-circle me-2"></i> <span>Profil</span>
                         </a>
                     </li>
@@ -115,6 +115,10 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
                 default:
                     include 'posko_dashboard.php';
                     break;
+                case 'profil_posko':
+                    include 'profil_posko.php';
+                    break;
+
             }
             ?>
         </main>

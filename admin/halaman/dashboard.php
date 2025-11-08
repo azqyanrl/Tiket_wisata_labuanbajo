@@ -25,11 +25,13 @@ include '../../includes/alerts.php';
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0"><?php 
-                            $query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
-                            $query_total->execute();
-                            echo $query_total->get_result()->fetch_assoc()['total']; 
-                        ?></h4>
+                        <h4 class="mb-0">
+                            <?php 
+                                $query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
+                                $query_total->execute();
+                                echo $query_total->get_result()->fetch_assoc()['total']; 
+                            ?>
+                        </h4>
                         <p class="mb-0">Total Pemesanan</p>
                     </div>
                     <i class="bi bi-cart-check fs-1 opacity-75"></i>
@@ -42,11 +44,13 @@ include '../../includes/alerts.php';
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0"><?php 
-                            $query_selesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'");
-                            $query_selesai->execute();
-                            echo $query_selesai->get_result()->fetch_assoc()['total']; 
-                        ?></h4>
+                        <h4 class="mb-0">
+                            <?php 
+                                $query_selesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'");
+                                $query_selesai->execute();
+                                echo $query_selesai->get_result()->fetch_assoc()['total']; 
+                            ?>
+                        </h4>
                         <p class="mb-0">Berhasil</p>
                     </div>
                     <i class="bi bi-check-circle fs-1 opacity-75"></i>
@@ -59,11 +63,13 @@ include '../../includes/alerts.php';
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0"><?php 
-                            $query_pending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'");
-                            $query_pending->execute();
-                            echo $query_pending->get_result()->fetch_assoc()['total']; 
-                        ?></h4>
+                        <h4 class="mb-0">
+                            <?php 
+                                $query_pending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'");
+                                $query_pending->execute();
+                                echo $query_pending->get_result()->fetch_assoc()['total']; 
+                            ?>
+                        </h4>
                         <p class="mb-0">Menunggu Bayar</p>
                     </div>
                     <i class="bi bi-clock-history fs-1 opacity-75"></i>
@@ -76,11 +82,14 @@ include '../../includes/alerts.php';
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <h4 class="mb-0">Rp <?php 
-                            $query_pendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'");
-                            $query_pendapatan->execute();
-                            echo number_format($query_pendapatan->get_result()->fetch_assoc()['total'] ?? 0, 0, ',', '.'); 
-                        ?></h4>
+                        <h4 class="mb-0">
+                            Rp 
+                            <?php 
+                                $query_pendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'");
+                                $query_pendapatan->execute();
+                                echo number_format($query_pendapatan->get_result()->fetch_assoc()['total'] ?? 0, 0, ',', '.'); 
+                            ?>
+                        </h4>
                         <p class="mb-0">Pendapatan</p>
                     </div>
                     <i class="bi bi-currency-dollar fs-1 opacity-75"></i>
@@ -96,7 +105,6 @@ include '../../includes/alerts.php';
         <h4>Statistik Per Posko</h4>
     </div>
     <?php
-    // Query untuk mendapatkan statistik per posko
     $stats_posko = $konek->query("
         SELECT 
             t.lokasi,
@@ -115,23 +123,21 @@ include '../../includes/alerts.php';
     <div class="col-md-3">
         <div class="card border-start border-4 border-primary shadow h-100 py-2">
             <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <div class="flex-grow-1">
-                        <div class="text-uppercase fw-bold text-primary fs-6"><?= htmlspecialchars($stat['lokasi']) ?></div>
-                        <div class="row">
-                            <div class="col-6">
-                                <small class="text-muted">Total</small>
-                                <div class="h6 mb-0"><?= $stat['total_pemesanan'] ?></div>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Selesai</small>
-                                <div class="h6 mb-0 text-success"><?= $stat['total_selesai'] ?></div>
-                            </div>
+                <div class="flex-grow-1">
+                    <div class="text-uppercase fw-bold text-primary fs-6"><?= htmlspecialchars($stat['lokasi']) ?></div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Total</small>
+                            <div class="h6 mb-0"><?= $stat['total_pemesanan'] ?></div>
                         </div>
-                        <div class="mt-2">
-                            <small class="text-muted">Pendapatan</small>
-                            <div class="fw-bold">Rp <?= number_format($stat['total_pendapatan'], 0, ',', '.') ?></div>
+                        <div class="col-6">
+                            <small class="text-muted">Selesai</small>
+                            <div class="h6 mb-0 text-success"><?= $stat['total_selesai'] ?></div>
                         </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Pendapatan</small>
+                        <div class="fw-bold">Rp <?= number_format($stat['total_pendapatan'], 0, ',', '.') ?></div>
                     </div>
                 </div>
             </div>
@@ -140,7 +146,7 @@ include '../../includes/alerts.php';
     <?php endwhile; ?>
 </div>
 
-<!-- Tabel Pemesanan Terbaru dengan Info Posko -->
+<!-- Pemesanan Terbaru -->
 <h4 class="mb-3">Pemesanan Terbaru</h4>
 <div class="table-responsive">
     <table class="table table-striped table-hover align-middle">
@@ -150,51 +156,69 @@ include '../../includes/alerts.php';
                 <th>User</th>
                 <th>Tiket</th>
                 <th>Posko</th>
-                <th>Jumlah Tiket</th>
+                <th>Jumlah</th>
                 <th>Total</th>
                 <th>Status</th>
-                <th>Diverifikasi oleh</th>
+                <th>Diverifikasi Oleh</th>
                 <th>Tanggal</th>
             </tr>
         </thead>
         <tbody>
             <?php
             $query_recent = $konek->prepare("
-                SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, t.lokasi as nama_posko,
+                SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, t.lokasi AS nama_posko,
                        p.jumlah_tiket, p.total_harga, p.status, p.created_at,
-                       vh.admin_id, u2.nama_lengkap as admin_nama
-                FROM pemesanan p 
-                JOIN users u ON p.user_id = u.id 
+                       u2.nama_lengkap AS admin_nama, u2.lokasi AS admin_posko
+                FROM pemesanan p
+                JOIN users u ON p.user_id = u.id
                 JOIN tiket t ON p.tiket_id = t.id
-                LEFT JOIN verifikasi_history vh ON p.id = vh.pemesanan_id
+                LEFT JOIN verifikasi_history vh ON vh.pemesanan_id = p.id
                 LEFT JOIN users u2 ON vh.admin_id = u2.id
-                ORDER BY p.created_at DESC 
+                ORDER BY p.created_at DESC
                 LIMIT 10
             ");
             $query_recent->execute();
-            $recentBookings = $query_recent->get_result();
-            
-            if ($recentBookings->num_rows > 0) { 
-                while($row = $recentBookings->fetch_assoc()) { 
-                    $statusClass = ($row['status']=='pending')?'bg-warning text-dark':
-                                   (($row['status']=='dibayar')?'bg-info':
-                                   (($row['status']=='selesai')?'bg-success':'bg-danger')); 
-                    echo "<tr>
-                        <td>" . htmlspecialchars($row['kode_booking']) . "</td>
-                        <td>" . htmlspecialchars($row['nama_lengkap']) . "</td>
-                        <td>" . htmlspecialchars($row['nama_paket']) . "</td>
-                        <td><span class='badge bg-secondary'>" . htmlspecialchars($row['nama_posko']) . "</span></td>
-                        <td>" . htmlspecialchars($row['jumlah_tiket']) . "</td>
-                        <td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td>
-                        <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($row['status'])) . "</span></td>
-                        <td>" . ($row['admin_nama'] ? htmlspecialchars($row['admin_nama']) : '<span class="text-muted">Belum</span>') . "</td>
-                        <td>" . date('d/m/Y H:i', strtotime($row['created_at'])) . "</td>
-                    </tr>"; 
-                } 
-            } else { 
-                echo "<tr><td colspan='9' class='text-center text-muted'>Tidak ada data.</td></tr>"; 
-            }
+            $recent = $query_recent->get_result();
+
+            if ($recent->num_rows > 0):
+                while($r = $recent->fetch_assoc()):
+                    $statusClass = match($r['status']) {
+                        'pending' => 'bg-warning text-dark',
+                        'dibayar' => 'bg-info',
+                        'selesai' => 'bg-success',
+                        'dibatalkan' => 'bg-danger',
+                        default => 'bg-secondary'
+                    };
+
+                    // Tentukan teks "Diverifikasi oleh"
+                    if ($r['status'] == 'pending') {
+                        $verifikator = '<span class="text-muted">-</span>';
+                    } elseif ($r['admin_nama']) {
+                        // Ada admin yang verifikasi
+                        if (!empty($r['admin_posko'])) {
+                            $verifikator = htmlspecialchars($r['admin_nama']) . " <span class='badge bg-secondary'>" . htmlspecialchars($r['admin_posko']) . "</span>";
+                        } else {
+                            $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
+                        }
+                    } else {
+                        // Tidak ada riwayat, tapi status bukan pending
+                        $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
+                    }
             ?>
+            <tr>
+                <td><?= htmlspecialchars($r['kode_booking']) ?></td>
+                <td><?= htmlspecialchars($r['nama_lengkap']) ?></td>
+                <td><?= htmlspecialchars($r['nama_paket']) ?></td>
+                <td><span class="badge bg-secondary"><?= htmlspecialchars($r['nama_posko']) ?></span></td>
+                <td><?= htmlspecialchars($r['jumlah_tiket']) ?></td>
+                <td>Rp <?= number_format($r['total_harga'], 0, ',', '.') ?></td>
+                <td><span class="badge <?= $statusClass ?>"><?= ucfirst($r['status']) ?></span></td>
+                <td><?= $verifikator ?></td>
+                <td><?= date('d/m/Y H:i', strtotime($r['created_at'])) ?></td>
+            </tr>
+            <?php endwhile; else: ?>
+            <tr><td colspan="9" class="text-center text-muted">Tidak ada data pemesanan terbaru.</td></tr>
+            <?php endif; ?>
         </tbody>
     </table>
 </div>
