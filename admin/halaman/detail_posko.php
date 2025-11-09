@@ -1,4 +1,5 @@
 <?php
+ob_start();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -14,7 +15,7 @@ include '../../includes/alerts.php';
 
 if (!isset($_GET['posko'])) {
     header('Location: ?page=statistik_posko');
-    exit();
+    exit(); 
 }
 
  $posko = $_GET['posko'];
@@ -196,3 +197,6 @@ if (!isset($_GET['posko'])) {
         </div>
     </div>
 </div>
+<?php
+ob_end_flush(); // Kirim output ke browser
+?>

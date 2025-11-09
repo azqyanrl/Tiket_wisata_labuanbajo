@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     header('location: ../login/login.php');
@@ -17,20 +15,20 @@ $user_data = null;
 $tiket_data = null;
 
 if ($kode_booking) {
-    $query_pemesanan = $konek->prepare("
+    $query = $konek->prepare("
         SELECT p.*, u.nama_lengkap, u.email, u.no_hp, t.nama_paket, t.harga, t.gambar 
-        FROM pemesanan p 
-        JOIN users u ON p.user_id = u.id 
-        JOIN tiket t ON p.tiket_id = t.id 
+        FROM pemesanan p
+        JOIN users u ON p.user_id = u.id
+        JOIN tiket t ON p.tiket_id = t.id
         WHERE p.kode_booking = ?
         LIMIT 1
     ");
-    $query_pemesanan->bind_param("s", $kode_booking);
-    $query_pemesanan->execute();
-    $result_pemesanan = $query_pemesanan->get_result();
+    $query->bind_param("s", $kode_booking);
+    $query->execute();
+    $result = $query->get_result();
 
-    if ($result_pemesanan->num_rows > 0) {
-        $pemesanan_data = $result_pemesanan->fetch_assoc();
+    if ($result->num_rows > 0) {
+        $pemesanan_data = $result->fetch_assoc();
         $user_data = [
             'nama_lengkap' => $pemesanan_data['nama_lengkap'],
             'email' => $pemesanan_data['email'],
@@ -52,7 +50,7 @@ if ($kode_booking) {
 </div>
 
 <?php if (isset($error_message)): ?>
-<div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
+<div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
 <?php endif; ?>
 
 <div class="card mb-4">
@@ -64,7 +62,7 @@ if ($kode_booking) {
             <label for="kode_booking" class="form-label">Kode Booking</label>
             <input type="text" class="form-control" id="kode_booking" name="kode_booking"
                 placeholder="Ketik minimal 3 huruf kode booking..." autocomplete="off"
-                value="<?php echo htmlspecialchars($kode_booking); ?>">
+                value="<?= htmlspecialchars($kode_booking) ?>">
             <div id="hasil_pencarian" class="list-group position-absolute w-100 mt-1 shadow-sm" style="z-index: 1000;"></div>
         </div>
     </div>
@@ -148,7 +146,7 @@ document.getElementById('kode_booking').addEventListener('input', function() {
                     hasilDiv.appendChild(el);
                 });
             } else {
-                hasilDiv.innerHTML = `<div class="list-group-item text-muted">Tidak ada hasil ditemukan.</div>`;
+                hasilDiv.innerHTML = `<div class="list-group-item text-muted">${data.message}</div>`;
             }
         })
         .catch(() => {

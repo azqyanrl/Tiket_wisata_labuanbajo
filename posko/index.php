@@ -28,161 +28,127 @@ if (isset($_SESSION['username']) && $_SESSION['role'] === 'posko') {
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       overflow-x: hidden;
-      background: #0a0e27;
-    }
-    
-    .hero-section {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       min-height: 100vh;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1b69 100%);
-      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     
-    .stars {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .login-container {
       width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-    
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: white;
-      border-radius: 50%;
-      animation: twinkle 3s infinite;
-    }
-    
-    @keyframes twinkle {
-      0%, 100% { opacity: 0; }
-      50% { opacity: 1; }
-    }
-    
-    .floating-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.4;
-      animation: float 20s infinite ease-in-out;
-    }
-    
-    .orb-1 {
-      width: 400px;
-      height: 400px;
-      background: linear-gradient(45deg, #667eea, #764ba2);
-      top: -200px;
-      right: -200px;
-    }
-    
-    .orb-2 {
-      width: 300px;
-      height: 300px;
-      background: linear-gradient(45deg, #f093fb, #f5576c);
-      bottom: -150px;
-      left: -150px;
-      animation-delay: 5s;
-    }
-    
-    .orb-3 {
-      width: 250px;
-      height: 250px;
-      background: linear-gradient(45deg, #4facfe, #00f2fe);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      animation-delay: 10s;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      25% { transform: translate(30px, -50px) scale(1.05); }
-      50% { transform: translate(-20px, 30px) scale(0.95); }
-      75% { transform: translate(40px, 20px) scale(1.02); }
-    }
-    
-    .content-wrapper {
-      position: relative;
-      z-index: 10;
-      text-align: center;
-      max-width: 800px;
-      padding: 0 20px;
-    }
-    
-    .logo-container {
-      margin-bottom: 2rem;
-      position: relative;
-      display: inline-block;
-    }
-    
-    .logo-bg {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 150px;
-      height: 150px;
-      background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-      border-radius: 50%;
-      filter: blur(20px);
-    }
-    
-    .logo-icon {
-      position: relative;
-      z-index: 2;
-      width: 100px;
-      height: 100px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-radius: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto;
-      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-      transition: all 0.3s ease;
-    }
-    
-    .logo-icon:hover {
-      transform: translateY(-5px) rotate(5deg);
-      box-shadow: 0 25px 50px rgba(102, 126, 234, 0.4);
-    }
-    
-    .title {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #ffffff 0%, #a8b2d1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    
-    .subtitle {
-      font-size: 1.2rem;
-      color: #8892b0;
-      margin-bottom: 3rem;
+      max-width: 900px;
+      padding: 20px;
     }
     
     .login-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
-      padding: 2.5rem;
-      margin-bottom: 3rem;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: row;
+      min-height: 500px;
+    }
+    
+    .left-section {
+      flex: 1;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+    }
+    
+    .right-section {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo-icon i {
+      font-size: 40px;
+      color: white;
+    }
+    
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 30px;
+    }
+    
+    .features {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .feature-item {
+      text-align: center;
+    }
+    
+    .feature-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+    }
+    
+    .feature-icon i {
+      font-size: 20px;
+      color: white;
+    }
+    
+    .feature-label {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .form-subtitle {
+      color: #666;
+      margin-bottom: 30px;
     }
     
     .login-btn {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       border: none;
       color: white;
-      padding: 1rem 3rem;
-      font-size: 1.1rem;
+      padding: 12px 30px;
+      font-size: 1rem;
       font-weight: 600;
       border-radius: 50px;
       display: inline-flex;
@@ -190,200 +156,115 @@ if (isset($_SESSION['username']) && $_SESSION['role'] === 'posko') {
       gap: 10px;
       transition: all 0.3s ease;
       text-decoration: none;
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+      width: 100%;
+      justify-content: center;
     }
     
     .login-btn:hover {
       transform: translateY(-3px);
-      box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 8px 25px rgba(106, 17, 203, 0.4);
       color: white;
-    }
-    
-    .features {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      margin-bottom: 3rem;
-      flex-wrap: wrap;
-    }
-    
-    .feature-item {
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-    
-    .feature-item:hover {
-      transform: translateY(-5px);
-    }
-    
-    .feature-icon-wrapper {
-      width: 70px;
-      height: 70px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1rem;
-      transition: all 0.3s ease;
-    }
-    
-    .feature-item:hover .feature-icon-wrapper {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      border-color: transparent;
-      transform: rotate(5deg) scale(1.1);
-    }
-    
-    .feature-icon {
-      font-size: 1.5rem;
-      color: #a8b2d0;
-      transition: all 0.3s ease;
-    }
-    
-    .feature-item:hover .feature-icon {
-      color: white;
-    }
-    
-    .feature-label {
-      color: #8892b0;
-      font-size: 0.9rem;
-      font-weight: 500;
     }
     
     .footer-links {
       display: flex;
       justify-content: center;
-      gap: 2rem;
-      color: #64748b;
-      font-size: 0.9rem;
+      gap: 20px;
+      margin-top: 30px;
     }
     
     .footer-links a {
-      color: #64748b;
+      color: #666;
       text-decoration: none;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-    
-    .footer-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      transition: width 0.3s ease;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
     }
     
     .footer-links a:hover {
-      color: #a8b2d0;
-    }
-    
-    .footer-links a:hover::after {
-      width: 100%;
+      color: #6a11cb;
     }
     
     @media (max-width: 768px) {
-      .title {
-        font-size: 2rem;
+      .login-card {
+        flex-direction: column;
+        min-height: auto;
+      }
+      
+      .left-section {
+        padding: 30px 20px;
+      }
+      
+      .right-section {
+        padding: 30px 20px;
       }
       
       .features {
-        gap: 1rem;
-      }
-      
-      .footer-links {
-        flex-direction: column;
-        gap: 0.5rem;
+        gap: 15px;
       }
     }
   </style>
 </head>
 <body>
-  <section class="hero-section">
-    <!-- Animated Background -->
-    <div class="stars" id="stars"></div>
-    <div class="floating-orb orb-1"></div>
-    <div class="floating-orb orb-2"></div>
-    <div class="floating-orb orb-3"></div>
-    
-    <!-- Main Content -->
-    <div class="content-wrapper">
-      <!-- Logo -->
-      <div class="logo-container" data-aos="fade-down">
-        <div class="logo-bg"></div>
+  <div class="login-container">
+    <div class="login-card" data-aos="fade-up">
+      <!-- Left Section -->
+      <div class="left-section">
         <div class="logo-icon">
-          <i class="bi bi-building-gear text-white fs-1"></i>
+          <i class="bi bi-building-gear"></i>
+        </div>
+        <h1 class="title">Sistem Posko</h1>
+        <p class="subtitle">Labuan Bajo • Digital Management System</p>
+        
+        <div class="features">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="bi bi-patch-check-fill"></i>
+            </div>
+            <div class="feature-label">Verifikasi</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="bi bi-search"></i>
+            </div>
+            <div class="feature-label">Pencarian</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div class="feature-label">Laporan</div>
+          </div>
         </div>
       </div>
       
-      <!-- Title -->
-      <h1 class="title" data-aos="fade-up" data-aos-delay="100">Sistem Posko</h1>
-      <p class="subtitle" data-aos="fade-up" data-aos-delay="200">Labuan Bajo • Digital Management System</p>
-      
-      <!-- Login Card -->
-      <div class="login-card" data-aos="fade-up" data-aos-delay="300">
-        <p class="text-light mb-4">Pilih akses sesuai dengan posko Anda</p>
+      <!-- Right Section -->
+      <div class="right-section">
+        <h2 class="form-title">Selamat Datang</h2>
+        <p class="form-subtitle">Pilih akses sesuai dengan posko Anda</p>
+        
         <a href="halaman/login/login.php" class="login-btn">
           <i class="bi bi-shield-lock-fill"></i>
           <span>Masuk ke Sistem</span>
         </a>
-      </div>
-      
-      <!-- Features -->
-      <div class="features" data-aos="fade-up" data-aos-delay="400">
-        <div class="feature-item">
-          <div class="feature-icon-wrapper">
-            <i class="bi bi-patch-check-fill feature-icon"></i>
-          </div>
-          <div class="feature-label">Verifikasi</div>
+        
+        <div class="footer-links">
+          <a href="#">Bantuan</a>
+          <a href="#">Kebijakan</a>
+          <a href="#">Kontak</a>
         </div>
-        <div class="feature-item">
-          <div class="feature-icon-wrapper">
-            <i class="bi bi-search feature-icon"></i>
-          </div>
-          <div class="feature-label">Pencarian</div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon-wrapper">
-            <i class="bi bi-graph-up-arrow feature-icon"></i>
-          </div>
-          <div class="feature-label">Laporan</div>
-        </div>
-      </div>
-      
-      <!-- Footer Links -->
-      <div class="footer-links" data-aos="fade-up" data-aos-delay="500">
-        <a href="#">Bantuan</a>
-        <a href="#">Kebijakan</a>
-        <a href="#">Kontak</a>
       </div>
     </div>
-  </section>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>
     // Initialize AOS
     AOS.init({
-      duration: 1000,
+      duration: 800,
       once: true
     });
-    
-    // Generate random stars
-    const starsContainer = document.getElementById('stars');
-    const numberOfStars = 100;
-    
-    for (let i = 0; i < numberOfStars; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.left = `${Math.random() * 100}%`;
-      star.style.top = `${Math.random() * 100}%`;
-      star.style.animationDelay = `${Math.random() * 3}s`;
-      starsContainer.appendChild(star);
-    }
   </script>
 </body>
 </html>

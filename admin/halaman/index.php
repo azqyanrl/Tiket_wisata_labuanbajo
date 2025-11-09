@@ -15,7 +15,7 @@ include '../../includes/boot.php';
 
 // Router halaman
  $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
- $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket','kelola_kategori','kelola_user', 'kelola_galeri', 'laporan','laporan_stok','input_pembayaran', 'admin_profile', 'posko_register', 'statistik_posko', 'detail_pemesanan'];
+ $allowed_pages = ['dashboard', 'kelola_pemesanan', 'kelola_tiket','kelola_kategori','kelola_user', 'kelola_galeri', 'laporan','laporan_stok','input_pembayaran', 'admin_profile', 'posko_register', 'statistik_posko', 'detail_pemesanan', 'detail_posko'];
 
 if (!in_array($page, $allowed_pages)) {
     $page = 'dashboard';

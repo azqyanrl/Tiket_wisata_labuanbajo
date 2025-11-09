@@ -86,7 +86,7 @@ if (isset($_POST['login'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../../assets/images/bg/padarhd.avif') no-repeat center center;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../../assets/images/bg/pdr1.jpg') no-repeat center center;
             background-size: cover;
             min-height: 100vh;
         }
@@ -94,15 +94,15 @@ if (isset($_POST['login'])) {
             max-width: 900px;
         }
         .branding-section {
-            background-color: rgba(25, 135, 84, 0.85);
+            background-color: rgba(102, 126, 234, 0.85);
         }
         .btn-theme {
-            background-color: #198754;
-            border-color: #198754;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
         }
         .btn-theme:hover {
-            background-color: #157347;
-            border-color: #146c43;
+            background: linear-gradient(135deg, #5a6fd8, #6a4190);
+            border: none;
         }
     </style>
 </head>
@@ -168,7 +168,7 @@ if (isset($_POST['login'])) {
     <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #667eea, #764ba2);">
                     <h5 class="modal-title"><i class="bi bi-headset me-2"></i>Pusat Bantuan</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -177,14 +177,14 @@ if (isset($_POST['login'])) {
 
                     <div class="contact-item bg-light rounded-3 p-3 mb-3">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-telephone-fill text-success fs-4 me-3"></i>
+                            <i class="bi bi-telephone-fill" style="color: #667eea;" class="fs-4 me-3"></i>
                             <span>+62 812-3456-7890</span>
                         </div>
                     </div>
 
                     <div class="contact-item bg-light rounded-3 p-3 mb-3">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-whatsapp text-success fs-4 me-3"></i>
+                            <i class="bi bi-whatsapp" style="color: #667eea;" class="fs-4 me-3"></i>
                             <span>+62 812-3456-7890</span>
                         </div>
                     </div>

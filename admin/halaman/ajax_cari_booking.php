@@ -1,8 +1,9 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) session_start();
 include '../../database/konek.php';
 header('Content-Type: application/json; charset=utf-8');
 
-$kode_booking = $_GET['kode_booking'] ?? '';
+$kode_booking = trim($_GET['kode_booking'] ?? '');
 
 if (strlen($kode_booking) < 3) {
     echo json_encode(['success' => false, 'message' => 'Masukkan minimal 3 huruf kode booking']);
@@ -18,6 +19,7 @@ $query = $konek->prepare("
       AND p.status = 'pending'
     ORDER BY p.id DESC
 ");
+
 $like = '%' . $kode_booking . '%';
 $query->bind_param('s', $like);
 $query->execute();
@@ -30,9 +32,8 @@ while ($row = $result->fetch_assoc()) {
 
 echo json_encode([
     'success' => !empty($data),
+    'total_found' => count($data),
     'data' => $data,
-    'message' => empty($data)
-        ? 'Tidak ada kode booking pending yang cocok.'
-        : null
+    'message' => empty($data) ? 'Tidak ada kode booking pending yang cocok.' : null
 ]);
 ?>

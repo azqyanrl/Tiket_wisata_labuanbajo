@@ -4,103 +4,109 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// ✅ Cek login posko
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
-    $_SESSION['error_message'] = 'Akses ditolak!';
-    header('Location: login/login.php');
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
 include '../../database/konek.php';
-include '../../includes/boot.php'; 
+include '../../includes/boot.php';
 
-$lokasi_admin = $_SESSION['lokasi'];
+$lokasi_admin = $_SESSION['lokasi'] ?? '';
 
-// Filter tanggal
+// === Ambil filter dari GET ===
 $filter_type = $_GET['filter_type'] ?? 'today';
-$date_from = $_GET['date_from'] ?? date('Y-m-d');
-$date_to = $_GET['date_to'] ?? date('Y-m-d');
+$date_from   = $_GET['date_from'] ?? date('Y-m-d');
+$date_to     = $_GET['date_to'] ?? date('Y-m-d');
 
-if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
-    $_SESSION['error_message'] = 'Format tanggal tidak valid';
-    header('Location: ?page=laporan_posko');
-    exit;
+// ✅ Validasi tanggal hanya jika custom
+if ($filter_type === 'custom') {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
+        echo "<script>alert('Format tanggal tidak valid!'); document.location.href='?page=laporan_posko';</script>";
+        exit;
+    }
 }
 
-// Tentukan filter tanggal
-switch($filter_type) {
-    case 'today': $date_condition = "DATE(p.created_at) = CURDATE()"; break;
-    case 'yesterday': $date_condition = "DATE(p.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)"; break;
-    case 'week': $date_condition = "WEEK(p.created_at) = WEEK(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())"; break;
-    case 'month': $date_condition = "MONTH(p.created_at) = MONTH(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())"; break;
-    case 'custom': $date_condition = "DATE(p.created_at) BETWEEN ? AND ?"; break;
-    default: $date_condition = "DATE(p.created_at) = CURDATE()";
+// === Tentukan kondisi tanggal ===
+switch ($filter_type) {
+    case 'today':
+        $date_condition = "DATE(p.created_at) = CURDATE()";
+        break;
+    case 'yesterday':
+        $date_condition = "DATE(p.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+        break;
+    case 'week':
+        $date_condition = "WEEK(p.created_at) = WEEK(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())";
+        break;
+    case 'month':
+        $date_condition = "MONTH(p.created_at) = MONTH(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())";
+        break;
+    case 'custom':
+        $date_condition = "DATE(p.created_at) BETWEEN ? AND ?";
+        break;
+    case 'all':
+        $date_condition = "1";
+        break;
+    default:
+        $date_condition = "DATE(p.created_at) = CURDATE()";
 }
 
-try {
-    // === Statistik Ringkas ===
-    $stats_sql = "
-        SELECT 
-            COUNT(*) as total,
-            SUM(CASE WHEN p.status = 'dibayar' THEN 1 ELSE 0 END) as verified,
-            SUM(CASE WHEN p.status = 'selesai' THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) as pending
-        FROM pemesanan p
-        JOIN tiket t ON p.tiket_id = t.id
-        WHERE t.lokasi = ? AND $date_condition
-    ";
-    $stats_stmt = $konek->prepare($stats_sql);
-    if ($filter_type === 'custom') {
-        $stats_stmt->bind_param('sss', $lokasi_admin, $date_from, $date_to);
-    } else {
-        $stats_stmt->bind_param('s', $lokasi_admin);
-    }
-    $stats_stmt->execute();
-    $stats = $stats_stmt->get_result()->fetch_assoc();
+// === Query Statistik ===
+$stats_sql = "
+    SELECT 
+        COUNT(*) AS total,
+        SUM(CASE WHEN p.status='dibayar' THEN 1 ELSE 0 END) AS verified,
+        SUM(CASE WHEN p.status='selesai' THEN 1 ELSE 0 END) AS completed,
+        SUM(CASE WHEN p.status='pending' THEN 1 ELSE 0 END) AS pending
+    FROM pemesanan p
+    JOIN tiket t ON p.tiket_id=t.id
+    WHERE t.lokasi=? AND $date_condition
+";
+$stats_stmt = $konek->prepare($stats_sql);
+if ($filter_type === 'custom') {
+    $stats_stmt->bind_param('sss', $lokasi_admin, $date_from, $date_to);
+} else {
+    $stats_stmt->bind_param('s', $lokasi_admin);
+}
+$stats_stmt->execute();
+$stats = $stats_stmt->get_result()->fetch_assoc() ?? ['total'=>0,'verified'=>0,'completed'=>0,'pending'=>0];
 
-    // === Data laporan (semua status) ===
-    $sql = "
-        SELECT 
-            p.*, 
-            t.nama_paket, 
-            u.nama_lengkap, 
-            vh.admin_id, 
-            ua.nama_lengkap AS verifikator
-        FROM pemesanan p
-        JOIN tiket t ON p.tiket_id = t.id
-        JOIN users u ON p.user_id = u.id
-        LEFT JOIN verifikasi_history vh ON vh.pemesanan_id = p.id 
-            AND vh.id = (SELECT MAX(id) FROM verifikasi_history WHERE pemesanan_id = p.id)
-        LEFT JOIN users ua ON vh.admin_id = ua.id
-        WHERE t.lokasi = ? AND $date_condition
-        ORDER BY p.created_at DESC
-    ";
-    $stmt = $konek->prepare($sql);
-    if ($filter_type === 'custom') {
-        $stmt->bind_param('sss', $lokasi_admin, $date_from, $date_to);
-    } else {
-        $stmt->bind_param('s', $lokasi_admin);
-    }
-    $stmt->execute();
-    $res = $stmt->get_result();
+// === Query Detail Laporan ===
+$sql = "
+    SELECT p.*, t.nama_paket, u.nama_lengkap,
+           vh.admin_id, ua.nama_lengkap AS verifikator
+    FROM pemesanan p
+    JOIN tiket t ON p.tiket_id=t.id
+    JOIN users u ON p.user_id=u.id
+    LEFT JOIN verifikasi_history vh 
+           ON vh.pemesanan_id=p.id 
+          AND vh.id=(SELECT MAX(id) FROM verifikasi_history WHERE pemesanan_id=p.id)
+    LEFT JOIN users ua ON vh.admin_id=ua.id
+    WHERE t.lokasi=? AND $date_condition
+    ORDER BY p.created_at DESC
+";
+$stmt = $konek->prepare($sql);
+if ($filter_type === 'custom') {
+    $stmt->bind_param('sss', $lokasi_admin, $date_from, $date_to);
+} else {
+    $stmt->bind_param('s', $lokasi_admin);
+}
+$stmt->execute();
+$res = $stmt->get_result();
 
-    // Hitung total pendapatan dan tiket selesai
-    $total_pendapatan = 0;
-    $total_tiket_selesai = 0;
-    while ($r = $res->fetch_assoc()) {
-        if ($r['status'] === 'selesai' || $r['status'] === 'dibayar') {
-            $total_pendapatan += $r['total_harga'];
-            $total_tiket_selesai += $r['jumlah_tiket'];
-        }
+// === Hitung pendapatan & tiket selesai ===
+$total_pendapatan = 0;
+$total_tiket_selesai = 0;
+$rows = [];
+while ($r = $res->fetch_assoc()) {
+    if (in_array($r['status'], ['selesai', 'dibayar'])) {
+        $total_pendapatan += $r['total_harga'];
+        $total_tiket_selesai += $r['jumlah_tiket'];
     }
-    $res->data_seek(0);
-
-} catch (Exception $e) {
-    $_SESSION['error_message'] = 'Kesalahan: ' . $e->getMessage();
-    header('Location: ?page=laporan_posko');
-    exit;
+    $rows[] = $r;
 }
 ?>
-
 <style>
 @media print {
     .no-print, .navbar, .sidebar { display: none !important; }
@@ -118,7 +124,10 @@ try {
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-header bg-white fw-bold">Filter Tanggal</div>
         <div class="card-body">
-            <form method="get" action="?page=laporan_posko">
+            <!-- ✅ Sudah fix: tetap di halaman laporan dan ada tombol reset -->
+            <form method="GET" action="">
+                <input type="hidden" name="page" value="laporan_posko">
+
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label">Filter</label>
@@ -128,18 +137,23 @@ try {
                             <option value="week" <?= $filter_type=='week'?'selected':'' ?>>Minggu Ini</option>
                             <option value="month" <?= $filter_type=='month'?'selected':'' ?>>Bulan Ini</option>
                             <option value="custom" <?= $filter_type=='custom'?'selected':'' ?>>Rentang Tanggal</option>
+                            <option value="all" <?= $filter_type=='all'?'selected':'' ?>>Semua</option>
                         </select>
                     </div>
+
                     <div class="col-md-3" id="dateFromContainer" style="display:<?= $filter_type=='custom'?'block':'none' ?>">
                         <label class="form-label">Dari</label>
                         <input type="date" name="date_from" class="form-control" value="<?= $date_from ?>">
                     </div>
+
                     <div class="col-md-3" id="dateToContainer" style="display:<?= $filter_type=='custom'?'block':'none' ?>">
                         <label class="form-label">Sampai</label>
                         <input type="date" name="date_to" class="form-control" value="<?= $date_to ?>">
                     </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Terapkan</button>
+
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-primary w-50">Terapkan</button>
+                        <a href="?page=laporan_posko" class="btn btn-outline-secondary w-50">Reset</a>
                     </div>
                 </div>
             </form>
@@ -167,7 +181,7 @@ try {
         <div class="col-md-3">
             <div class="card border-start border-4 border-info shadow h-100">
                 <div class="card-body">
-                    <h6>Terverifikasi</h6>
+                    <h6>Telah Diverifikasi</h6>
                     <h5><?= $stats['verified'] + $stats['completed'] ?></h5>
                 </div>
             </div>
@@ -201,8 +215,8 @@ try {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($res->num_rows > 0): ?>
-                            <?php while($row = $res->fetch_assoc()): ?>
+                        <?php if (count($rows) > 0): ?>
+                            <?php foreach($rows as $row): ?>
                             <tr>
                                 <td><?= htmlspecialchars($row['kode_booking']) ?></td>
                                 <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
@@ -222,9 +236,19 @@ try {
                                     ?>
                                     <span class="badge bg-<?= $color ?>"><?= ucfirst($row['status']) ?></span>
                                 </td>
-                                <td><?= $row['verifikator'] ? htmlspecialchars($row['verifikator']) : '<span class="text-muted">Belum Diverifikasi</span>' ?></td>
+                                <td>
+                                    <?php
+                                    if (in_array($row['status'], ['selesai','batal']) && !$row['verifikator']) {
+                                        echo '<span class="text-success fw-semibold">Admin Pusat</span>';
+                                    } elseif ($row['verifikator']) {
+                                        echo htmlspecialchars($row['verifikator']);
+                                    } else {
+                                        echo '<span class="text-muted">Belum Diverifikasi</span>';
+                                    }
+                                    ?>
+                                </td>
                             </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         <?php else: ?>
                             <tr><td colspan="8" class="text-center text-muted">Tidak ada transaksi pada periode ini</td></tr>
                         <?php endif; ?>
@@ -234,7 +258,6 @@ try {
         </div>
     </div>
 
-    <!-- Cetak -->
     <div class="no-print text-end mt-3">
         <button class="btn btn-outline-secondary" onclick="window.print()">
             <i class="bi bi-printer"></i> Cetak Laporan
@@ -248,4 +271,5 @@ function toggleDateRange() {
     document.getElementById('dateFromContainer').style.display = type === 'custom' ? 'block' : 'none';
     document.getElementById('dateToContainer').style.display = type === 'custom' ? 'block' : 'none';
 }
+document.addEventListener('DOMContentLoaded', toggleDateRange);
 </script>

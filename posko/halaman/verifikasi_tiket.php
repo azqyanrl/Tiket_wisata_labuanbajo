@@ -1,105 +1,115 @@
 <?php
-ob_start();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Cek login posko
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
-    $_SESSION['error_message'] = 'Akses ditolak!';
-    header('Location: ../login/login.php');
+    echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
     exit;
 }
 
-// Pastikan session id_user dan lokasi ada
-if (!isset($_SESSION['id_user']) || !isset($_SESSION['lokasi'])) {
-    $_SESSION['error_message'] = 'Session tidak lengkap. Silakan login ulang.';
-    header('Location: ../login/login.php');
-    exit;
-}
-
-// Cek kode booking
-if (!isset($_GET['kode']) || empty($_GET['kode'])) {
-    header("location:?page=posko_dashboard&pesan=kode_tidak_ditemukan");
-    exit();
-}
-
-$kode_booking = $_GET['kode'];
-$id_admin = $_SESSION['id_user'];
-$lokasi_admin = $_SESSION['lokasi'];
-
-// Pastikan koneksi database tersedia
 include '../../database/konek.php';
+include '../../includes/boot.php';
 
+// Redirect kalau diakses langsung (tanpa sidebar)
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    header('Location: index.php?page=verifikasi_tiket');
+    exit;
+}
 
-// Ambil data pemesanan berdasarkan kode dan lokasi posko
- $stmt = $konek->prepare("
-    SELECT p.*, t.nama_paket, u.nama_lengkap 
-    FROM pemesanan p 
-    JOIN tiket t ON p.tiket_id = t.id 
-    JOIN users u ON p.user_id = u.id 
-    WHERE p.kode_booking = ? AND t.lokasi = ?
+// Ambil ID admin dari database berdasarkan username
+$username_admin = $_SESSION['username'];
+$get_admin = $konek->prepare("SELECT id FROM users WHERE username = ? AND role = 'posko'");
+$get_admin->bind_param("s", $username_admin);
+$get_admin->execute();
+$admin_result = $get_admin->get_result();
+$admin_data = $admin_result->fetch_assoc();
+
+if (!$admin_data || empty($admin_data['id'])) {
+    echo "<div class='alert alert-danger'>Admin tidak ditemukan. Silakan login ulang.</div>";
+    echo "<script>setTimeout(function() { window.location.href='../login/login.php'; }, 2000);</script>";
+    exit;
+}
+
+$id_admin = $admin_data['id'];
+
+// ✅ Proses form verifikasi
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'])) {
+    $pemesanan_id = intval($_POST['pemesanan_id']);
+    $metode_pembayaran = $_POST['metode_pembayaran'] ?? '';
+    $catatan = $_POST['catatan'] ?? '';
+
+    // ⚙️ Status langsung diset "dibayar" seperti versi admin
+    $status = 'dibayar';
+
+    // Update status pemesanan
+    $update = $konek->prepare("UPDATE pemesanan SET status = ?, metode_pembayaran = ? WHERE id = ?");
+    $update->bind_param('ssi', $status, $metode_pembayaran, $pemesanan_id);
+
+    if ($update->execute()) {
+        // Simpan ke tabel verifikasi_history
+        $insert = $konek->prepare("
+            INSERT INTO verifikasi_history (pemesanan_id, admin_id, status, metode_pembayaran, catatan, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+        ");
+        $insert->bind_param('iisss', $pemesanan_id, $id_admin, $status, $metode_pembayaran, $catatan);
+
+        if ($insert->execute()) {
+            echo "<div class='alert alert-success'>✅ Verifikasi berhasil disimpan dan status otomatis menjadi 'Dibayar'.</div>";
+        } else {
+            echo "<div class='alert alert-danger'>Gagal menyimpan riwayat: " . $insert->error . "</div>";
+        }
+    } else {
+        echo "<div class='alert alert-danger'>Gagal memperbarui status: " . $update->error . "</div>";
+    }
+
+    $id = $pemesanan_id; // Refresh data
+}
+
+// Pastikan ID dikirim
+if (!isset($_GET['id'])) {
+    die("<div class='alert alert-danger'>ID pemesanan tidak ditemukan.</div>");
+}
+
+$id = intval($_GET['id']);
+
+// Ambil data pemesanan
+$query = $konek->prepare("
+    SELECT p.id, p.kode_booking, u.nama_lengkap, t.nama_paket, p.tanggal_kunjungan, p.total_harga, p.status
+    FROM pemesanan p
+    JOIN users u ON p.user_id = u.id
+    JOIN tiket t ON p.tiket_id = t.id
+    WHERE p.id = ?
 ");
- $stmt->bind_param("ss", $kode_booking, $lokasi_admin);
- $stmt->execute();
- $result = $stmt->get_result();
- $data = $result->fetch_assoc();
+$query->bind_param("i", $id);
+$query->execute();
+$data = $query->get_result()->fetch_assoc();
 
 if (!$data) {
-    header("location:?page=posko_dashboard&pesan=data_tidak_ditemukan");
-    exit();
+    die("<div class='alert alert-danger'>Data pemesanan tidak ditemukan.</div>");
 }
 
-// Ambil riwayat verifikasi untuk menampilkan siapa yang sudah memverifikasi
- $history_stmt = $konek->prepare("
-    SELECT vh.*, u.nama_lengkap as admin_nama 
-    FROM verifikasi_history vh 
-    JOIN users u ON vh.admin_id = u.id 
-    WHERE vh.pemesanan_id = ? 
+// Ambil riwayat
+$history_query = $konek->prepare("
+    SELECT vh.*, a.nama_lengkap AS admin_nama
+    FROM verifikasi_history vh
+    JOIN users a ON vh.admin_id = a.id
+    WHERE vh.pemesanan_id = ?
     ORDER BY vh.created_at DESC
 ");
- $history_stmt->bind_param("i", $data['id']);
- $history_stmt->execute();
- $history_result = $history_stmt->get_result();
-
-// Proses update verifikasi
-if (isset($_POST['verifikasi'])) {
-    $metode_pembayaran = $_POST['metode_pembayaran'];
-    $status_baru = $_POST['status'];
-    $catatan = $_POST['catatan'];
-
-    // Update status di tabel pemesanan
-    $update_stmt = $konek->prepare("UPDATE pemesanan SET status = ?, metode_pembayaran = ? WHERE id = ?");
-    $update_stmt->bind_param("ssi", $status_baru, $metode_pembayaran, $data['id']);
-
-    // Catat ke history verifikasi
-    $history_stmt = $konek->prepare("
-        INSERT INTO verifikasi_history (pemesanan_id, admin_id, metode_pembayaran, status, catatan) 
-        VALUES (?, ?, ?, ?, ?)
-    ");
-    $history_stmt->bind_param("iisss", $data['id'], $id_admin, $metode_pembayaran, $status_baru, $catatan);
-
-    if ($update_stmt->execute() && $history_stmt->execute()) {
-        header("location:?page=posko_dashboard&pesan=berhasil_verifikasi");
-        exit();
-    } else {
-        $error = true;
-    }
-}
+$history_query->bind_param("i", $id);
+$history_query->execute();
+$history_result = $history_query->get_result();
 ?>
 
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h4>Verifikasi Pembayaran</h4>
-    </div>
+<div class="card mt-3">
+    <div class="card-header bg-primary text-white"><h4>Verifikasi Pembayaran</h4></div>
     <div class="card-body">
-        <?php if (isset($error)): ?>
-            <div class="alert alert-danger">Terjadi kesalahan saat memperbarui data.</div>
-        <?php endif; ?>
-
         <p><strong>Kode Booking:</strong> <?= htmlspecialchars($data['kode_booking']) ?></p>
-        
-        <form action="" method="POST">
+
+        <form method="POST" action="">
+            <input type="hidden" name="pemesanan_id" value="<?= $data['id'] ?>">
+
             <div class="row mb-3">
                 <div class="col-md-6">
                     <p><strong>Pelanggan:</strong> <?= htmlspecialchars($data['nama_lengkap']) ?></p>
@@ -113,65 +123,55 @@ if (isset($_POST['verifikasi'])) {
 
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label for="metode_pembayaran" class="form-label">Metode Pembayaran</label>
-                    <select name="metode_pembayaran" id="metode_pembayaran" class="form-select" required>
+                    <label class="form-label">Metode Pembayaran</label>
+                    <select name="metode_pembayaran" class="form-select" required>
                         <option value="">-- Pilih --</option>
                         <option value="Tunai">Tunai</option>
-                        <option value="Transfer Bank">Transfer Bank</option>
                         <option value="QRIS">QRIS</option>
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <label for="status" class="form-label">Status</label>
-                    <select name="status" id="status" class="form-select" required>
-                        <option value="pending">Pending</option>
-                        <option value="dibayar">Dibayar</option>
-                        <option value="selesai">Selesai</option>
-                        <option value="batal">Batal</option>
-                    </select>
+                    <label class="form-label">Status (Otomatis)</label>
+                    <input type="text" class="form-control bg-light" value="Dibayar" readonly>
                 </div>
             </div>
 
             <div class="mb-3">
-                <label for="catatan" class="form-label">Catatan (Opsional)</label>
-                <textarea name="catatan" id="catatan" class="form-control" rows="3"></textarea>
+                <label class="form-label">Catatan (Opsional)</label>
+                <textarea name="catatan" class="form-control" rows="3"></textarea>
             </div>
 
-            <button type="submit" name="verifikasi" class="btn btn-success">
-                <i class="bi bi-check-circle"></i> Simpan Verifikasi
-            </button>
-            <a href="?page=posko_dashboard" class="btn btn-secondary">Batal</a>
+            <button type="submit" class="btn btn-success"><i class="bi bi-check-circle"></i> Simpan Verifikasi</button>
+            <a href="?page=cari_tiket" class="btn btn-secondary">Batal</a>
         </form>
-        
-        <!-- Riwayat Verifikasi -->
-        <div class="mt-4">
-            <h5>Riwayat Verifikasi</h5>
-            <?php if ($history_result->num_rows > 0): ?>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Admin</th>
-                            <th>Status</th>
-                            <th>Metode</th>
-                            <th>Catatan</th>
-                            <th>Waktu</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($history = $history_result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($history['admin_nama']) ?></td>
-                            <td><span class="badge bg-info"><?= ucfirst($history['status']) ?></span></td>
-                            <td><?= htmlspecialchars($history['metode_pembayaran']) ?></td>
-                            <td><?= htmlspecialchars($history['catatan']) ?></td>
-                            <td><?= date('d/m/Y H:i', strtotime($history['created_at'])) ?></td>
-                        </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p class="text-muted">Belum ada riwayat verifikasi</p>
-            <?php endif; ?>
-        </div>
+
+        <hr>
+        <h5>Riwayat Verifikasi</h5>
+        <?php if ($history_result->num_rows > 0): ?>
+        <table class="table table-sm table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Admin</th>
+                    <th>Status</th>
+                    <th>Metode</th>
+                    <th>Catatan</th>
+                    <th>Waktu</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php while ($h = $history_result->fetch_assoc()): ?>
+                <tr>
+                    <td><?= htmlspecialchars($h['admin_nama']) ?></td>
+                    <td><span class="badge bg-success"><?= ucfirst($h['status']) ?></span></td>
+                    <td><?= htmlspecialchars($h['metode_pembayaran']) ?></td>
+                    <td><?= htmlspecialchars($h['catatan']) ?></td>
+                    <td><?= date('d/m/Y H:i', strtotime($h['created_at'])) ?></td>
+                </tr>
+                <?php endwhile; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+            <p class="text-muted">Belum ada riwayat verifikasi.</p>
+        <?php endif; ?>
     </div>
 </div>

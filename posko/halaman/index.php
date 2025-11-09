@@ -117,7 +117,9 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'posko') {
                     break;
                 case 'profil_posko':
                     include 'profil_posko.php';
-                    break;
+                case 'verifikasi_tiket':
+                    include 'verifikasi_tiket.php';
+
 
             }
             ?>
