@@ -5,8 +5,56 @@ include "session_cek.php"; // File ini untuk mengecek session, misalnya memuat n
 include '../../includes/navbar.php';
 include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CSS/JS
 ?>
+<style>
+     /* Wildlife Section */
+    .wildlife-section {
+      padding: 80px 0;
+      background: var(--light-bg);
+    }
 
-<div class="hero-section position-relative d-flex align-items-center vh-100">
+    .wildlife-card {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s ease;
+      height: 100%;
+      border: none;
+    }
+
+    .wildlife-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .wildlife-img {
+      height: 250px;
+      object-fit: cover;
+      transition: all 0.5s ease;
+    }
+
+    .wildlife-card:hover .wildlife-img {
+      transform: scale(1.05);
+    }
+
+    .wildlife-title {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .wildlife-subtitle {
+      color: #64748b;
+      font-style: italic;
+    }
+</style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="hero-section position-relative d-flex align-items-center vh-100">
     <!-- Background image -->
     <img src="../../assets/images/bg/padar3.jpg"
          alt="Labuan Bajo"
@@ -56,7 +104,7 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
 </div>
 <div class="container my-5">
     <h3 class="mb-4 text-center">Paket Wisata</h3>
-    <div class="row">
+    <div class="row" z>
         <?php
         // Ambil data tiket yang aktif
         $query = "SELECT * FROM tiket WHERE status='aktif' ORDER BY created_at DESC LIMIT 3";
@@ -83,6 +131,54 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
         }
         ?>
     </div>
-</div>
+    <!-- Wildlife Section -->
+  <section class="wildlife-section">
+    <div class="container">
+      <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold mb-3 text-uppercase text-primary">Satwa Taman Nasional Komodo</h2>
+        <p class="text-muted fs-5">Keanekaragaman fauna yang dilindungi di kawasan Taman Nasional Komodo</p>
+      </div>
 
+      <div class="row justify-content-center g-4">
+        <!-- Biawak Komodo -->
+        <div class="col-md-6 col-lg-5" data-aos="fade-up" data-aos-delay="100">
+          <div class="wildlife-card">
+            <img src="../../assets/images/bg/komodo.jpg" class="wildlife-img w-100" alt="Biawak Komodo">
+            <div class="card-body p-4">
+              <h4 class="text-center fw-bold wildlife-title">Biawak Komodo</h4>
+              <h6 class="text-center fst-italic wildlife-subtitle mb-3">Varanus komodoensis</h6>
+              <p class="text-justify">
+                <strong>Biawak Komodo</strong> merupakan kadal terbesar yang ada di dunia. Reptil raksasa karnivora ini hidup alami di 
+                Taman Nasional Komodo, Pulau Longos, dan sebagian lembah Pulau Flores. 
+                Keberadaan dan kelestarian populasi biawak komodo di Taman Nasional Komodo dijaga ketat oleh 
+                Balai Taman Nasional Komodo dengan melibatkan masyarakat setempat. 
+                Wisatawan yang beruntung dapat mengamati biawak komodo secara langsung hanya dari beberapa resort 
+                seperti Resort Loh Buaya (Pulau Rinca), Resort Loh Liang (Pulau Komodo), dan Resort Padar Selatan (Pulau Padar).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kakatua Kecil Jambul Kuning -->
+        <div class="col-md-6 col-lg-5" data-aos="fade-up" data-aos-delay="200">
+          <div class="wildlife-card">
+            <img src="../../assets/images/bg/kakatua2.jpg" class="wildlife-img w-100" alt="Kakatua Kecil Jambul Kuning">
+            <div class="card-body p-4">
+              <h4 class="text-center fw-bold wildlife-title">Kakatua Kecil Jambul Kuning</h4>
+              <h6 class="text-center fst-italic wildlife-subtitle mb-3">Cacatua sulphurea</h6>
+              <p class="text-justify">
+                <strong>Kakatua kecil jambul kuning</strong> hidup alami di Taman Nasional Komodo, 
+                utamanya di Pulau Rinca, Pulau Bero, dan Pulau Komodo. 
+                Burung ini hidup berkoloni dan memiliki populasi yang cukup banyak di dalam kawasan taman nasional. 
+                Penggunaan tempat tinggal yang sama dengan biawak komodo membuat populasinya stabil dari tahun ke tahun.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+</body>
+</html>
 <?php include '../../includes/footer.php'; ?>

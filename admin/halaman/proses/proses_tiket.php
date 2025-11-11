@@ -37,7 +37,7 @@ if ($editing) {
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="tiketModalLabel"><?= $editing ? 'Edit' : 'Tambah' ?> Tiket</h5>
+                <h5 class="modal-title" id="tiketModalLabel"><?= $editing ? 'Edit' : 'Tambah' ?>Tiket Wisata</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="tiketForm" method="POST" action="proses/handle_tiket.php" enctype="multipart/form-data">

@@ -6,7 +6,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'user') {
     header('Location: ../users/login/login.php');
     exit();
 }
-include $_SERVER['DOCUMENT_ROOT'] . '/TIKET_WISATA_LABUAN_BAJO/users/halaman/session_cek.php'; 
+include __DIR__ . '/../users/halaman/session_cek.php';
 ?> 
     <footer class="text-white" style="background-color: #212529; padding: 60px 0 30px; margin-top:20px;">
         <div class="container">
@@ -34,7 +34,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/TIKET_WISATA_LABUAN_BAJO/users/halaman/ses
                         <li><a href="#" style="color: #adb5bd; text-decoration: none;">Kontak</a></li>
                     </ul>
                 </div>
-                
                 <div class="col-lg-2 col-md-6 mb-4">
                     <h5 style="font-weight: 600; margin-bottom: 20px;">Informasi</h5>
                     <ul class="list-unstyled" style="padding: 0;">

@@ -30,12 +30,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
 
     // Upload foto baru
     if (!empty($_FILES['profile_photo']['name'])) {
-        $file_ext = pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION);
-        $file_name = 'posko_' . $user_id . '_' . time() . '.' . $file_ext;
-        $target = '../../assets/images/profile/' . $file_name;
+        $file_ext = strtolower(pathinfo($_FILES['profile_photo']['name'], PATHINFO_EXTENSION));
+        $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
 
-        if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target)) {
-            $profile_photo = $file_name;
+        if (in_array($file_ext, $allowed_ext)) {
+            $file_name = 'posko_' . $user_id . '_' . time() . '.' . $file_ext;
+            $target = '../../assets/images/profile/' . $file_name;
+
+            if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target)) {
+                // Hapus foto lama jika ada
+                if (!empty($user['profile_photo']) && file_exists('../../assets/images/profile/' . $user['profile_photo'])) {
+                    unlink('../../assets/images/profile/' . $user['profile_photo']);
+                }
+                $profile_photo = $file_name;
+            }
         }
     }
 
@@ -46,12 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     if ($stmt->execute()) {
         $_SESSION['success'] = "Profil berhasil diperbarui.";
         $_SESSION['nama_lengkap'] = $nama_lengkap;
-        $_SESSION['profile_photo'] = $profile_photo;
+        $_SESSION['profile_photo'] = $profile_photo; // ✅ Foto baru langsung tersimpan di session
     } else {
         $_SESSION['error'] = "Gagal memperbarui profil: " . $stmt->error;
     }
 
-    // ✅ Arahkan balik ke halaman index posko agar sidebar tetap tampil
+    // Arahkan balik ke halaman profil
     header("Location: index.php?page=profil_posko");
     exit;
 }
@@ -166,14 +174,14 @@ $user = $result->fetch_assoc();
 </div>
 
 <script>
-    document.getElementById('profile_photo').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                document.getElementById('previewImage').src = ev.target.result;
-            }
-            reader.readAsDataURL(file);
+document.getElementById('profile_photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            document.getElementById('previewImage').src = ev.target.result;
         }
-    });
+        reader.readAsDataURL(file);
+    }
+});
 </script>

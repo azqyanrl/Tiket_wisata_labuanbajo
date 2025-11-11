@@ -37,10 +37,10 @@ if ($editing) {
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Kelola Tiket</h1>
+    <h1 class="h2">Kelola Paket Wisata</h1>
     <!-- Gunakan button dengan atribut Bootstrap untuk modal -->
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tiketModal">
-        <i class="bi bi-plus-circle me-1"></i> Tambah Tiket
+        <i class="bi bi-plus-circle me-1"></i> Tambah Paket Wisata
     </button>
 </div>
 
@@ -115,7 +115,7 @@ if ($editing) {
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="tiketModalLabel">Tambah Tiket</h5>
+                <h5 class="modal-title" id="tiketModalLabel">Tambah Paket Wisata</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="tiketForm" method="POST" action="proses/handle_tiket.php" enctype="multipart/form-data">

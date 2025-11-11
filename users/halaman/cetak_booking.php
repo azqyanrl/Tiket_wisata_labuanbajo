@@ -89,8 +89,20 @@ if (!$data_booking) {
                                 <div>
                                     <h6 class="text-muted mb-0">Status</h6>
                                     <h5 class="mb-0">
-                                        <span class="badge bg-<?= $data_booking['status'] == 'confirmed' ? 'success' : 'warning'; ?> text-uppercase">
-                                            <?= htmlspecialchars($data_booking['status']); ?>
+                                        <span class="badge bg-<?php 
+                                        $status = strtolower(trim($data_booking['status']));
+                                        if ($status === 'selesai') {
+                                            echo 'success';
+                                        } elseif ($status === 'pending') {
+                                            echo 'warning';
+                                        } elseif ($status === 'batal') {
+                                            echo 'danger';
+                                        } else {
+                                            echo 'secondary';
+                                        }
+                                    ?> text-uppercase">
+                                        <?= htmlspecialchars($data_booking['status']); ?>
+                                    </span>
                                         </span>
                                     </h5>
                                 </div>
@@ -150,7 +162,21 @@ if (!$data_booking) {
                                 </div>
                                 <div>
                                     <small class="text-muted d-block">Metode</small>
-                                    <span class="fw-semibold text-capitalize"><?= htmlspecialchars($data_booking['metode_pembayaran']); ?></span>
+                                    <span class="badge bg-<?php 
+                                        $status = strtolower(trim($data_booking['status']));
+                                        if ($status === 'selesai') {
+                                            echo 'success';
+                                        } elseif ($status === 'pending') {
+                                            echo 'warning';
+                                        } elseif ($status === 'batal') {
+                                            echo 'danger';
+                                        } else {
+                                            echo 'secondary';
+                                        }
+                                    ?> text-uppercase">
+                                        <?= htmlspecialchars($data_booking['status']); ?>
+                                    </span>
+
                                 </div>
                             </div>
                         </div>

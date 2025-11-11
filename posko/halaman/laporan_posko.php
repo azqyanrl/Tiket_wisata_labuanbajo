@@ -20,7 +20,7 @@ $filter_type = $_GET['filter_type'] ?? 'today';
 $date_from   = $_GET['date_from'] ?? date('Y-m-d');
 $date_to     = $_GET['date_to'] ?? date('Y-m-d');
 
-// ✅ Validasi tanggal hanya jika custom
+// === Validasi tanggal hanya jika custom ===
 if ($filter_type === 'custom') {
     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_from) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_to)) {
         echo "<script>alert('Format tanggal tidak valid!'); document.location.href='?page=laporan_posko';</script>";
@@ -37,7 +37,7 @@ switch ($filter_type) {
         $date_condition = "DATE(p.created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
         break;
     case 'week':
-        $date_condition = "WEEK(p.created_at) = WEEK(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())";
+        $date_condition = "YEARWEEK(p.created_at, 1) = YEARWEEK(CURDATE(), 1)";
         break;
     case 'month':
         $date_condition = "MONTH(p.created_at) = MONTH(CURDATE()) AND YEAR(p.created_at) = YEAR(CURDATE())";
@@ -45,11 +45,9 @@ switch ($filter_type) {
     case 'custom':
         $date_condition = "DATE(p.created_at) BETWEEN ? AND ?";
         break;
-    case 'all':
+    default:
         $date_condition = "1";
         break;
-    default:
-        $date_condition = "DATE(p.created_at) = CURDATE()";
 }
 
 // === Query Statistik ===
@@ -58,7 +56,8 @@ $stats_sql = "
         COUNT(*) AS total,
         SUM(CASE WHEN p.status='dibayar' THEN 1 ELSE 0 END) AS verified,
         SUM(CASE WHEN p.status='selesai' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN p.status='pending' THEN 1 ELSE 0 END) AS pending
+        SUM(CASE WHEN p.status='pending' THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN p.status='batal' THEN 1 ELSE 0 END) AS canceled
     FROM pemesanan p
     JOIN tiket t ON p.tiket_id=t.id
     WHERE t.lokasi=? AND $date_condition
@@ -70,19 +69,33 @@ if ($filter_type === 'custom') {
     $stats_stmt->bind_param('s', $lokasi_admin);
 }
 $stats_stmt->execute();
-$stats = $stats_stmt->get_result()->fetch_assoc() ?? ['total'=>0,'verified'=>0,'completed'=>0,'pending'=>0];
+$stats = $stats_stmt->get_result()->fetch_assoc() ?? [
+    'total'=>0,'verified'=>0,'completed'=>0,'pending'=>0,'canceled'=>0
+];
 
-// === Query Detail Laporan ===
+// === Query Detail Laporan (sinkron dengan verifikasi_history terbaru) ===
 $sql = "
-    SELECT p.*, t.nama_paket, u.nama_lengkap,
-           vh.admin_id, ua.nama_lengkap AS verifikator
+    SELECT 
+        p.id,
+        p.kode_booking,
+        p.tanggal_kunjungan,
+        p.jumlah_tiket,
+        p.total_harga,
+        p.status,
+        u.nama_lengkap,
+        t.nama_paket,
+        vh.metode_pembayaran,
+        ua.nama_lengkap AS verifikator
     FROM pemesanan p
-    JOIN tiket t ON p.tiket_id=t.id
-    JOIN users u ON p.user_id=u.id
+    JOIN tiket t ON p.tiket_id = t.id
+    JOIN users u ON p.user_id = u.id
     LEFT JOIN verifikasi_history vh 
-           ON vh.pemesanan_id=p.id 
-          AND vh.id=(SELECT MAX(id) FROM verifikasi_history WHERE pemesanan_id=p.id)
-    LEFT JOIN users ua ON vh.admin_id=ua.id
+        ON vh.id = (
+            SELECT MAX(id) 
+            FROM verifikasi_history 
+            WHERE pemesanan_id = p.id
+        )
+    LEFT JOIN users ua ON ua.id = vh.admin_id
     WHERE t.lokasi=? AND $date_condition
     ORDER BY p.created_at DESC
 ";
@@ -95,14 +108,18 @@ if ($filter_type === 'custom') {
 $stmt->execute();
 $res = $stmt->get_result();
 
-// === Hitung pendapatan & tiket selesai ===
+// === Hitung pendapatan, tiket selesai, dan tiket batal ===
 $total_pendapatan = 0;
 $total_tiket_selesai = 0;
+$total_tiket_batal = 0;
 $rows = [];
 while ($r = $res->fetch_assoc()) {
     if (in_array($r['status'], ['selesai', 'dibayar'])) {
         $total_pendapatan += $r['total_harga'];
         $total_tiket_selesai += $r['jumlah_tiket'];
+    }
+    if ($r['status'] === 'batal') {
+        $total_tiket_batal += $r['jumlah_tiket'];
     }
     $rows[] = $r;
 }
@@ -124,7 +141,6 @@ while ($r = $res->fetch_assoc()) {
     <div class="card shadow-sm mb-4 no-print">
         <div class="card-header bg-white fw-bold">Filter Tanggal</div>
         <div class="card-body">
-            <!-- ✅ Sudah fix: tetap di halaman laporan dan ada tombol reset -->
             <form method="GET" action="">
                 <input type="hidden" name="page" value="laporan_posko">
 
@@ -170,7 +186,7 @@ while ($r = $res->fetch_assoc()) {
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-start border-4 border-success shadow h-100">
                 <div class="card-body">
                     <h6>Tiket Selesai</h6>
@@ -178,19 +194,27 @@ while ($r = $res->fetch_assoc()) {
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-start border-4 border-info shadow h-100">
                 <div class="card-body">
-                    <h6>Telah Diverifikasi</h6>
+                    <h6>Terverifikasi</h6>
                     <h5><?= $stats['verified'] + $stats['completed'] ?></h5>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="card border-start border-4 border-warning shadow h-100">
                 <div class="card-body">
                     <h6>Menunggu</h6>
                     <h5><?= $stats['pending'] ?></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-start border-4 border-danger shadow h-100">
+                <div class="card-body">
+                    <h6>Tiket Dibatalkan</h6>
+                    <h5><?= $total_tiket_batal ?></h5>
                 </div>
             </div>
         </div>
@@ -212,6 +236,7 @@ while ($r = $res->fetch_assoc()) {
                             <th>Total</th>
                             <th>Status</th>
                             <th>Verifikasi Oleh</th>
+                            <th>Metode</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -221,7 +246,7 @@ while ($r = $res->fetch_assoc()) {
                                 <td><?= htmlspecialchars($row['kode_booking']) ?></td>
                                 <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
                                 <td><?= htmlspecialchars($row['nama_paket']) ?></td>
-                                <td><?= htmlspecialchars($row['tanggal_kunjungan']) ?></td>
+                                <td><?= date('d/m/Y', strtotime($row['tanggal_kunjungan'])) ?></td>
                                 <td><?= (int)$row['jumlah_tiket'] ?></td>
                                 <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
                                 <td>
@@ -238,19 +263,20 @@ while ($r = $res->fetch_assoc()) {
                                 </td>
                                 <td>
                                     <?php
-                                    if (in_array($row['status'], ['selesai','batal']) && !$row['verifikator']) {
-                                        echo '<span class="text-success fw-semibold">Admin Pusat</span>';
-                                    } elseif ($row['verifikator']) {
+                                    if ($row['verifikator']) {
                                         echo htmlspecialchars($row['verifikator']);
+                                    } elseif (in_array($row['status'], ['selesai','batal'])) {
+                                        echo '<span class="text-success fw-semibold">Admin Pusat</span>';
                                     } else {
                                         echo '<span class="text-muted">Belum Diverifikasi</span>';
                                     }
                                     ?>
                                 </td>
+                                <td><?= $row['metode_pembayaran'] ?: '-' ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
-                            <tr><td colspan="8" class="text-center text-muted">Tidak ada transaksi pada periode ini</td></tr>
+                            <tr><td colspan="9" class="text-center text-muted">Tidak ada transaksi pada periode ini</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

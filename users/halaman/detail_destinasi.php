@@ -12,8 +12,13 @@ if ($paket_wisata_id <= 0) {
     exit;
 }
 
-// Query dengan JOIN untuk mendapatkan nama kategori
- $query_paket = $konek->prepare("SELECT t.*, k.nama as nama_kategori FROM tiket t LEFT JOIN kategori k ON t.kategori_id = k.id WHERE t.id = ?");
+// Query dengan JOIN untuk mendapatkan nama kategori, tipe trip, dan lokasi
+ $query_paket = $konek->prepare("SELECT t.*, k.nama as nama_kategori, tt.nama as nama_tipe_trip, l.nama_lokasi 
+                                FROM tiket t 
+                                LEFT JOIN kategori k ON t.kategori_id = k.id 
+                                LEFT JOIN tipe_trip tt ON t.tipe_trip_id = tt.id
+                                LEFT JOIN lokasi l ON t.lokasi = l.nama_lokasi 
+                                WHERE t.id = ?");
  $query_paket->bind_param("i", $paket_wisata_id);
  $query_paket->execute();
  $data_paket = $query_paket->get_result()->fetch_assoc();
@@ -39,47 +44,92 @@ if (!$data_paket) {
 <div class="container my-5">
     <div class="row">
         <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
                     <h3 class="fw-bold mb-0"><?= htmlspecialchars($data_paket['nama_paket']); ?></h3>
                 </div>
                 <div class="card-body">
+                    <!-- BADGES INFORMASI UTAMA -->
                     <div class="mb-3">
                         <span class="badge bg-primary"><?= htmlspecialchars($data_paket['nama_kategori']); ?></span>
                         <span class="badge bg-info"><?= htmlspecialchars($data_paket['durasi']); ?></span>
                         <span class="badge <?= ($data_paket['status'] == 'aktif') ? 'bg-success' : 'bg-danger' ?>">
                             <?= ucfirst(htmlspecialchars($data_paket['status'])); ?>
                         </span>
+                        
+                        <!-- TAMBAHAN: BADGES TIPE TRIP, LOKASI, KAPASITAS -->
+                        <?php if (!empty($data_paket['nama_tipe_trip'])): ?>
+                        <span class="badge bg-secondary">
+                            <i class="bi bi-people-fill me-1"></i><?= htmlspecialchars($data_paket['nama_tipe_trip']); ?>
+                        </span>
+                        <?php endif; ?>
+
+                        <?php if (!empty($data_paket['nama_lokasi'])): ?>
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-geo-alt-fill me-1"></i><?= htmlspecialchars($data_paket['nama_lokasi']); ?>
+                        </span>
+                        <?php endif; ?>
+
+                        <?php if (!empty($data_paket['kapasitas']) && $data_paket['kapasitas'] > 0): ?>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-person-badge me-1"></i>Kapasitas: <?= htmlspecialchars($data_paket['kapasitas']); ?> Orang
+                        </span>
+                        <?php endif; ?>
                     </div>
                     
-                    <p><?= nl2br(htmlspecialchars($data_paket['deskripsi'])); ?></p>
-                    
-                    <?php if (!empty($data_paket['fasilitas'])): ?>
-                    <h5 class="mt-4">Fasilitas</h5>
-                    <div class="row">
-                        <?php 
-                        $fasilitas = explode(',', $data_paket['fasilitas']);
-                        foreach ($fasilitas as $fas): 
-                        ?>
-                        <div class="col-md-6 mb-2">
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            <?= htmlspecialchars(trim($fas)); ?>
+                    <!-- TAMBAHAN: INFO JADWAL -->
+                    <?php if (!empty($data_paket['jadwal'])): ?>
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <i class="bi bi-calendar-event-fill me-2"></i>
+                        <div>
+                            <strong>Jadwal:</strong> <?= nl2br(htmlspecialchars($data_paket['jadwal'])); ?>
                         </div>
-                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <p class="lead"><?= nl2br(htmlspecialchars($data_paket['deskripsi'])); ?></p>
+                    
+                    <!-- PERBAIKAN: FASILITAS DENGAN CARD -->
+                    <?php if (!empty($data_paket['fasilitas'])): ?>
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-star-fill text-warning me-2"></i>Fasilitas</h5>
+                            <div class="row">
+                                <?php 
+                                $fasilitas = explode(',', $data_paket['fasilitas']);
+                                foreach ($fasilitas as $fas): 
+                                ?>
+                                <div class="col-md-6 mb-2">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    <?= htmlspecialchars(trim($fas)); ?>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
                     <?php endif; ?>
                     
+                    <!-- PERBAIKAN: ITINERARY DENGAN CARD -->
                     <?php if (!empty($data_paket['itinerary'])): ?>
-                    <h5 class="mt-4">Itinerary</h5>
-                    <div class="bg-light p-3 rounded">
-                        <?= nl2br(htmlspecialchars($data_paket['itinerary'])); ?>
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-calendar-check text-primary me-2"></i>Itinerary</h5>
+                            <div class="bg-light p-3 rounded">
+                                <?= nl2br(htmlspecialchars($data_paket['itinerary'])); ?>
+                            </div>
+                        </div>
                     </div>
                     <?php endif; ?>
                     
+                    <!-- PERBAIKAN: SYARAT & KETENTUAN DENGAN CARD -->
                     <?php if (!empty($data_paket['syarat'])): ?>
-                    <h5 class="mt-4">Syarat & Ketentuan</h5>
-                    <div class="bg-light p-3 rounded">
-                        <?= nl2br(htmlspecialchars($data_paket['syarat'])); ?>
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-info-circle text-info me-2"></i>Syarat & Ketentuan</h5>
+                            <div class="bg-light p-3 rounded">
+                                <?= nl2br(htmlspecialchars($data_paket['syarat'])); ?>
+                            </div>
+                        </div>
                     </div>
                     <?php endif; ?>
                 </div>

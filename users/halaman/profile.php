@@ -41,7 +41,7 @@ if (!$user) {
  $totalPemesanan = $result->fetch_assoc()['total'];
  $stmt->close();
 
- $stmt = $konek->prepare('SELECT SUM(total_harga) as total FROM pemesanan WHERE user_id = ? AND status = "dibayar"');
+ $stmt = $konek->prepare('SELECT SUM(total_harga) as total FROM pemesanan WHERE user_id = ? AND status = "selesai"');
  $stmt->bind_param('i', $userId);
  $stmt->execute();
  $result = $stmt->get_result();

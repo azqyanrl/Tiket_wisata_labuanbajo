@@ -247,12 +247,6 @@ if (isset($_SESSION['username']) && $_SESSION['role'] === 'posko') {
           <i class="bi bi-shield-lock-fill"></i>
           <span>Masuk ke Sistem</span>
         </a>
-        
-        <div class="footer-links">
-          <a href="#">Bantuan</a>
-          <a href="#">Kebijakan</a>
-          <a href="#">Kontak</a>
-        </div>
       </div>
     </div>
   </div>

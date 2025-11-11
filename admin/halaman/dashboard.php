@@ -99,53 +99,6 @@ include '../../includes/alerts.php';
     </div>
 </div>
 
-<!-- Statistik Per Posko -->
-<div class="row mb-4">
-    <div class="col-12">
-        <h4>Statistik Per Posko</h4>
-    </div>
-    <?php
-    $stats_posko = $konek->query("
-        SELECT 
-            t.lokasi,
-            COUNT(p.id) as total_pemesanan,
-            SUM(CASE WHEN p.status = 'selesai' THEN 1 ELSE 0 END) as total_selesai,
-            SUM(CASE WHEN p.status = 'pending' THEN 1 ELSE 0 END) as total_pending,
-            SUM(CASE WHEN p.status = 'selesai' THEN p.total_harga ELSE 0 END) as total_pendapatan
-        FROM pemesanan p
-        JOIN tiket t ON p.tiket_id = t.id
-        GROUP BY t.lokasi
-        ORDER BY total_pendapatan DESC
-    ");
-    
-    while($stat = $stats_posko->fetch_assoc()):
-    ?>
-    <div class="col-md-3">
-        <div class="card border-start border-4 border-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="flex-grow-1">
-                    <div class="text-uppercase fw-bold text-primary fs-6"><?= htmlspecialchars($stat['lokasi']) ?></div>
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Total</small>
-                            <div class="h6 mb-0"><?= $stat['total_pemesanan'] ?></div>
-                        </div>
-                        <div class="col-6">
-                            <small class="text-muted">Selesai</small>
-                            <div class="h6 mb-0 text-success"><?= $stat['total_selesai'] ?></div>
-                        </div>
-                    </div>
-                    <div class="mt-2">
-                        <small class="text-muted">Pendapatan</small>
-                        <div class="fw-bold">Rp <?= number_format($stat['total_pendapatan'], 0, ',', '.') ?></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endwhile; ?>
-</div>
-
 <!-- Pemesanan Terbaru -->
 <h4 class="mb-3">Pemesanan Terbaru</h4>
 <div class="table-responsive">

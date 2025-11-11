@@ -59,7 +59,7 @@ ob_end_flush();
           </li>
           <li><a href="?page=kelola_pemesanan" class="nav-link <?= ($page=='kelola_pemesanan')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-list-check me-2"></i> Kelola Pemesanan</a></li>
           <li><a href="?page=input_pembayaran" class="nav-link <?= ($page=='input_pembayaran')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-cash-coin me-2"></i> Input Pembayaran</a></li>
-          <li><a href="?page=kelola_tiket" class="nav-link <?= ($page=='kelola_tiket')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-ticket-perforated me-2"></i> Kelola Tiket</a></li>
+          <li><a href="?page=kelola_tiket" class="nav-link <?= ($page=='kelola_tiket')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-ticket-perforated me-2"></i> Kelola Wisata</a></li>
           <li><a href="?page=kelola_kategori" class="nav-link <?= ($page=='kelola_kategori')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-grid me-2"></i> Kelola Kategori</a></li>
           <li><a href="?page=kelola_user" class="nav-link <?= ($page=='kelola_user')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-people me-2"></i> Kelola User</a></li>
           <li><a href="?page=kelola_galeri" class="nav-link <?= ($page=='kelola_galeri')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-images me-2"></i> Kelola Galeri</a></li>

@@ -1,50 +1,53 @@
 <?php
-// 🔧 Debug otomatis: aktif di localhost, mati di server publik
+// 🔧 Mode debug otomatis
 if (
     in_array($_SERVER['REMOTE_ADDR'], ['127.0.0.1', '::1']) ||
     str_contains($_SERVER['HTTP_HOST'], 'localhost')
 ) {
-    // Mode pengembangan (development)
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
 } else {
-    // Mode produksi (production)
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
     error_reporting(0);
 }
-;
 
 // ✅ Mulai session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Jika admin sudah login, redirect ke dashboard
-if (isset($_SESSION['username']) && $_SESSION['role'] == 'admin') {
+// Jika admin sudah login, arahkan ke dashboard
+if (isset($_SESSION['username']) && $_SESSION['role'] === 'admin') {
     header('Location: ../halaman/index.php');
     exit;
 }
 
-// Proses login jika form dikirim
+// Proses login
 if (isset($_POST['login'])) {
     include "../../database/konek.php";
 
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    $log = $konek->prepare("SELECT * FROM users WHERE (username = ? OR email = ?) AND role = 'admin'");
+    $log = $konek->prepare("
+        SELECT * FROM users 
+        WHERE (username = ? OR email = ?) AND role = 'admin'
+    ");
     $log->bind_param("ss", $username, $username);
     $log->execute();
     $result = $log->get_result();
 
     if ($result->num_rows > 0) {
         $data = $result->fetch_assoc();
+
         if (password_verify($password, $data['password'])) {
-            $_SESSION['user_id']  = $data['id'];
+            // ✅ Simpan session dengan key konsisten
+            $_SESSION['id']       = $data['id'];        // ⚡ perbaikan penting
             $_SESSION['username'] = $data['username'];
             $_SESSION['role']     = $data['role'];
+
             $_SESSION['success_message'] = "Login berhasil! Selamat datang, Admin.";
             header('Location: ../halaman/index.php');
             exit;
@@ -72,15 +75,14 @@ include '../../includes/boot.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../../assets/images/bg/padar3.jpg') no-repeat center center;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                        url('../../assets/images/bg/padar3.jpg') no-repeat center center;
             background-size: cover;
             min-height: 100vh;
         }
-        .login-container {
-            max-width: 900px;
-        }
+        .login-container { max-width: 900px; }
         .branding-section {
-            background-color: rgba(220, 53, 69, 0.85); /* Aksen merah untuk Admin */
+            background-color: rgba(220,53,69,0.85);
         }
         .btn-theme {
             background-color: #dc3545;
@@ -95,7 +97,7 @@ include '../../includes/boot.php';
 <body class="d-flex align-items-center justify-content-center">
     <div class="container login-container">
         <div class="row shadow-lg rounded-3 overflow-hidden">
-            <!-- Branding Section -->
+            <!-- Branding -->
             <div class="col-lg-6 branding-section p-5 d-flex flex-column justify-content-center text-white">
                 <div class="text-center mb-4">
                     <i class="bi bi-person-gear fs-1"></i>
@@ -105,10 +107,10 @@ include '../../includes/boot.php';
                 <p class="text-center">Pusat kendali utama untuk mengelola seluruh sistem pariwisata.</p>
             </div>
 
-            <!-- Form Section -->
+            <!-- Form -->
             <div class="col-lg-6 bg-white p-5">
                 <h3 class="fw-bold text-center mb-4">Login sebagai Admin</h3>
-                
+
                 <?php include '../../includes/alerts.php'; ?>
 
                 <form method="POST" action="">

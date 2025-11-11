@@ -94,10 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_photo'])) {
                     $update_photo = $konek->prepare("UPDATE users SET profile_photo = ? WHERE id = ?");
                     $update_photo->bind_param("si", $new_filename, $admin_data['id']);
                     if ($update_photo->execute()) {
+                        $_SESSION['profile_photo'] = $new_filename;
                         $_SESSION['success_message'] = "Foto profile berhasil diubah.";
                     } else {
                         $_SESSION['error_message'] = "Gagal mengupdate foto profile.";
                     }
+
                 } else {
                     $_SESSION['error_message'] = "Gagal mengupload foto.";
                 }
