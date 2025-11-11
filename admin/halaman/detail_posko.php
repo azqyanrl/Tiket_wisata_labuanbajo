@@ -18,13 +18,49 @@ if (!isset($_GET['posko'])) {
     exit(); 
 }
 
- $posko = $_GET['posko'];
- $tanggal_awal = $_GET['awal'] ?? date('Y-m-01');
- $tanggal_akhir = $_GET['akhir'] ?? date('Y-m-d');
+$posko = $_GET['posko'];
+$tanggal_awal = $_GET['awal'] ?? date('Y-m-01');
+$tanggal_akhir = $_GET['akhir'] ?? date('Y-m-d');
+
+// 🔍 Ambil data posko dari database
+$query_posko = $konek->prepare("SELECT nama_lengkap, profile_photo FROM users WHERE role = 'posko' AND lokasi = ? LIMIT 1");
+$query_posko->bind_param("s", $posko);
+$query_posko->execute();
+$data_posko = $query_posko->get_result()->fetch_assoc();
+
+// 📸 Cek foto profil posko
+$fotoPath = '';
+if (!empty($data_posko['profile_photo'])) {
+    $fotoFile = htmlspecialchars($data_posko['profile_photo']);
+    $basePath = '../../assets/images/profile/';
+    if (file_exists($basePath . $fotoFile)) {
+        $fotoPath = $basePath . $fotoFile;
+    }
+}
+
+// 🧾 Nama posko fallback
+$nama_posko = $data_posko['nama_lengkap'] ?? $posko;
+$initial = strtoupper(substr($nama_posko, 0, 1));
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Detail Posko: <?= htmlspecialchars($posko) ?></h1>
+    <div class="d-flex align-items-center">
+        <?php if ($fotoPath): ?>
+            <img src="<?= $fotoPath ?>" alt="Foto Posko" class="rounded-circle me-3 shadow-sm border border-light" 
+                 width="60" height="60" style="object-fit: cover;">
+        <?php else: ?>
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3 shadow-sm"
+                 style="width: 60px; height: 60px; font-size: 22px; font-weight: bold;">
+                <?= $initial ?>
+            </div>
+        <?php endif; ?>
+
+        <div>
+            <h1 class="h2 mb-0"><?= htmlspecialchars($nama_posko) ?></h1>
+            <small class="text-muted">Detail Posko: <?= htmlspecialchars($posko) ?></small>
+        </div>
+    </div>
+
     <a href="?page=statistik_posko&awal=<?= $tanggal_awal ?>&akhir=<?= $tanggal_akhir ?>" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Kembali
     </a>
@@ -184,7 +220,7 @@ if (!isset($_GET['posko'])) {
                                 <td>" . htmlspecialchars($row['jumlah_tiket']) . "</td>
                                 <td>Rp " . number_format($row['total_harga'], 0, ',', '.') . "</td>
                                 <td><span class='badge $statusClass'>" . ucfirst(htmlspecialchars($row['status'])) . "</span></td>
-                                <td>" . ($row['admin_nama'] ? htmlspecialchars($row['admin_nama']) : '<span class="text-muted">Belum</span>') . "</td>
+                                <td>" . ($row['admin_nama'] ? htmlspecialchars($row['admin_nama']) : '<span class=\"text-muted\">Belum</span>') . "</td>
                                 <td>" . date('d/m/Y H:i', strtotime($row['created_at'])) . "</td>
                             </tr>";
                         }
@@ -198,5 +234,5 @@ if (!isset($_GET['posko'])) {
     </div>
 </div>
 <?php
-ob_end_flush(); // Kirim output ke browser
+ob_end_flush();
 ?>

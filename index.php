@@ -12,7 +12,7 @@
 </head>
 <body>
   <!-- Enhanced Navbar -->
-  <nav class="navbar navbar-expand-lg fixed-top navbar-dark navbar-custom">
+  <nav class="navbar navbar-expand-lg fixed-top" style="background-color: #11111138;">
     <div class="container">
       <a class="navbar-brand" href="#">
         <i class="fas fa-ship me-2"></i>LabuanBajoTrip
@@ -253,7 +253,7 @@
                                 <?php } ?>
                             </div>
                             
-                            <a href="users/login/login.php?id=<?= $data['id']; ?>" class="btn btn-destination w-100">
+                            <a href="users/login/login.php?id=<?= $data['id']; ?>" class="btn btn-destination w-100 text-light">
                                 <i class="fas fa-shopping-cart me-2"></i>Login
                             </a>
                         </div>

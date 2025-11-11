@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     echo "<script>alert('Akses ditolak!'); document.location.href='../login/login.php';</script>";
@@ -21,7 +19,7 @@ include '../../includes/boot.php';
     <div class="col-md-12">
         <div class="card">
             <div class="card-body">
-                <form method="GET" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+                <form method="GET" action="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>">
                     <input type="hidden" name="page" value="kelola_pemesanan">
                     <div class="row">
                         <div class="col-md-2">
@@ -32,8 +30,8 @@ include '../../includes/boot.php';
                                 $posko_list = $konek->query("SELECT DISTINCT lokasi FROM tiket ORDER BY lokasi");
                                 while ($posko = $posko_list->fetch_assoc()):
                                 ?>
-                                <option value="<?= htmlspecialchars($posko['lokasi']) ?>" <?= (isset($_GET['posko_filter']) && $_GET['posko_filter'] == $posko['lokasi']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($posko['lokasi']) ?>
+                                <option value="<?= htmlspecialchars($posko['lokasi'] ?? '') ?>" <?= (isset($_GET['posko_filter']) && $_GET['posko_filter'] == $posko['lokasi']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($posko['lokasi'] ?? '') ?>
                                 </option>
                                 <?php endwhile; ?>
                             </select>
@@ -42,15 +40,15 @@ include '../../includes/boot.php';
                             <label for="status_filter" class="form-label">Status</label>
                             <select class="form-select" id="status_filter" name="status_filter">
                                 <option value="">Semua Status</option>
-                                <option value="pending" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                                <option value="dibayar" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'dibayar') ? 'selected' : ''; ?>>Dibayar</option>
-                                <option value="selesai" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'selesai') ? 'selected' : ''; ?>>Selesai</option>
-                                <option value="batal" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'batal') ? 'selected' : ''; ?>>Batal</option>
+                                <option value="pending" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'pending') ? 'selected' : '' ?>>Pending</option>
+                                <option value="dibayar" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'dibayar') ? 'selected' : '' ?>>Dibayar</option>
+                                <option value="selesai" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'selesai') ? 'selected' : '' ?>>Selesai</option>
+                                <option value="batal" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'batal') ? 'selected' : '' ?>>Batal</option>
                             </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">Filter</button>
-                            <a href="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>?page=kelola_pemesanan" class="btn btn-secondary">Reset</a>
+                            <a href="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>?page=kelola_pemesanan" class="btn btn-secondary">Reset</a>
                         </div>
                     </div>
                 </form>
@@ -118,8 +116,8 @@ include '../../includes/boot.php';
                 $result = false;
             }
 
-            if ($result && $result->num_rows > 0) {
-                while ($data = $result->fetch_assoc()) {
+            if ($result && $result->num_rows > 0):
+                while ($data = $result->fetch_assoc()):
                     $statusClass = match ($data['status']) {
                         'pending' => 'bg-warning text-dark',
                         'dibayar' => 'bg-info text-dark',
@@ -129,43 +127,43 @@ include '../../includes/boot.php';
                     };
             ?>
                 <tr>
-                    <td><?= htmlspecialchars($data['kode_booking']) ?></td>
-                    <td><?= htmlspecialchars($data['nama_lengkap']) ?></td>
-                    <td><?= htmlspecialchars($data['nama_paket']) ?></td>
-                    <td><span class="badge bg-secondary"><?= htmlspecialchars($data['nama_posko']) ?></span></td>
-                    <td><?= (int)$data['jumlah_tiket'] ?></td>
-                    <td>Rp <?= number_format($data['total_harga'], 0, ',', '.') ?></td>
-                    <td><span class="badge <?= $statusClass ?>"><?= ucfirst(htmlspecialchars($data['status'])) ?></span></td>
+                    <td><?= htmlspecialchars($data['kode_booking'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($data['nama_lengkap'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($data['nama_paket'] ?? '') ?></td>
+                    <td><span class="badge bg-secondary"><?= htmlspecialchars($data['nama_posko'] ?? '') ?></span></td>
+                    <td><?= (int)($data['jumlah_tiket'] ?? 0) ?></td>
+                    <td>Rp <?= number_format($data['total_harga'] ?? 0, 0, ',', '.') ?></td>
+                    <td><span class="badge <?= $statusClass ?>"><?= ucfirst(htmlspecialchars($data['status'] ?? '')) ?></span></td>
                     <td>
                         <?php
-                        if ($data['status'] === 'pending') {
+                        if (($data['status'] ?? '') === 'pending') {
                             echo "<span class='text-muted'>-</span>";
                         } elseif (!empty($data['admin_nama'])) {
-                            $get_posko = $konek->query("SELECT lokasi FROM users WHERE id = " . (int)$data['admin_id']);
+                            $get_posko = $konek->query("SELECT lokasi FROM users WHERE id = " . (int)($data['admin_id'] ?? 0));
                             if ($get_posko && $row = $get_posko->fetch_assoc()) {
-                                echo htmlspecialchars($row['lokasi']) . " - " . htmlspecialchars($data['admin_nama']);
+                                echo htmlspecialchars($row['lokasi'] ?? '') . " - " . htmlspecialchars($data['admin_nama'] ?? '');
                             } else {
-                                echo htmlspecialchars($data['admin_nama']);
+                                echo htmlspecialchars($data['admin_nama'] ?? '');
                             }
                         } else {
                             echo "<span class='text-primary'>Admin Pusat</span>";
                         }
                         ?>
                     </td>
-                    <td><?= date('d/m/Y', strtotime($data['created_at'])) ?></td>
+                    <td><?= !empty($data['created_at']) ? date('d/m/Y', strtotime($data['created_at'])) : '-' ?></td>
                     <td>
-                        <a href='?page=detail_pemesanan&id=<?= htmlspecialchars($data['id']) ?>' class='btn btn-sm btn-info mb-1'>
+                        <a href='?page=detail_pemesanan&id=<?= htmlspecialchars($data['id'] ?? 0) ?>' class='btn btn-sm btn-info mb-1'>
                             <i class='bi bi-eye'></i> Detail
                         </a>
 
-                        <?php if ($data['status'] === 'dibayar'): ?>
-                            <a href='proses/proses_pemesanan.php?action=complete&id=<?= htmlspecialchars($data['id']) ?>'
+                        <?php if (($data['status'] ?? '') === 'dibayar'): ?>
+                            <a href='proses/proses_pemesanan.php?action=complete&id=<?= htmlspecialchars($data['id'] ?? 0) ?>'
                                class='btn btn-sm btn-success mb-1'
                                onclick="return confirm('Tandai pesanan ini sebagai selesai?');">
                                <i class='bi bi-check-circle'></i> Tandai Selesai
                             </a>
-                        <?php elseif ($data['status'] === 'pending'): ?>
-                            <a href='proses/proses_pemesanan.php?action=cancel&id=<?= htmlspecialchars($data['id']) ?>'
+                        <?php elseif (($data['status'] ?? '') === 'pending'): ?>
+                            <a href='proses/proses_pemesanan.php?action=cancel&id=<?= htmlspecialchars($data['id'] ?? 0) ?>'
                                class='btn btn-sm btn-danger mb-1'
                                onclick="return confirm('Yakin ingin membatalkan pesanan ini?');">
                                <i class='bi bi-x-circle'></i> Batalkan
@@ -174,10 +172,10 @@ include '../../includes/boot.php';
                     </td>
                 </tr>
             <?php
-                }
-            } else {
+                endwhile;
+            else:
                 echo "<tr><td colspan='10' class='text-center'>Tidak ada data yang cocok dengan kriteria pencarian.</td></tr>";
-            }
+            endif;
             ?>
         </tbody>
     </table>

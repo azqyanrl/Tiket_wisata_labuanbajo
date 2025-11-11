@@ -20,13 +20,12 @@ $lokasi_admin = $_SESSION['lokasi'];
 
 <!-- 🔍 Form Pencarian -->
 <div class="card mb-4">
-    <div class="card-header">
-        <h5>Cari Pemesanan Berdasarkan Kode Booking</h5>
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="bi bi-search me-2"></i>Cari Pemesanan Berdasarkan Kode Booking</h5>
     </div>
     <div class="card-body">
         <div class="input-group">
-            <input type="text" id="kode_booking" class="form-control"
-                   placeholder="Ketik kode booking..." autofocus>
+            <input type="text" id="kode_booking" class="form-control" placeholder="Ketik kode booking..." autofocus>
             <span class="input-group-text"><i class="bi bi-search"></i></span>
         </div>
     </div>
@@ -38,7 +37,7 @@ $lokasi_admin = $_SESSION['lokasi'];
 </div>
 
 <!-- 📋 Tabel Semua Pesanan Pending -->
-<div class="card">
+<div class="card shadow-sm">
     <div class="card-header bg-primary text-light">
         <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Daftar Pesanan Pending</h5>
     </div>
@@ -82,15 +81,19 @@ $lokasi_admin = $_SESSION['lokasi'];
                     <td>Rp <?= number_format($row['total_harga'], 0, ',', '.') ?></td>
                     <td><span class="badge bg-warning text-dark">Pending</span></td>
                     <td>
-                        <a href="?page=verifikasi_tiket&id=<?= urlencode($row['id']) ?>" 
-                           class="btn btn-sm btn-primary">
+                        <a href="index.php?page=verifikasi_tiket&id=<?= urlencode($row['id']) ?>" 
+                           class="btn btn-sm btn-success">
                            <i class="bi bi-check-circle"></i> Verifikasi
                         </a>
-                        <a href="proses/proses_pemesanan.php?action=cancel&id=<?= $row['id'] ?>"
-                           class="btn btn-sm btn-danger"
-                           onclick="return confirm('Batalkan pesanan ini?')">
-                           <i class="bi bi-x-circle"></i> Batalkan
-                        </a>
+
+                        <form method="POST" action="index.php?page=verifikasi_tiket" style="display:inline-block;" 
+                              onsubmit="return confirm('Batalkan pesanan ini?')">
+                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="bi bi-x-circle"></i> Batal
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 <?php
@@ -104,6 +107,7 @@ $lokasi_admin = $_SESSION['lokasi'];
     </div>
 </div>
 
+<!-- ✅ AJAX Script -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function(){

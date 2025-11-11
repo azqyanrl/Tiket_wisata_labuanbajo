@@ -45,6 +45,61 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
       color: #64748b;
       font-style: italic;
     }
+    /* Destinations Section */
+.destinations-section {
+  padding: 80px 0;
+}
+
+.destination-card {
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  border: none;
+  position: relative;
+}
+
+.destination-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.destination-img {
+  height: 250px;
+  object-fit: cover;
+  transition: all 0.5s ease;
+}
+
+.destination-card:hover .destination-img {
+  transform: scale(1.05);
+}
+
+.destination-price {
+  font-weight: 700;
+  color: #1e40af; /* secondary color */
+  font-size: 1.5rem;
+}
+
+.btn-destination {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7); /* primary gradient */
+  border: none;
+  border-radius: 30px;
+  padding: 10px 25px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-destination:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3);
+}
+
+.features-list small {
+  display: block;
+  margin-bottom: 3px;
+}
+
 </style>
 
 <!DOCTYPE html>
@@ -52,6 +107,14 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({ duration: 1000, once: true });
+    </script>
+
 </head>
 <body>
     <div class="hero-section position-relative d-flex align-items-center vh-100">
@@ -102,35 +165,89 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
     </div>
   </div>
 </div>
-<div class="container my-5">
-    <h3 class="mb-4 text-center">Paket Wisata</h3>
-    <div class="row" z>
-        <?php
-        // Ambil data tiket yang aktif
-        $query = "SELECT * FROM tiket WHERE status='aktif' ORDER BY created_at DESC LIMIT 3";
-        $result = $konek->query($query);
-
-        if ($result && $result->num_rows > 0) {
-            while ($data = $result->fetch_assoc()) {
-        ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <img src="../../assets/images/tiket/<?= htmlspecialchars($data['gambar']); ?>" class="card-img-top" alt="<?= htmlspecialchars($data['nama_paket']); ?>" style="height: 210px; width: 100%; object-fit: cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title"><?= htmlspecialchars($data['nama_paket']); ?></h5>
-                            <p class="text-muted mb-1"><?= htmlspecialchars($data['durasi']); ?></p>
-                            <p class="fw-bold text-primary mt-auto">Rp <?= number_format($data['harga'], 0, ',', '.'); ?></p>
-                            <a href="detail_destinasi.php?id=<?= $data['id']; ?>" class="btn btn-sm btn-outline-primary mt-2">Lihat Detail</a>
-                        </div>
-                    </div>
-                </div>
-        <?php
-            }
-        } else {
-            echo "<div class='col-12 text-center text-muted'>Belum ada paket wisata tersedia.</div>";
-        }
-        ?>
+<!-- Destinations Section - Tiket -->
+<section id="destinations" class="destinations-section">
+  <div class="container">
+    <div class="text-center mb-5" data-aos="fade-up">
+      <h2 class="fw-bold mb-3">Paket Wisata Populer</h2>
+      <p class="text-muted fs-5">Pilih paket terbaik untuk petualangan impian Anda</p>
     </div>
+
+    <div class="row">
+      <?php
+      include '../../database/konek.php';
+      $query = "SELECT t.*, k.nama as kategori_nama, l.nama_lokasi 
+                FROM tiket t 
+                LEFT JOIN kategori k ON t.kategori_id = k.id 
+                LEFT JOIN lokasi l ON t.lokasi = l.nama_lokasi
+                WHERE t.status='aktif' 
+                ORDER BY t.created_at DESC 
+                LIMIT 6";
+      $result = $konek->query($query);
+
+      if ($result && $result->num_rows > 0) {
+          while ($data = $result->fetch_assoc()) {
+              // Ambil fasilitas dari database, maksimal 3 item
+              $fasilitasArray = explode(',', $data['fasilitas']);
+              $fasilitasToShow = array_slice($fasilitasArray, 0, 3);
+      ?>
+          <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="<?php echo rand(100, 300); ?>">
+            <div class="destination-card">
+              <div class="position-relative overflow-hidden">
+                <img src="../../assets/images/tiket/<?= htmlspecialchars($data['gambar']); ?>" 
+                     class="destination-img w-100" 
+                     alt="<?= htmlspecialchars($data['nama_paket']); ?>">
+                <div class="position-absolute top-0 end-0 p-2">
+                  <span class="badge bg-primary rounded-pill">
+                    <?= htmlspecialchars($data['kategori_nama']); ?>
+                  </span>
+                </div>
+              </div>
+
+              <div class="card-body p-4">
+                <h5 class="fw-semibold mb-2"><?= htmlspecialchars($data['nama_paket']); ?></h5>
+                <p class="text-muted mb-2"><i class="fas fa-clock me-2"></i><?= htmlspecialchars($data['durasi']); ?></p>
+                <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-2"></i><?= htmlspecialchars($data['lokasi']); ?></p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div class="destination-price">
+                    Rp <?= number_format($data['harga'], 0, ',', '.'); ?>
+                  </div>
+                  <div class="text-muted">
+                    <small><i class="fas fa-users me-1"></i><?= $data['stok']; ?> tersedia</small>
+                  </div>
+                </div>
+                
+                <div class="features-list mb-3">
+                  <?php foreach ($fasilitasToShow as $fasilitas) { ?>
+                    <small class="text-muted">
+                      <i class="fas fa-check text-success me-1"></i> <?= htmlspecialchars(trim($fasilitas)); ?>
+                    </small><br>
+                  <?php } ?>
+                </div>
+                
+                <a href="detail_destinasi.php?id=<?= $data['id']; ?>" class="btn btn-destination w-100 text-light">
+                  <i class="fas fa-shopping-cart me-2"></i>Pesan Sekarang
+                </a>
+              </div>
+            </div>
+          </div>
+      <?php
+          }
+      } else {
+          echo "<div class='col-12 text-center text-muted'>Belum ada paket wisata tersedia.</div>";
+      }
+      ?>
+    </div>
+
+    <div class="text-center mt-5" data-aos="fade-up">
+      <a href="destinasi.php" class="btn btn-outline-primary btn-lg rounded-pill px-5">
+        Lihat Semua Paket <i class="fas fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
     <!-- Wildlife Section -->
   <section class="wildlife-section">
     <div class="container">

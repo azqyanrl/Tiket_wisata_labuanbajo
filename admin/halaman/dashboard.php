@@ -27,7 +27,7 @@ include '../../includes/alerts.php';
                     <div>
                         <h4 class="mb-0">
                             <?php 
-                                $query_total = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan");
+                                $query_total = $konek->prepare("SELECT COUNT(*) AS total FROM pemesanan");
                                 $query_total->execute();
                                 echo $query_total->get_result()->fetch_assoc()['total']; 
                             ?>
@@ -46,7 +46,7 @@ include '../../includes/alerts.php';
                     <div>
                         <h4 class="mb-0">
                             <?php 
-                                $query_selesai = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'selesai'");
+                                $query_selesai = $konek->prepare("SELECT COUNT(*) AS total FROM pemesanan WHERE status = 'selesai'");
                                 $query_selesai->execute();
                                 echo $query_selesai->get_result()->fetch_assoc()['total']; 
                             ?>
@@ -65,7 +65,7 @@ include '../../includes/alerts.php';
                     <div>
                         <h4 class="mb-0">
                             <?php 
-                                $query_pending = $konek->prepare("SELECT COUNT(*) as total FROM pemesanan WHERE status = 'pending'");
+                                $query_pending = $konek->prepare("SELECT COUNT(*) AS total FROM pemesanan WHERE status = 'pending'");
                                 $query_pending->execute();
                                 echo $query_pending->get_result()->fetch_assoc()['total']; 
                             ?>
@@ -85,7 +85,7 @@ include '../../includes/alerts.php';
                         <h4 class="mb-0">
                             Rp 
                             <?php 
-                                $query_pendapatan = $konek->prepare("SELECT SUM(total_harga) as total FROM pemesanan WHERE status = 'selesai'");
+                                $query_pendapatan = $konek->prepare("SELECT SUM(total_harga) AS total FROM pemesanan WHERE status = 'selesai'");
                                 $query_pendapatan->execute();
                                 echo number_format($query_pendapatan->get_result()->fetch_assoc()['total'] ?? 0, 0, ',', '.'); 
                             ?>
@@ -119,42 +119,58 @@ include '../../includes/alerts.php';
         <tbody>
             <?php
             $query_recent = $konek->prepare("
-                SELECT p.kode_booking, u.nama_lengkap, t.nama_paket, t.lokasi AS nama_posko,
-                       p.jumlah_tiket, p.total_harga, p.status, p.created_at,
-                       u2.nama_lengkap AS admin_nama, u2.lokasi AS admin_posko
+                SELECT 
+                    p.kode_booking,
+                    u.nama_lengkap,
+                    t.nama_paket,
+                    t.lokasi AS nama_posko,
+                    p.jumlah_tiket,
+                    p.total_harga,
+                    p.status,
+                    p.created_at,
+                    u2.nama_lengkap AS admin_nama,
+                    u2.lokasi AS admin_posko
                 FROM pemesanan p
                 JOIN users u ON p.user_id = u.id
                 JOIN tiket t ON p.tiket_id = t.id
-                LEFT JOIN verifikasi_history vh ON vh.pemesanan_id = p.id
+                LEFT JOIN verifikasi_history vh 
+                    ON vh.id = (
+                        SELECT vh2.id 
+                        FROM verifikasi_history vh2 
+                        WHERE vh2.pemesanan_id = p.id 
+                        ORDER BY vh2.id DESC 
+                        LIMIT 1
+                    )
                 LEFT JOIN users u2 ON vh.admin_id = u2.id
                 ORDER BY p.created_at DESC
                 LIMIT 10
             ");
             $query_recent->execute();
             $recent = $query_recent->get_result();
-
             if ($recent->num_rows > 0):
-                while($r = $recent->fetch_assoc()):
+                while ($r = $recent->fetch_assoc()):
                     $statusClass = match($r['status']) {
                         'pending' => 'bg-warning text-dark',
                         'dibayar' => 'bg-info',
                         'selesai' => 'bg-success',
-                        'dibatalkan' => 'bg-danger',
+                        'batal', 'dibatalkan' => 'bg-danger',
                         default => 'bg-secondary'
                     };
 
                     // Tentukan teks "Diverifikasi oleh"
-                    if ($r['status'] == 'pending') {
+                    if ($r['status'] === 'pending') {
                         $verifikator = '<span class="text-muted">-</span>';
                     } elseif ($r['admin_nama']) {
-                        // Ada admin yang verifikasi
                         if (!empty($r['admin_posko'])) {
-                            $verifikator = htmlspecialchars($r['admin_nama']) . " <span class='badge bg-secondary'>" . htmlspecialchars($r['admin_posko']) . "</span>";
+                            $verifikator = '<span class="fw-semibold text-dark">'
+                                . htmlspecialchars($r['admin_nama'])
+                                . '</span> <span class="badge bg-secondary">'
+                                . htmlspecialchars($r['admin_posko'])
+                                . '</span>';
                         } else {
                             $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
                         }
                     } else {
-                        // Tidak ada riwayat, tapi status bukan pending
                         $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
                     }
             ?>
