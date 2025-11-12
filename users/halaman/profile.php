@@ -465,7 +465,7 @@ if (!$user) {
                         </p>
                         <div class="d-flex justify-content-between">
                           <small class="text-muted">Kode: <?= e($booking['kode_booking']) ?></small>
-                          <a href="detail_pemesanan.php?id=<?= $booking['id'] ?>" class="btn btn-sm btn-outline-primary">
+                          <a href="detail_destinasi.php?id=<?= $booking['id'] ?>" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-eye me-1"></i>Detail
                           </a>
                         </div>

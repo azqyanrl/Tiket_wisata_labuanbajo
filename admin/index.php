@@ -25,7 +25,7 @@
             <p class="lead mt-3">Kelola keindahan dan potensi pariwisata dunia dari satu pusat kendali.</p>
             
             <!-- Tombol Utama Menuju Login -->
-            <a href="login/login.php" class="btn btn-success btn-lg mt-4">
+            <a href="login/login.php" class="btn btn-danger btn-lg mt-4">
                 <i class="bi bi-lock-fill me-2"></i> Masuk ke Dashboard
             </a>
         </div>
