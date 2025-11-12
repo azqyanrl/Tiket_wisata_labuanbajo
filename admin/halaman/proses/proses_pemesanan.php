@@ -141,6 +141,6 @@ switch ($action) {
         break;
 }
 
-header("Location: ?page=kelola_pemesanan");
+header("Location: ../index.php?page=kelola_pemesanan");
 exit;
 ?>
