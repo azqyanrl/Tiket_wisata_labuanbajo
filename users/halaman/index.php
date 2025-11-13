@@ -169,7 +169,7 @@ include '../../includes/boot.php'; // Saya asumsikan ini file untuk Bootstrap CS
 <section id="destinations" class="destinations-section">
   <div class="container">
     <div class="text-center mb-5" data-aos="fade-up">
-      <h2 class="fw-bold mb-3">Paket Wisata Populer</h2>
+      <h2 class="fw-bold mb-3">Paket Wisata </h2>
       <p class="text-muted fs-5">Pilih paket terbaik untuk petualangan impian Anda</p>
     </div>
 

@@ -271,6 +271,89 @@ unset($_SESSION['notif']);
 </div>
 
 <!-- Modal Edit dan Password (sama seperti sebelumnya, tinggal copy) -->
+ <?php $res->data_seek(0); while($r = $res->fetch_assoc()): ?>
+<!-- Modal Edit Posko -->
+<div class="modal fade" id="editModal<?= $r['id'] ?>" tabindex="-1" aria-labelledby="editModalLabel<?= $r['id'] ?>" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-warning text-white">
+        <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Data Posko</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <input type="hidden" name="update_posko" value="1">
+        <input type="hidden" name="id" value="<?= $r['id'] ?>">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Nama Lengkap</label>
+              <input name="nama" class="form-control" value="<?= htmlspecialchars($r['nama_lengkap']) ?>" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Email</label>
+              <input name="email" type="email" class="form-control" value="<?= htmlspecialchars($r['email']) ?>" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">No HP</label>
+              <input name="no_hp" type="text" class="form-control" value="<?= htmlspecialchars($r['no_hp']) ?>">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Lokasi</label>
+              <select name="lokasi_id" class="form-select" required>
+                <option value="">-- Pilih Lokasi --</option>
+                <?php 
+                $lokasi_res->data_seek(0);
+                while($l = $lokasi_res->fetch_assoc()): ?>
+                  <option value="<?= $l['id'] ?>" <?= ($r['lokasi_name'] == $l['nama_lokasi']) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($l['nama_lokasi']) ?>
+                  </option>
+                <?php endwhile; ?>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-warning"><i class="bi bi-save me-1"></i> Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ganti Password -->
+<div class="modal fade" id="passModal<?= $r['id'] ?>" tabindex="-1" aria-labelledby="passModalLabel<?= $r['id'] ?>" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title"><i class="bi bi-key me-2"></i>Ganti Password Posko</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <input type="hidden" name="change_password" value="1">
+        <input type="hidden" name="id" value="<?= $r['id'] ?>">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Password Baru</label>
+            <div class="input-group">
+              <input name="new_password" type="password" class="form-control" required>
+              <button type="button" class="btn btn-outline-secondary togglePass"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="alert alert-warning small mb-0">
+            <i class="bi bi-info-circle me-1"></i> Password lama akan diganti permanen.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-info"><i class="bi bi-check-circle me-1"></i> Ganti Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<?php endwhile; ?>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {

@@ -75,13 +75,33 @@ include '../../includes/boot.php';
         </thead>
         <tbody>
             <?php
-            $sql = "SELECT p.*, u.nama_lengkap, t.nama_paket, t.lokasi AS nama_posko,
-                           vh.admin_id, u2.nama_lengkap AS admin_nama
-                    FROM pemesanan p 
-                    JOIN users u ON p.user_id = u.id 
-                    JOIN tiket t ON p.tiket_id = t.id
-                    LEFT JOIN verifikasi_history vh ON p.id = vh.pemesanan_id
-                    LEFT JOIN users u2 ON vh.admin_id = u2.id";
+            $sql = "
+                SELECT 
+                    p.id,
+                    p.kode_booking,
+                    u.nama_lengkap,
+                    t.nama_paket,
+                    t.lokasi AS nama_posko,
+                    p.jumlah_tiket,
+                    p.total_harga,
+                    p.status,
+                    p.created_at,
+                    COALESCE(u2.nama_lengkap, 'Admin Pusat') AS admin_nama,
+                    u2.lokasi AS admin_posko
+                FROM pemesanan p
+                JOIN users u ON p.user_id = u.id
+                JOIN tiket t ON p.tiket_id = t.id
+                LEFT JOIN (
+                    SELECT vh1.*
+                    FROM verifikasi_history vh1
+                    INNER JOIN (
+                        SELECT pemesanan_id, MAX(id) AS max_id
+                        FROM verifikasi_history
+                        GROUP BY pemesanan_id
+                    ) vh2 ON vh1.id = vh2.max_id
+                ) vh ON vh.pemesanan_id = p.id
+                LEFT JOIN users u2 ON vh.admin_id = u2.id
+            ";
 
             $conditions = [];
             $params = [];
@@ -138,15 +158,8 @@ include '../../includes/boot.php';
                         <?php
                         if (($data['status'] ?? '') === 'pending') {
                             echo "<span class='text-muted'>-</span>";
-                        } elseif (!empty($data['admin_nama'])) {
-                            $get_posko = $konek->query("SELECT lokasi FROM users WHERE id = " . (int)($data['admin_id'] ?? 0));
-                            if ($get_posko && $row = $get_posko->fetch_assoc()) {
-                                echo htmlspecialchars($row['lokasi'] ?? '') . " - " . htmlspecialchars($data['admin_nama'] ?? '');
-                            } else {
-                                echo htmlspecialchars($data['admin_nama'] ?? '');
-                            }
                         } else {
-                            echo "<span class='text-primary'>Admin Pusat</span>";
+                            echo htmlspecialchars($data['admin_posko'] ?? '') . " - " . htmlspecialchars($data['admin_nama'] ?? '');
                         }
                         ?>
                     </td>

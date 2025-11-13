@@ -121,14 +121,14 @@ include '../../includes/alerts.php';
             $query_recent = $konek->prepare("
                 SELECT 
                     p.kode_booking,
-                    u.nama_lengkap,
+                    u.nama_lengkap AS nama_user,
                     t.nama_paket,
                     t.lokasi AS nama_posko,
                     p.jumlah_tiket,
                     p.total_harga,
                     p.status,
                     p.created_at,
-                    u2.nama_lengkap AS admin_nama,
+                    COALESCE(u2.nama_lengkap, 'Admin Pusat') AS admin_nama,
                     u2.lokasi AS admin_posko
                 FROM pemesanan p
                 JOIN users u ON p.user_id = u.id
@@ -160,23 +160,21 @@ include '../../includes/alerts.php';
                     // Tentukan teks "Diverifikasi oleh"
                     if ($r['status'] === 'pending') {
                         $verifikator = '<span class="text-muted">-</span>';
-                    } elseif ($r['admin_nama']) {
-                        if (!empty($r['admin_posko'])) {
-                            $verifikator = '<span class="fw-semibold text-dark">'
-                                . htmlspecialchars($r['admin_nama'])
-                                . '</span> <span class="badge bg-secondary">'
-                                . htmlspecialchars($r['admin_posko'])
-                                . '</span>';
-                        } else {
-                            $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
-                        }
+                    } elseif (!empty($r['admin_posko'])) {
+                        $verifikator = '<span class="fw-semibold text-dark">'
+                            . htmlspecialchars($r['admin_nama'])
+                            . '</span> <span class="badge bg-secondary">'
+                            . htmlspecialchars($r['admin_posko'])
+                            . '</span>';
                     } else {
-                        $verifikator = '<span class="fw-semibold text-primary">Admin Pusat</span>';
+                        $verifikator = '<span class="fw-semibold text-primary">'
+                            . htmlspecialchars($r['admin_nama'])
+                            . '</span>';
                     }
             ?>
             <tr>
                 <td><?= htmlspecialchars($r['kode_booking']) ?></td>
-                <td><?= htmlspecialchars($r['nama_lengkap']) ?></td>
+                <td><?= htmlspecialchars($r['nama_user']) ?></td>
                 <td><?= htmlspecialchars($r['nama_paket']) ?></td>
                 <td><span class="badge bg-secondary"><?= htmlspecialchars($r['nama_posko']) ?></span></td>
                 <td><?= htmlspecialchars($r['jumlah_tiket']) ?></td>

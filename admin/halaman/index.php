@@ -71,7 +71,7 @@ ob_end_flush();
         <hr class="text-secondary">
 
         <ul class="nav flex-column">
-          <li><a href="?page=admin_profile" class="nav-link <?= ($page=='admin_profile')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-person-circle me-2"></i> Profile Admin</a></li>
+          <li><a href="?page=admin_profile" class="nav-link <?= ($page=='admin_profile')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-person-circle me-2"></i> Data Akun</a></li>
           <li><a href="?page=posko_register" class="nav-link <?= ($page=='posko_register')?'active text-dark bg-light':'text-white'; ?>"><i class="bi bi-person-circle me-2"></i> Register posko</a></li>
           <li><a href="../login/logout.php" class="nav-link text-danger"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
         </ul>
