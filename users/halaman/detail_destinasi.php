@@ -173,7 +173,9 @@ if (!$data_paket) {
                                 <span id="total_harga_display" class="text-primary fw-bold">Rp <?= number_format($data_paket['harga'], 0, ',', '.'); ?></span>
                             </div>
                         </div>
+                        
 
+                        
                         <button type="submit" id="btn-booking" class="btn btn-primary w-100">Booking Sekarang</button>
                     </form>
                     <div class="alert alert-info d-flex align-items-center" role="alert">
