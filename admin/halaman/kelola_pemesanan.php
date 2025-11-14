@@ -30,12 +30,14 @@ include '../../includes/boot.php';
                                 $posko_list = $konek->query("SELECT DISTINCT lokasi FROM tiket ORDER BY lokasi");
                                 while ($posko = $posko_list->fetch_assoc()):
                                 ?>
-                                <option value="<?= htmlspecialchars($posko['lokasi'] ?? '') ?>" <?= (isset($_GET['posko_filter']) && $_GET['posko_filter'] == $posko['lokasi']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($posko['lokasi'] ?? '') ?>
-                                </option>
+                                    <option value="<?= htmlspecialchars($posko['lokasi'] ?? '') ?>" 
+                                        <?= (isset($_GET['posko_filter']) && $_GET['posko_filter'] == $posko['lokasi']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($posko['lokasi'] ?? '') ?>
+                                    </option>
                                 <?php endwhile; ?>
                             </select>
                         </div>
+
                         <div class="col-md-2">
                             <label for="status_filter" class="form-label">Status</label>
                             <select class="form-select" id="status_filter" name="status_filter">
@@ -46,6 +48,7 @@ include '../../includes/boot.php';
                                 <option value="batal" <?= (isset($_GET['status_filter']) && $_GET['status_filter'] == 'batal') ? 'selected' : '' ?>>Batal</option>
                             </select>
                         </div>
+
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">Filter</button>
                             <a href="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>?page=kelola_pemesanan" class="btn btn-secondary">Reset</a>
@@ -73,6 +76,7 @@ include '../../includes/boot.php';
                 <th>Aksi</th>
             </tr>
         </thead>
+
         <tbody>
             <?php
             $sql = "
@@ -127,9 +131,7 @@ include '../../includes/boot.php';
 
             $stmt = $konek->prepare($sql);
             if ($stmt) {
-                if (!empty($params)) {
-                    $stmt->bind_param($types, ...$params);
-                }
+                if (!empty($params)) $stmt->bind_param($types, ...$params);
                 $stmt->execute();
                 $result = $stmt->get_result();
             } else {
@@ -146,14 +148,20 @@ include '../../includes/boot.php';
                         default   => 'bg-secondary'
                     };
             ?>
+
                 <tr>
                     <td><?= htmlspecialchars($data['kode_booking'] ?? '') ?></td>
                     <td><?= htmlspecialchars($data['nama_lengkap'] ?? '') ?></td>
                     <td><?= htmlspecialchars($data['nama_paket'] ?? '') ?></td>
+
                     <td><span class="badge bg-secondary"><?= htmlspecialchars($data['nama_posko'] ?? '') ?></span></td>
+
                     <td><?= (int)($data['jumlah_tiket'] ?? 0) ?></td>
+
                     <td>Rp <?= number_format($data['total_harga'] ?? 0, 0, ',', '.') ?></td>
+
                     <td><span class="badge <?= $statusClass ?>"><?= ucfirst(htmlspecialchars($data['status'] ?? '')) ?></span></td>
+
                     <td>
                         <?php
                         if (($data['status'] ?? '') === 'pending') {
@@ -163,31 +171,49 @@ include '../../includes/boot.php';
                         }
                         ?>
                     </td>
+
                     <td><?= !empty($data['created_at']) ? date('d/m/Y', strtotime($data['created_at'])) : '-' ?></td>
+
                     <td>
-                        <a href='?page=detail_pemesanan&id=<?= htmlspecialchars($data['id'] ?? 0) ?>' class='btn btn-sm btn-info mb-1'>
+
+                        <!-- Button Detail -->
+                        <a href='?page=detail_pemesanan&id=<?= $data['id'] ?>' class='btn btn-sm btn-info mb-1'>
                             <i class='bi bi-eye'></i> Detail
                         </a>
 
-                        <?php if (($data['status'] ?? '') === 'dibayar'): ?>
-                            <a href='proses/proses_pemesanan.php?action=complete&id=<?= htmlspecialchars($data['id'] ?? 0) ?>'
+                        <!-- Status = Dibayar → Tombol Selesaikan -->
+                        <?php if ($data['status'] === 'dibayar'): ?>
+                            <a href='proses/proses_pemesanan.php?action=complete&id=<?= $data['id'] ?>'
                                class='btn btn-sm btn-success mb-1'
                                onclick="return confirm('Tandai pesanan ini sebagai selesai?');">
                                <i class='bi bi-check-circle'></i> Tandai Selesai
                             </a>
-                        <?php elseif (($data['status'] ?? '') === 'pending'): ?>
-                            <a href='proses/proses_pemesanan.php?action=cancel&id=<?= htmlspecialchars($data['id'] ?? 0) ?>'
+
+                        <!-- Status = Pending → Tombol Batalkan -->
+                        <?php elseif ($data['status'] === 'pending'): ?>
+                            <a href='proses/proses_pemesanan.php?action=cancel&id=<?= $data['id'] ?>'
                                class='btn btn-sm btn-danger mb-1'
                                onclick="return confirm('Yakin ingin membatalkan pesanan ini?');">
                                <i class='bi bi-x-circle'></i> Batalkan
                             </a>
                         <?php endif; ?>
+
+                        <!-- Status = Selesai → Muncul Button Struk -->
+                        <?php if ($data['status'] === 'selesai'): ?>
+                            <a href='struk.php?id=<?= $data['id'] ?>'
+                               class='btn btn-sm btn-primary mb-1'
+                               target="_blank">
+                               <i class='bi bi-receipt'></i> Struk
+                            </a>
+                        <?php endif; ?>
+
                     </td>
                 </tr>
+
             <?php
                 endwhile;
             else:
-                echo "<tr><td colspan='10' class='text-center'>Tidak ada data yang cocok dengan kriteria pencarian.</td></tr>";
+                echo "<tr><td colspan='10' class='text-center'>Tidak ada data ditemukan.</td></tr>";
             endif;
             ?>
         </tbody>

@@ -17,7 +17,9 @@ include '../../includes/boot.php';
 $lokasi_admin = $_SESSION['lokasi'];
 $id_admin = $_SESSION['id_user'] ?? 0;
 
-// ✅ Proses aksi verifikasi
+// ========================================
+// =========== PROSES AKSI VERIFIKASI =====
+// ========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'], $_POST['action'])) {
     $pemesanan_id = intval($_POST['pemesanan_id']);
     $action = $_POST['action'];
@@ -36,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'], $_POS
 
     $current_status = $result['status'];
 
-    // 🚫 Cegah aksi tidak valid
+    // Cegah aksi tidak valid
     if ($action === 'confirm' && $current_status !== 'pending') {
         $_SESSION['error_message'] = "Pesanan ini sudah diverifikasi.";
         header("Location: index.php?page=verifikasi_tiket");
@@ -55,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'], $_POS
         exit;
     }
 
-    // 🔁 Eksekusi aksi
+    // Tentukan status baru
     switch ($action) {
         case 'confirm':
             $status_baru = 'dibayar';
@@ -78,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'], $_POS
             exit;
     }
 
-    // ✅ Update status pemesanan
+    // Update status pemesanan
     $update = $konek->prepare("UPDATE pemesanan SET status = ? WHERE id = ?");
     $update->bind_param("si", $status_baru, $pemesanan_id);
     $update->execute();
@@ -101,11 +103,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pemesanan_id'], $_POS
     exit;
 }
 
-// ✅ Detail Pemesanan
+// ========================================
+// =========== DETAIL PEMESANAN ===========
+// ========================================
 if (isset($_GET['id'])) {
     $pemesanan_id = $_GET['id'];
     $query = $konek->prepare("
-        SELECT p.*, u.nama_lengkap, u.email, u.no_hp, t.nama_paket, t.lokasi as nama_posko
+        SELECT p.*, u.nama_lengkap, u.email, u.no_hp, 
+               t.nama_paket, t.lokasi as nama_posko
         FROM pemesanan p
         JOIN users u ON p.user_id = u.id
         JOIN tiket t ON p.tiket_id = t.id
@@ -213,11 +218,32 @@ if (isset($_GET['id'])) {
             <?php endif; ?>
         </div>
     </div>
+
 <?php
 exit;
 }
 
-// ✅ Query utama & statistik
+
+
+$stats_sql = "
+    SELECT 
+        COUNT(*) AS total,
+        SUM(CASE WHEN p.status='selesai' THEN 1 ELSE 0 END) AS completed,
+        SUM(CASE WHEN p.status='dibayar' THEN 1 ELSE 0 END) AS verified,
+        SUM(CASE WHEN p.status='pending' THEN 1 ELSE 0 END) AS pending,
+        SUM(CASE WHEN p.status='batal' THEN 1 ELSE 0 END) AS batal
+    FROM pemesanan p
+    JOIN tiket t ON p.tiket_id = t.id
+    WHERE t.lokasi = ?
+";
+
+
+$stats_stmt = $konek->prepare($stats_sql);
+$stats_stmt->bind_param("s", $lokasi_admin);
+$stats_stmt->execute();
+$stats = $stats_stmt->get_result()->fetch_assoc();
+
+// Query data utama
 $sql = "
     SELECT p.*, t.nama_paket, u.nama_lengkap,
            vh.admin_id, ua.nama_lengkap AS verifikator
@@ -234,59 +260,88 @@ $stmt = $konek->prepare($sql);
 $stmt->bind_param('s', $lokasi_admin);
 $stmt->execute();
 $res = $stmt->get_result();
-
-$stats_sql = "
-    SELECT 
-        COUNT(*) AS total,
-        SUM(CASE WHEN p.status='selesai' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN p.status='dibayar' THEN 1 ELSE 0 END) AS verified,
-        SUM(CASE WHEN p.status='pending' THEN 1 ELSE 0 END) AS pending,
-        SUM(CASE WHEN p.status='batal' THEN 1 ELSE 0 END) AS canceled
-    FROM pemesanan p
-    JOIN tiket t ON p.tiket_id=t.id
-    WHERE t.lokasi=?
-";
-$stats_stmt = $konek->prepare($stats_sql);
-$stats_stmt->bind_param('s', $lokasi_admin);
-$stats_stmt->execute();
-$stats = $stats_stmt->get_result()->fetch_assoc();
 ?>
 
-<!-- ✅ Pesan -->
-<?php if (isset($_SESSION['success_message'])): ?>
-<div class="alert alert-success"><?= $_SESSION['success_message']; unset($_SESSION['success_message']); ?></div>
-<?php endif; ?>
-
-<?php if (isset($_SESSION['error_message'])): ?>
-<div class="alert alert-danger"><?= $_SESSION['error_message']; unset($_SESSION['error_message']); ?></div>
-<?php endif; ?>
-
-<!-- ✅ Statistik -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3"><div class="card text-white bg-primary shadow-sm"><div class="card-body"><h5>Total Tiket</h5><h2><?= $stats['total'] ?></h2></div></div></div>
-    <div class="col-md-3"><div class="card text-white bg-success shadow-sm"><div class="card-body"><h5>Selesai</h5><h2><?= $stats['completed'] ?></h2></div></div></div>
-    <div class="col-md-3"><div class="card text-white bg-info shadow-sm"><div class="card-body"><h5>Terverifikasi</h5><h2><?= $stats['verified'] ?></h2></div></div></div>
-    <div class="col-md-3"><div class="card text-white bg-warning shadow-sm"><div class="card-body"><h5>Menunggu</h5><h2><?= $stats['pending'] ?></h2></div></div></div>
-    <div class="col-md-3 mt-3"><div class="card text-white bg-danger shadow-sm"><div class="card-body"><h5>Dibatalkan</h5><h2><?= $stats['canceled'] ?></h2></div></div></div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow-sm">
+            <div class="card-body">
+                <h5>Total Tiket</h5>
+                <h2><?= $stats['total'] ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body">
+                <h5>Selesai</h5>
+                <h2><?= $stats['completed'] ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-info shadow-sm">
+            <div class="card-body">
+                <h5>Terverifikasi</h5>
+                <h2><?= $stats['verified'] ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow-sm">
+            <div class="card-body">
+                <h5>Menunggu</h5>
+                <h2><?= $stats['pending'] ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-white bg-danger shadow-sm">
+            <div class="card-body">
+                <h5>Batal</h5>
+                <h2><?= $stats['batal'] ?></h2>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- ✅ Tabel -->
+
 <div class="card shadow-sm">
     <div class="card-header bg-white fw-bold text-primary">Daftar Pemesanan Tiket</div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
-                <thead><tr><th>Kode</th><th>Pelanggan</th><th>Paket</th><th>Tanggal</th><th>Total</th><th>Status</th><th>Verifikator</th><th>Aksi</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Pelanggan</th>
+                        <th>Paket</th>
+                        <th>Tanggal</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Verifikator</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <?php if ($res->num_rows > 0): while($row=$res->fetch_assoc()): 
-                        $badgeClass = match($row['status']) {
-                            'pending' => 'bg-warning text-dark',
-                            'dibayar' => 'bg-info text-dark',
-                            'selesai' => 'bg-success',
-                            'batal' => 'bg-danger',
-                            default => 'bg-secondary'
-                        };
-                    ?>
+
+<?php if ($res->num_rows > 0): while ($row = $res->fetch_assoc()): ?>
+
+<?php
+$badgeClass = match($row['status']) {
+    'pending' => 'bg-warning text-dark',
+    'dibayar' => 'bg-info text-dark',
+    'selesai' => 'bg-success',
+    'batal' => 'bg-danger',
+    default => 'bg-secondary'
+};
+?>
                     <tr>
                         <td><?= htmlspecialchars($row['kode_booking']) ?></td>
                         <td><?= htmlspecialchars($row['nama_lengkap']) ?></td>
@@ -294,26 +349,40 @@ $stats = $stats_stmt->get_result()->fetch_assoc();
                         <td><?= htmlspecialchars($row['tanggal_kunjungan']) ?></td>
                         <td>Rp <?= number_format($row['total_harga'],0,',','.') ?></td>
                         <td><span class="badge <?= $badgeClass ?>"><?= ucfirst($row['status']) ?></span></td>
-                        <td><?= $row['verifikator'] ? htmlspecialchars($row['verifikator']) : '<span class="text-muted">Belum diverifikasi</span>' ?></td>
+                        <td><?= $row['verifikator'] ? htmlspecialchars($row['verifikator']) : '<span class="text-muted">-</span>' ?></td>
+
                         <td>
                             <?php if ($row['status'] === 'pending'): ?>
                                 <a href="?page=verifikasi_tiket&id=<?= $row['id'] ?>" class="btn btn-sm btn-primary">Verifikasi</a>
+
                             <?php elseif ($row['status'] === 'dibayar'): ?>
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="pemesanan_id" value="<?= $row['id'] ?>">
                                     <input type="hidden" name="action" value="complete">
-                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Tandai pesanan ini selesai?')">Selesai</button>
+                                    <button class="btn btn-sm btn-success"
+                                            onclick="return confirm('Tandai pesanan ini selesai?')">Selesai</button>
                                 </form>
+
                             <?php elseif ($row['status'] === 'selesai'): ?>
-                                <span class="badge bg-success">Selesai</span>
-                            <?php elseif ($row['status'] === 'batal'): ?>
+                                <a href="struk.php?id=<?= $row['id'] ?>"
+                                   class="btn btn-sm btn-warning" target="_blank">
+                                    Cetak Struk
+                                </a>
+
+                            <?php else: ?>
                                 <span class="badge bg-danger">Dibatalkan</span>
                             <?php endif; ?>
                         </td>
                     </tr>
-                    <?php endwhile; else: ?>
-                    <tr><td colspan="8" class="text-center text-muted">Tidak ada data</td></tr>
-                    <?php endif; ?>
+
+<?php endwhile; else: ?>
+
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">Tidak ada data</td>
+                    </tr>
+
+<?php endif; ?>
+
                 </tbody>
             </table>
         </div>
