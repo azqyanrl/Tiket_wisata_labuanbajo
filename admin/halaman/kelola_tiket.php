@@ -117,7 +117,8 @@ $query_tipe = $konek->query("SELECT * FROM tipe_trip ORDER BY nama ASC");
             </div>
             <form id="tiketForm" method="POST" action="proses/handle_tiket.php" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="tiketId">
+                    <!-- HIDDEN ID HARUS name="id" agar handle_tiket.php tahu ini EDIT -->
+                    <input type="hidden" name="id" id="id">
                     
                     <!-- Informasi Dasar -->
                     <div class="card mb-4">
@@ -205,14 +206,14 @@ $query_tipe = $konek->query("SELECT * FROM tipe_trip ORDER BY nama ASC");
                                 </div>
                             </div>
 
-                            <!-- ✅ Diperbaiki: Harga, Stok, Kapasitas sejajar -->
+                            <!-- Harga, Stok, Kapasitas -->
                             <div class="row g-3">
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label for="harga" class="form-label">Harga</label>
                                         <div class="input-group">
                                             <span class="input-group-text">Rp</span>
-                                            <input type="number" id="harga" name="harga" class="form-control" placeholder="0" required min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '');"">
+                                            <input type="number" id="harga" name="harga" class="form-control" placeholder="0" required min="0" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                         </div>
                                     </div>
                                 </div>
@@ -285,8 +286,34 @@ $query_tipe = $konek->query("SELECT * FROM tipe_trip ORDER BY nama ASC");
     </div>
 </div>
 
+<!-- Scripting: loadTiketData + modal handling -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+    // Tombol "Tambah Paket Wisata" (di header) harus membuat input gambar required
+    document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#tiketModal"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Reset form untuk mode tambah
+            const form = document.getElementById('tiketForm');
+            if (form) form.reset();
+
+            // Pastikan hidden id kosong
+            const hiddenId = document.getElementById('id');
+            if (hiddenId) hiddenId.value = '';
+
+            // gambar wajib untuk tambah
+            const gambarEl = document.getElementById('gambar');
+            if (gambarEl) gambarEl.setAttribute('required', 'required');
+
+            // kosongkan preview
+            const preview = document.getElementById('imagePreview');
+            if (preview) preview.innerHTML = '';
+
+            document.getElementById('tiketModalLabel').textContent = 'Tambah Paket Wisata';
+        });
+    });
+
+    // Tombol Edit -> panggil loadTiketData
     document.querySelectorAll('.edit-tiket').forEach(button => {
         button.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
@@ -294,68 +321,102 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Jika buka lewat URL ?action=edit&id=...
     const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
-    const id = urlParams.get('id');
-    if (action === 'edit' && id) loadTiketData(id);
-
-    function loadTiketData(id) {
-        fetch(`proses/get_tiket.php?id=${id}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) return alert(data.error);
-                document.getElementById('tiketForm').reset();
-                for (let key in data) if (document.getElementById(key)) document.getElementById(key).value = data[key] || '';
-                if (data.gambar) {
-                    document.getElementById('imagePreview').innerHTML = `
-                        <p class="form-text">Gambar saat ini:</p>
-                        <img src="../../assets/images/tiket/${data.gambar}" width="100" class="img-thumbnail">
-                    `;
-                } else document.getElementById('imagePreview').innerHTML = '';
-                document.querySelector('#tiketModalLabel').textContent = 'Edit Tiket';
-                new bootstrap.Modal(document.getElementById('tiketModal')).show();
-            })
-            .catch(() => alert('Terjadi kesalahan saat memuat data tiket'));
+    if (urlParams.get('action') === 'edit' && urlParams.get('id')) {
+        loadTiketData(urlParams.get('id'));
     }
 
-    document.getElementById('tiketModal').addEventListener('hidden.bs.modal', function () {
-        document.getElementById('tiketForm').reset();
-        document.getElementById('tiketId').value = '';
-        document.getElementById('imagePreview').innerHTML = '';
-        document.querySelector('#tiketModalLabel').textContent = 'Tambah Tiket';
-    });
+    // Saat modal ditutup reset & hapus required pada gambar
+    const tiketModalEl = document.getElementById('tiketModal');
+    if (tiketModalEl) {
+        tiketModalEl.addEventListener('hidden.bs.modal', function () {
+            const form = document.getElementById('tiketForm');
+            if (form) form.reset();
+            const preview = document.getElementById('imagePreview');
+            if (preview) preview.innerHTML = '';
+            const gambarEl = document.getElementById('gambar');
+            if (gambarEl) gambarEl.removeAttribute('required');
+            const hiddenId = document.getElementById('id');
+            if (hiddenId) hiddenId.value = '';
+            document.getElementById('tiketModalLabel').textContent = 'Tambah Paket Wisata';
+        });
+    }
+});
 
-    document.querySelector('[data-bs-target="#tiketModal"]').addEventListener('click', () => {
-        document.getElementById('gambar').setAttribute('required', 'required');
-    });
+// loadTiketData: fetch data tiket dan isi form (untuk Edit)
+function loadTiketData(id) {
 
-    document.getElementById('gambar').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('imagePreview').innerHTML = `
-                <p class="form-text">Preview gambar:</p>
-                <img src="${e.target.result}" width="100" class="img-thumbnail">
-            `;
-        };
-        reader.readAsDataURL(file);
-    });
+    console.log("LOAD DATA ID:", id);
 
-    document.getElementById('tiketForm').addEventListener('submit', function(e) {
-        const required = ['nama_paket','kategori_id','lokasi','durasi','deskripsi','harga','stok'];
-        for (let id of required) {
-            const el = document.getElementById(id);
-            if (!el.value.trim()) {
-                e.preventDefault();
-                return alert('Mohon lengkapi semua field yang wajib diisi!');
+    fetch("proses/get_tiket.php?id=" + encodeURIComponent(id), {
+        method: "GET",
+        credentials: "include"
+    })
+    .then(async res => {
+        const raw = await res.text();
+        console.log("RAW RESPONSE:", raw);
+
+        try {
+            return JSON.parse(raw);
+        } catch (err) {
+            console.error("JSON PARSE ERROR:", err);
+            alert("Response dari server bukan JSON. Cek console (Network/Console).");
+            throw err;
+        }
+    })
+    .then(data => {
+
+        console.log("DATA JSON:", data);
+
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+
+        // Reset form
+        const form = document.getElementById("tiketForm");
+        if (form) form.reset();
+
+        // Set hidden id (penting supaya server tahu EDIT)
+        const hiddenId = document.getElementById('id');
+        if (hiddenId) hiddenId.value = data.id || '';
+
+        // Hapus required pada gambar saat edit
+        const gambarEl = document.getElementById("gambar");
+        if (gambarEl) gambarEl.removeAttribute('required');
+
+        // Isi input sesuai data (kecuali input type=file)
+        Object.keys(data).forEach(key => {
+            const el = document.getElementById(key);
+            if (!el) return;
+            if (el.type === "file") return;
+            el.value = data[key] !== null && data[key] !== undefined ? data[key] : "";
+        });
+
+        // Preview gambar lama
+        const preview = document.getElementById("imagePreview");
+        if (preview) {
+            if (data.gambar) {
+                preview.innerHTML = `
+                    <p class="form-text">Gambar saat ini:</p>
+                    <img src="../../assets/images/tiket/${data.gambar}" width="120" class="img-thumbnail">
+                `;
+            } else {
+                preview.innerHTML = "";
             }
         }
-        const isEdit = document.getElementById('tiketId').value;
-        if (!isEdit && !document.getElementById('gambar').files[0]) {
-            e.preventDefault();
-            alert('Gambar wajib diupload untuk tiket baru!');
-        }
+
+        // Ubah judul modal dan tampilkan modal
+        const label = document.getElementById("tiketModalLabel");
+        if (label) label.textContent = "Edit Paket Wisata";
+
+        new bootstrap.Modal(document.getElementById("tiketModal")).show();
+
+    })
+    .catch(err => {
+        console.error("FETCH ERROR:", err);
+        alert("Terjadi kesalahan saat memuat data tiket. Lihat console.");
     });
-});
+}
 </script>

@@ -141,13 +141,6 @@ $user = $result->fetch_assoc();
                                     <label for="no_hp">Nomor HP</label>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="text" name="lokasi" class="form-control" id="lokasi"
-                                           value="<?= htmlspecialchars($user['lokasi']) ?>" required>
-                                    <label for="lokasi">Lokasi</label>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="form-floating mt-3">

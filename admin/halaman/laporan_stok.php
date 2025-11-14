@@ -144,7 +144,18 @@ $result = mysqli_query($konek, $query);
             <?php
                 if ($filter_type === 'hari') echo "Tanggal $filter_date";
                 elseif ($filter_type === 'periode') echo "$from_date s.d $to_date";
-                elseif ($filter_type === 'bulan') echo "Bulan ".date('F', mktime(0,0,0,$filter_month,1))." $filter_year";
+                elseif ($filter_type === 'bulan') {
+    $fm = intval($filter_month);
+    $fy = intval($filter_year);
+
+    // Jika bulan tidak valid, pakai bulan sekarang
+    if ($fm < 1 || $fm > 12) $fm = date('n');
+    // Jika tahun tidak valid, pakai tahun sekarang
+    if ($fy < 2000) $fy = date('Y');
+
+    echo "Bulan ".date('F', mktime(0,0,0,$fm,1))." $fy";
+}
+
                 elseif ($filter_type === 'tahun') echo "Tahun $filter_year";
             ?>
         </p>

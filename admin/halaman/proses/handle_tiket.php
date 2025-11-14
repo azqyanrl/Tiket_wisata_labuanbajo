@@ -3,16 +3,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ✅ Cek login admin
+// Cek role admin (sama seperti di file lain)
 if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error_message'] = "Akses ditolak! Anda harus login sebagai admin.";
     header('location: ../../login/login_admin.php');
     exit;
 }
 
+// Sesuaikan path konek.php sesuai strukturmu.
+// Jika file ini di admin/tiket/proses, path ke database biasanya '../../database/konek.php'
 include '../../../database/konek.php';
 
-// ✅ Pastikan metode request adalah POST
+// Pastikan metode POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $_SESSION['error_message'] = "Metode request tidak valid.";
     header("Location: ../index.php?page=kelola_tiket");
@@ -23,30 +25,30 @@ $editing = isset($_POST['id']) && is_numeric($_POST['id']);
 $gambar_lama = '';
 
 try {
-    // 🧩 Ambil data gambar lama jika sedang edit
+    // Ambil gambar lama saat editing
     if ($editing) {
         $stmt = $konek->prepare("SELECT gambar FROM tiket WHERE id = ?");
         $stmt->bind_param("i", $_POST['id']);
         $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $tiket_lama = $result->fetch_assoc();
-            $gambar_lama = $tiket_lama['gambar'];
+        $res = $stmt->get_result();
+        if ($res && $res->num_rows > 0) {
+            $row = $res->fetch_assoc();
+            $gambar_lama = $row['gambar'];
         }
         $stmt->close();
     }
 
-    // ✅ Pastikan folder upload tersedia
+    // Folder target upload (pastikan path benar)
     $target_dir = __DIR__ . '/../../../assets/images/tiket/';
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0755, true);
     }
 
-    // Default: pakai gambar lama
+    // Default: tetap pakai gambar lama
     $gambar_baru = $gambar_lama;
 
-    // 🩵 Jika admin upload gambar baru
-    if (isset($_FILES['gambar']) && $_FILES['gambar']['error'] === UPLOAD_ERR_OK) {
+    // Jika ada file diupload dan valid
+    if (isset($_FILES['gambar']) && isset($_FILES['gambar']['error']) && $_FILES['gambar']['error'] === UPLOAD_ERR_OK) {
         $check = getimagesize($_FILES['gambar']['tmp_name']);
         if ($check === false) {
             throw new Exception("File yang diupload bukan gambar.");
@@ -60,33 +62,29 @@ try {
             throw new Exception("Gagal mengupload gambar. Periksa permission folder.");
         }
 
-        // Hapus gambar lama kalau ada dan berbeda
+        // Hapus gambar lama jika ada
         if ($editing && !empty($gambar_lama)) {
             $file_lama_path = $target_dir . $gambar_lama;
             if (file_exists($file_lama_path)) {
-                unlink($file_lama_path);
+                @unlink($file_lama_path);
             }
         }
 
-        // Simpan nama file baru ke database
         $gambar_baru = $file_name;
-
     } elseif (!$editing) {
-        // Tambah tiket baru tapi tidak upload gambar
+        // Jika tambah baru dan tidak mengupload gambar -> error
         throw new Exception("Gambar wajib diupload untuk tiket baru.");
     }
 
-    // ✅ Sanitasi tipe_trip agar tidak error jika kosong
+    // Sanitasi tipe trip, angka kosong ke 0
     $tipe_trip = null;
     if (isset($_POST['tipe_trip']) && $_POST['tipe_trip'] !== '') {
         $tipe_trip = (int) $_POST['tipe_trip'];
     }
+    $kapasitas = !empty($_POST['kapasitas']) ? (int) $_POST['kapasitas'] : 0;
+    $stok_default = !empty($_POST['stok_default']) ? (int) $_POST['stok_default'] : 0;
 
-    // ✅ Sanitasi angka kosong jadi 0
-    $kapasitas = !empty($_POST['kapasitas']) ? $_POST['kapasitas'] : 0;
-    $stok_default = !empty($_POST['stok_default']) ? $_POST['stok_default'] : 0;
-
-    // ✅ Simpan ke database
+    // Simpan ke database
     if ($editing) {
         $sql = "UPDATE tiket SET 
                     nama_paket = ?, deskripsi = ?, harga = ?, stok = ?, stok_default = ?, 
@@ -155,4 +153,3 @@ try {
     header("Location: ../index.php?page=kelola_tiket");
     exit;
 }
-?>

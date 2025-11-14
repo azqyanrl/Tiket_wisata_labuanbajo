@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validasi input
     if (!$pemesanan_id || empty($status_baru)) {
         $_SESSION['error_message'] = "Data tidak lengkap.";
-        header("Location: verifikasi.php");
+        header("Location: verifikasi_histori.php");
         exit;
     }
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Notifikasi sukses
     $_SESSION['success_message'] = "Status pemesanan berhasil diperbarui dan dicatat ke history.";
-    header("Location: verifikasi.php");
+    header("Location: verifikasi_histori.php");
     exit;
 }
 ?>
