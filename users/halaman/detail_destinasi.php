@@ -176,7 +176,15 @@ if (!$data_paket) {
 
                         <button type="submit" id="btn-booking" class="btn btn-primary w-100">Booking Sekarang</button>
                     </form>
-
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="bi bi-info-circle-fill me-3 fs-4"></i>
+                        <div>
+                            <strong>Catatan Penting:</strong> 
+                            <ul class="mb-0 mt-2">
+                                <li>jika lokasi wisata lebih dari 1, lakukan pembayaran di lokasi pertama wisata, seperti diitenerary</li>
+                            </ul>
+                        </div>
+                    </div>
                     <small class="text-muted d-block text-center mt-2">Pembayaran dilakukan langsung ke admin (offline).</small>
                 </div>
             </div>
