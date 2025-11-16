@@ -14,9 +14,6 @@ include '../../includes/boot.php';
 $lokasi_admin = $_SESSION['lokasi'];
 ?>
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Verifikasi Pemesanan Posko <?= htmlspecialchars($lokasi_admin) ?></h1>
-</div>
 
 <!-- 🔍 Form Pencarian -->
 <div class="card mb-4">

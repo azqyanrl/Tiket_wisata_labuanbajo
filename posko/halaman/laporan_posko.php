@@ -133,9 +133,6 @@ while ($r = $res->fetch_assoc()) {
 </style>
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h1 class="h3">Laporan Posko <?= htmlspecialchars($lokasi_admin) ?></h1>
-    </div>
 
     <!-- Filter -->
     <div class="card shadow-sm mb-4 no-print">

@@ -183,7 +183,7 @@ if (!$data_paket) {
                         <div>
                             <strong>Catatan Penting:</strong> 
                             <ul class="mb-0 mt-2">
-                                <li>jika lokasi wisata lebih dari 1, lakukan pembayaran di lokasi pertama wisata, seperti diitenerary</li>
+                                <li>jika lokasi wisata lebih dari 1, lakukan pembayaran di lokasi pertama wisata, seperti diitinerary</li>
                             </ul>
                         </div>
                     </div>
