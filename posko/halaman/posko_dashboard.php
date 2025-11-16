@@ -262,53 +262,83 @@ $stmt->execute();
 $res = $stmt->get_result();
 ?>
 
-<div class="row g-4 mb-4">
-
-    <div class="col-md-3">
-        <div class="card text-white bg-primary shadow-sm">
+<!-- Statistik Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-primary shadow-sm h-100 transition-hover">
             <div class="card-body">
-                <h5>Total Tiket</h5>
-                <h2><?= $stats['total'] ?></h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0 fw-bold"><?= $stats['total'] ?? 0 ?></h2>
+                        <p class="mb-0 mt-1">Total Pemesanan</p>
+                    </div>
+                    <div class="icon-container">
+                        <i class="bi bi-cart-check fs-1 opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-success shadow-sm">
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-success shadow-sm h-100 transition-hover">
             <div class="card-body">
-                <h5>Selesai</h5>
-                <h2><?= $stats['completed'] ?></h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0 fw-bold"><?= $stats['completed'] ?? 0 ?></h2>
+                        <p class="mb-0 mt-1">Selesai</p>
+                    </div>
+                    <div class="icon-container">
+                        <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-info shadow-sm">
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-warning shadow-sm h-100 transition-hover">
             <div class="card-body">
-                <h5>Terverifikasi</h5>
-                <h2><?= $stats['verified'] ?></h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0 fw-bold"><?= $stats['verified'] ?? 0 ?></h2>
+                        <p class="mb-0 mt-1">Terverifikasi</p>
+                    </div>
+                    <div class="icon-container">
+                        <i class="bi bi-clock-history fs-1 opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-warning shadow-sm">
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-info shadow-sm h-100 transition-hover">
             <div class="card-body">
-                <h5>Menunggu</h5>
-                <h2><?= $stats['pending'] ?></h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0 fw-bold"><?= $stats['pending'] ?? 0 ?></h2>
+                        <p class="mb-0 mt-1">Pending</p>
+                    </div>
+                    <div class="icon-container">
+                        <i class="bi bi-hourglass-split fs-1 opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="col-md-3">
-        <div class="card text-white bg-danger shadow-sm">
+    <div class="col-xl-3 col-md-6">
+        <div class="card text-white bg-danger shadow-sm h-100 transition-hover">
             <div class="card-body">
-                <h5>Batal</h5>
-                <h2><?= $stats['batal'] ?></h2>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0 fw-bold"><?= $stats['batal'] ?? 0 ?></h2>
+                        <p class="mb-0 mt-1">Batal</p>
+                    </div>
+                    <div class="icon-container">
+                        <i class="bi bi-x-circle fs-1 opacity-75"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
 </div>
 
 
