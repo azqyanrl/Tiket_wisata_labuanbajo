@@ -82,10 +82,6 @@ $admin_data = $stmt->get_result()->fetch_assoc();
                                 <input type="text" name="no_hp" class="form-control"
                                        value="<?= htmlspecialchars($admin_data['no_hp']); ?>">
                             </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Alamat</label>
-                                <textarea name="alamat" rows="3" class="form-control"><?= htmlspecialchars($admin_data['alamat'] ?? ''); ?></textarea>
-                            </div>
                         </div>
                         <div class="mt-3 text-end">
                             <button type="submit" name="update_profile" class="btn " style="background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);transform: translateY(-2px); box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); color: white;">

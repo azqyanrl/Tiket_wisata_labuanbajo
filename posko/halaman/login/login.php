@@ -20,17 +20,20 @@ if (
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
+  include '../../../includes/boot.php';
 // Proses login
 if (isset($_POST['login'])) {
+    include '../../../database/konek.php';
     $username = $_POST['username'];
     $password = $_POST['password'];
     
-    include '../../../database/konek.php';
-    include '../../../includes/boot.php';
-    
-    $stmt = $konek->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
+
+    $stmt = $konek->prepare("
+        SELECT * FROM users 
+        WHERE (username = ? OR email = ?) AND role = 'posko'
+    ");
+
+    $stmt->bind_param("ss", $username, $username);
     $stmt->execute();
     $result = $stmt->get_result();
     
@@ -132,10 +135,10 @@ if (isset($_POST['login'])) {
 
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
+                        <label for="username" class="form-label">Username atau Email</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="username" class="form-control" placeholder="Masukkan username" required autofocus>
+                            <input type="text" name="username" class="form-control" placeholder="Masukkan username atau email" required autofocus>
                         </div>
                     </div>
                     <div class="mb-3">

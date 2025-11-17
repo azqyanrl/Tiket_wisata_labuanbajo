@@ -18,13 +18,6 @@ if (isset($_SESSION['success_message'])) {
     unset($_SESSION['success_message']); 
 } 
 
-$foto = $_SESSION['profile_photo'] ?? null;
-if ($foto && file_exists("../../assets/images/profile/$foto")) {
-    echo "<img src='../../assets/images/profile/$foto' class='rounded-circle' width='50' height='50' style='object-fit:cover;'>";
-} else {
-    $initial = strtoupper(substr($_SESSION['username'], 0, 1));
-    echo "<div class='rounded-circle bg-primary text-white d-flex align-items-center justify-content-center' style='width:50px;height:50px;font-weight:bold;'>$initial</div>";
-}
 
 // Ambil ID admin yang sedang login
 $query_admin = $konek->prepare("SELECT id FROM users WHERE username = ?");

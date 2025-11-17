@@ -258,7 +258,6 @@ unset($_SESSION['notif']);
                                 <div class="btn-group">
                                     <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<?= $r['id'] ?>"><i class="bi bi-pencil-square"></i></button>
                                     <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#passModal<?= $r['id'] ?>"><i class="bi bi-key"></i></button>
-                                    <a href="?reset_pass=<?= $r['id'] ?>" onclick="return confirm('Reset password ke posko123?')" class="btn btn-sm btn-danger"><i class="bi bi-arrow-repeat"></i></a>
                                 </div>
                             </td>
                         </tr>
