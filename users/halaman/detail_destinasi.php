@@ -32,6 +32,9 @@ if (!$data_paket) {
 
  $stok_tersisa = getStokTersisa($konek, $data_paket['id']);
 ?>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 <section class="hero-section" style="height: 60vh; position: relative; overflow: hidden;">
     <img src="../../assets/images/tiket/<?= htmlspecialchars($data_paket['gambar']); ?>"
          alt="<?= htmlspecialchars($data_paket['nama_paket']); ?>"
