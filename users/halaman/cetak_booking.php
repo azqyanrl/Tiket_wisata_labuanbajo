@@ -48,7 +48,7 @@ if (!$data_booking) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../includes/cetak_booking.css">
-    <title>Document</title>
+    <title>LabuanBajoTrip</title>
 </head>
 <body>
     

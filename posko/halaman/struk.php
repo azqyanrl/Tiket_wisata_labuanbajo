@@ -51,7 +51,7 @@ $tanggal_kadaluarsa = date('d/m/Y', strtotime($data['tanggal_kunjungan'] . ' +1 
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Struk Pemesanan</title>
+<title>Struk Pemesanan | LabuanBajoTrip</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>

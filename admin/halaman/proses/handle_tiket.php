@@ -10,8 +10,6 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'admin') {
     exit;
 }
 
-// Sesuaikan path konek.php sesuai strukturmu.
-// Jika file ini di admin/tiket/proses, path ke database biasanya '../../database/konek.php'
 include '../../../database/konek.php';
 
 // Pastikan metode POST
